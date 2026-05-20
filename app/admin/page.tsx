@@ -27,6 +27,33 @@ import {
     AlertCircle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
+
+declare global {
+    namespace JSX {
+        interface IntrinsicElements {
+            "dotlottie-wc": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+                src?: string;
+                autoplay?: boolean;
+                loop?: boolean;
+                style?: React.CSSProperties;
+            }, HTMLElement>;
+        }
+    }
+    namespace React {
+        namespace JSX {
+            interface IntrinsicElements {
+                "dotlottie-wc": React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement> & {
+                    src?: string;
+                    autoplay?: boolean;
+                    loop?: boolean;
+                    style?: React.CSSProperties;
+                }, HTMLElement>;
+            }
+        }
+    }
+}
+
 
 interface Inquiry {
     id: number;
@@ -87,7 +114,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "support" | "intern-support" | "clients" | "payment-due-sender">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender">("overview");
 
     // Payment Due Sender Form State
     const [paymentClientId, setPaymentClientId] = useState<number | "">("");
@@ -96,6 +123,14 @@ export default function AdminPortal() {
     const [paymentInvoiceFile, setPaymentInvoiceFile] = useState<{ name: string; type: string; base64: string } | null>(null);
     const [paymentSendStatus, setPaymentSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [paymentErrorMessage, setPaymentErrorMessage] = useState("");
+
+    // Payment Received Sender Form State
+    const [receivedClientId, setReceivedClientId] = useState<number | "">("");
+    const [receivedAmount, setReceivedAmount] = useState("");
+    const [receivedDate, setReceivedDate] = useState("");
+    const [receivedReceiptFile, setReceivedReceiptFile] = useState<{ name: string; type: string; base64: string } | null>(null);
+    const [receivedSendStatus, setReceivedSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [receivedErrorMessage, setReceivedErrorMessage] = useState("");
     const [inquiries, setInquiries] = useState<Inquiry[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [tickets, setTickets] = useState<SupportTicket[]>([]);
@@ -500,6 +535,66 @@ export default function AdminPortal() {
         reader.readAsDataURL(file);
     };
 
+    const handleSendPaymentReceived = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!receivedClientId || !receivedAmount || !receivedDate) {
+            alert("Please fill in all required fields.");
+            return;
+        }
+        setReceivedSendStatus('sending');
+        setReceivedErrorMessage("");
+
+        try {
+            const res = await fetch("/api/admin/clients/send-receipt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientId: Number(receivedClientId),
+                    amount: receivedAmount,
+                    paymentDate: receivedDate,
+                    receiptFile: receivedReceiptFile,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setReceivedSendStatus('success');
+                // Reset form values on success
+                setReceivedClientId("");
+                setReceivedAmount("");
+                setReceivedDate("");
+                setReceivedReceiptFile(null);
+                setTimeout(() => setReceivedSendStatus('idle'), 4000);
+            } else {
+                setReceivedSendStatus('error');
+                setReceivedErrorMessage(data.message || "Failed to send payment received notification.");
+            }
+        } catch (error) {
+            console.error("Failed to send payment received notification:", error);
+            setReceivedSendStatus('error');
+            setReceivedErrorMessage("An error occurred. Please try again.");
+        }
+    };
+
+    const handleReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== "application/pdf") {
+            alert("Only PDF files are supported.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setReceivedReceiptFile({
+                name: file.name,
+                type: file.type,
+                base64: reader.result as string,
+            });
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleLogout = async () => {
         await fetch("/api/admin/logout", { method: "POST" });
         router.push("/admin/login");
@@ -604,6 +699,13 @@ export default function AdminPortal() {
                         <CreditCard className="w-4 h-4" />
                         Payment Due Sender
                     </button>
+                    <button 
+                        onClick={() => setActiveTab("payment-received-sender")}
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-received-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                    >
+                        <CheckCircle2 className="w-4 h-4" />
+                        Payment Received Sender
+                    </button>
                 </nav>
 
                 <button 
@@ -627,7 +729,8 @@ export default function AdminPortal() {
                                  activeTab === "employees" ? "Employee portal" : 
                                  activeTab === "support" ? "Support system" : 
                                  activeTab === "intern-support" ? "Intern support system" : 
-                                 activeTab === "clients" ? "Client management" : "Payment Due Sender"}
+                                 activeTab === "clients" ? "Client management" : 
+                                 activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" : 
@@ -635,7 +738,8 @@ export default function AdminPortal() {
                                  activeTab === "support" ? "manage and resolve technical issues" : 
                                  activeTab === "intern-support" ? "manage intern technical and portal issues" : 
                                  activeTab === "employees" ? "manage organization structure" : 
-                                 activeTab === "clients" ? "monitor client projects and meetings" : "send billing notices to registered clients"}
+                                 activeTab === "clients" ? "monitor client projects and meetings" : 
+                                 activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -1880,6 +1984,293 @@ export default function AdminPortal() {
 
                                                             <p style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', fontStyle: 'italic', margin: '20px 0 0 0' }}>
                                                                 If you have already processed the payment, please disregard this message or share the receipt with us.
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Footer */}
+                                                        <div style={{ backgroundColor: '#f9fafb', padding: '30px', borderTop: '1px solid #eee', fontSize: '12px' }}>
+                                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>Billing Lead</p>
+                                                            <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#111' }}>Shiva Krishna Manthena</p>
+                                                            <p style={{ margin: '2px 0 20px 0', color: '#4b5563' }}>Redlix Studio | Accounts Department</p>
+                                                            
+                                                            <div style={{ fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
+                                                                <p style={{ margin: '0' }}>© 2026 Redlix Studio</p>
+                                                                <p style={{ margin: '0' }}>Software & IT infrastructure solutions</p>
+                                                                <p style={{ margin: '4px 0 0 0', color: '#E61E32', fontWeight: '600' }}>www.redlix.co.in</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === "payment-received-sender" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full overflow-y-auto pr-2 pb-6">
+                                <Script 
+                                    src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" 
+                                    type="module" 
+                                    strategy="lazyOnload" 
+                                />
+                                {/* Form Container */}
+                                <div className="bg-white/5 border border-white/10 p-8 space-y-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
+                                                <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
+                                                Send Payment Confirmation
+                                            </h3>
+                                            <p className="text-xs text-white/40 mt-1">Select a client and enter received payment details.</p>
+                                        </div>
+                                        <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-white/[0.02] border border-white/5 rounded-full overflow-hidden">
+                                            <dotlottie-wc 
+                                                src="https://lottie.host/f13997bb-c272-480a-88bc-7207fef2de93/GBzchfk01z.lottie" 
+                                                autoplay 
+                                                loop 
+                                                style={{ width: "80px", height: "80px" }} 
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <form onSubmit={handleSendPaymentReceived} className="space-y-6">
+                                        {/* Client Dropdown */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Registered Client *</label>
+                                            <select 
+                                                required
+                                                value={receivedClientId}
+                                                onChange={(e) => setReceivedClientId(e.target.value === "" ? "" : Number(e.target.value))}
+                                                className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
+                                            >
+                                                <option value="" className="bg-[#0f0f0f]">Choose a client...</option>
+                                                {clients.map((c) => (
+                                                    <option key={c.id} value={c.id} className="bg-[#0f0f0f]">
+                                                        {c.companyName} ({c.clientName})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Client Preview Box (if selected) */}
+                                        {receivedClientId !== "" && (
+                                            (() => {
+                                                const client = clients.find(c => c.id === receivedClientId);
+                                                if (!client) return null;
+                                                return (
+                                                    <div className="p-4 bg-white/[0.02] border border-white/5 space-y-3 animate-in fade-in duration-300">
+                                                        <p className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">Selected Client Details</p>
+                                                        <div className="grid grid-cols-2 gap-4 text-xs">
+                                                            <div>
+                                                                <span className="text-white/30 block mb-0.5">Company Name</span>
+                                                                <span className="text-white/80 font-medium">{client.companyName}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-white/30 block mb-0.5">Contact Name</span>
+                                                                <span className="text-white/80 font-medium">{client.clientName}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-white/30 block mb-0.5">Email Address</span>
+                                                                <span className="text-white/80 font-mono">{client.email}</span>
+                                                            </div>
+                                                            <div>
+                                                                <span className="text-white/30 block mb-0.5">Phone Number</span>
+                                                                <span className="text-white/80">{client.phone || "N/A"}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()
+                                        )}
+
+                                        {/* Amount and Payment Date Row */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Received *</label>
+                                                <input 
+                                                    required
+                                                    type="text"
+                                                    placeholder="e.g. $1,500 or ₹75,000"
+                                                    value={receivedAmount}
+                                                    onChange={(e) => setReceivedAmount(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Payment Date *</label>
+                                                <input 
+                                                    required
+                                                    type="date"
+                                                    value={receivedDate}
+                                                    onChange={(e) => setReceivedDate(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Receipt PDF Upload */}
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Upload Receipt / Invoice PDF (Optional)</label>
+                                            <div className="relative border border-dashed border-white/10 hover:border-white/20 transition-colors p-6 text-center cursor-pointer bg-black/20 flex flex-col items-center justify-center space-y-2">
+                                                <input 
+                                                    type="file"
+                                                    accept=".pdf"
+                                                    onChange={handleReceiptFileChange}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                />
+                                                <FileText className="w-8 h-8 text-white/30" />
+                                                {receivedReceiptFile ? (
+                                                    <div className="space-y-1 text-center">
+                                                        <p className="text-xs font-semibold text-green-500">{receivedReceiptFile.name}</p>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={(e) => { e.stopPropagation(); setReceivedReceiptFile(null); }}
+                                                            className="text-[10px] text-white/40 hover:text-red-500 font-bold uppercase"
+                                                        >
+                                                            Remove File
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <p className="text-xs font-medium text-white/60">Click to upload or drag & drop</p>
+                                                        <p className="text-[10px] text-white/20 mt-0.5">Only PDF files are supported</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Submit Button */}
+                                        <button 
+                                            disabled={receivedSendStatus === 'sending' || !receivedClientId || !receivedAmount || !receivedDate}
+                                            type="submit"
+                                            className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#10B981]/90 disabled:bg-[#10B981]/50 text-white font-bold py-4 text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+                                        >
+                                            {receivedSendStatus === 'sending' ? (
+                                                <>
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                    Sending Notice...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    Send Payment Confirmation
+                                                </>
+                                            )}
+                                        </button>
+
+                                        {/* Status Feedback Messages */}
+                                        {receivedSendStatus === 'success' && (
+                                            <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center uppercase tracking-wider animate-in fade-in duration-200">
+                                                ✓ Payment confirmation email sent successfully!
+                                            </div>
+                                        )}
+                                        {receivedSendStatus === 'error' && (
+                                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1 uppercase tracking-wider animate-in fade-in duration-200">
+                                                <div className="flex items-center gap-1.5">
+                                                    <AlertCircle className="w-4 h-4" />
+                                                    <span>Failed to send email</span>
+                                                </div>
+                                                {receivedErrorMessage && (
+                                                    <p className="text-[10px] text-red-400/80 mt-1 font-mono normal-case">{receivedErrorMessage}</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </form>
+                                </div>
+
+                                {/* Dynamic Live Email Preview */}
+                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col h-full space-y-4">
+                                    <div className="flex justify-between items-center pb-3 border-b border-white/10">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                                        </div>
+                                        <span className="text-[10px] text-white/30 uppercase tracking-widest font-mono">Live Email Preview</span>
+                                    </div>
+
+                                    {/* Email Frame */}
+                                    <div className="flex-grow bg-white text-black p-6 rounded shadow-inner overflow-y-auto max-h-[600px] text-left border border-white/10 font-sans">
+                                        {(() => {
+                                            const client = clients.find(c => c.id === receivedClientId);
+                                            const name = client ? client.clientName : "[Client Contact Name]";
+                                            const company = client ? client.companyName : "[Client Company Name]";
+                                            const email = client ? client.email : "client@company.com";
+                                            const displayAmount = receivedAmount || "[Received Amount]";
+                                            const displayDate = receivedDate 
+                                                ? new Date(receivedDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                : "[Payment Date]";
+
+                                            return (
+                                                <div style={{ pointerEvents: 'none' }}>
+                                                    {/* Email Header Info */}
+                                                    <div style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '20px', fontSize: '12px', color: '#4b5563' }}>
+                                                        <div><strong style={{ color: '#111827' }}>From:</strong> Redlix Accounts &lt;accounts@redlix.co.in&gt;</div>
+                                                        <div style={{ marginTop: '4px' }}><strong style={{ color: '#111827' }}>To:</strong> {email}</div>
+                                                        <div style={{ marginTop: '4px' }}><strong style={{ color: '#111827' }}>Subject:</strong> Payment Confirmation | Redlix Studio & {company}</div>
+                                                    </div>
+
+                                                    {/* Styled Email Body */}
+                                                    <div style={{ maxWidth: '600px', margin: '0 auto', border: '1px solid #e0e0e0', backgroundColor: '#ffffff' }}>
+                                                        {/* Logo */}
+                                                        <div style={{ padding: '15px 30px', borderBottom: '1px solid #eee', textAlign: 'left' }}>
+                                                            <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style={{ height: '28px' }} />
+                                                        </div>
+
+                                                        {/* Content */}
+                                                        <div style={{ padding: '30px' }}>
+                                                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 5px 0', color: '#111' }}>Payment Confirmed</h2>
+                                                            <div style={{ width: '30px', height: '2px', backgroundColor: '#10B981', marginBottom: '20px' }} />
+
+                                                            <p style={{ fontSize: '14px', lineHeight: '1.5', margin: '0 0 15px 0' }}>
+                                                                Hello <strong>{name}</strong>,
+                                                            </p>
+
+                                                            <p style={{ fontSize: '14px', lineHeight: '1.5', color: '#374151', margin: '0 0 25px 0' }}>
+                                                                We are pleased to confirm that we have received your payment of <strong style={{ color: '#111' }}>{displayAmount}</strong> on <strong>{displayDate}</strong>. Thank you for your business!
+                                                            </p>
+
+                                                            {/* Billing Table */}
+                                                            <h3 style={{ fontSize: '11px', fontWeight: 'bold', color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px 0' }}>Receipt Details</h3>
+                                                            <div style={{ backgroundColor: '#f9fafb', padding: '18px', border: '1px solid #e5e7eb', marginBottom: '25px' }}>
+                                                                <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                                                                    <tbody>
+                                                                        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                                            <td style={{ padding: '6px 0', color: '#6b7280', width: '130px' }}>Company</td>
+                                                                            <td style={{ padding: '6px 0', fontWeight: '600', color: '#111827' }}>{company}</td>
+                                                                        </tr>
+                                                                        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                                            <td style={{ padding: '6px 0', color: '#6b7280' }}>Billing Contact</td>
+                                                                            <td style={{ padding: '6px 0', fontWeight: '600', color: '#111827' }}>{name}</td>
+                                                                        </tr>
+                                                                        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                                            <td style={{ padding: '6px 0', color: '#6b7280' }}>Amount Received</td>
+                                                                            <td style={{ padding: '6px 0', fontWeight: '700', color: '#10B981' }}>{displayAmount}</td>
+                                                                        </tr>
+                                                                        <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
+                                                                            <td style={{ padding: '6px 0', color: '#6b7280' }}>Payment Date</td>
+                                                                            <td style={{ padding: '6px 0', fontWeight: '600', color: '#111827' }}>{displayDate}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td style={{ padding: '6px 0', color: '#6b7280' }}>Status</td>
+                                                                            <td style={{ padding: '6px 0', fontWeight: '700', color: '#10B981' }}>SUCCESS / PAID</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+
+                                                            {/* PDF File Attachment preview */}
+                                                            {receivedReceiptFile && (
+                                                                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', fontSize: '13px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '25px' }}>
+                                                                    <span style={{ fontSize: '16px' }}>📎</span>
+                                                                    <span><strong>Receipt Attached:</strong> {receivedReceiptFile.name} (PDF)</span>
+                                                                </div>
+                                                            )}
+
+                                                            <p style={{ fontSize: '12px', color: '#6b7280', textAlign: 'center', fontStyle: 'italic', margin: '20px 0 0 0' }}>
+                                                                If you have any questions regarding this transaction, please reach out to our billing team.
                                                             </p>
                                                         </div>
 

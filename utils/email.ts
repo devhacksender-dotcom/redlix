@@ -455,4 +455,113 @@ export async function sendPaymentDueEmail({ to, clientName, companyName, amount,
     }
 }
 
+interface SendPaymentReceivedEmailParams {
+    to: string;
+    clientName: string;
+    companyName: string;
+    amount: string;
+    paymentDate: string;
+    receiptFile?: {
+        name: string;
+        content: Buffer;
+    };
+}
+
+export async function sendPaymentReceivedEmail({ to, clientName, companyName, amount, paymentDate, receiptFile }: SendPaymentReceivedEmailParams) {
+    const attachments = receiptFile ? [{
+        filename: receiptFile.name,
+        content: receiptFile.content,
+        contentType: 'application/pdf'
+    }] : [];
+
+    const mailOptions = {
+        from: `"Redlix Accounts" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `Payment Confirmation | Redlix Studio & ${companyName}`,
+        attachments,
+        html: `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
+                <!-- Header -->
+                <div style="background-color: #ffffff; padding: 20px 40px; text-align: left; border-bottom: 1px solid #eee;">
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 35px;" />
+                </div>
+                
+                <div style="padding: 40px;">
+                    <h1 style="color: #0a0a0a; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px 0;">
+                        Payment Confirmed
+                    </h1>
+                    <div style="width: 40px; height: 2px; background-color: #10B981; margin-bottom: 30px;"></div>
+                    
+                    <p style="font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                        Hello <strong>${clientName}</strong>,
+                    </p>
+                    
+                    <p style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 35px;">
+                        We are pleased to confirm that we have received your payment of <strong>${amount}</strong> on <strong>${new Date(paymentDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>. Thank you for your business!
+                    </p>
+
+                    <!-- Payment Information -->
+                    <h3 style="font-size: 12px; font-weight: 700; color: #10B981; margin-bottom: 15px;">Receipt Details</h3>
+                    <div style="background-color: #f8f8f8; padding: 25px; margin-bottom: 30px; border: 1px solid #eee;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888; width: 140px;">Company</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${companyName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Billing Contact</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${clientName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Amount Received</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #10B981;">${amount}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Payment Date</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${new Date(paymentDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Status</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #10B981;">SUCCESS / PAID</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    ${receiptFile ? `
+                    <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; padding: 15px; margin-bottom: 30px; font-size: 14px; color: #065f46;">
+                        <strong>Receipt/Invoice Attached:</strong> The official document (${receiptFile.name}) is attached to this email.
+                    </div>
+                    ` : ''}
+                    
+                    <p style="font-size: 13px; line-height: 1.6; color: #888; text-align: center; font-style: italic;">
+                        If you have any questions regarding this transaction, please reach out to our billing team.
+                    </p>
+                </div>
+
+                <!-- Footer -->
+                <div style="background-color: #fafafa; padding: 40px; border-top: 1px solid #eee;">
+                    <p style="margin: 0; font-weight: 700; color: #E61E32; font-size: 11px; letter-spacing: 0.1em; margin-bottom: 8px;">Billing lead</p>
+                    <p style="margin: 0; font-size: 18px; font-weight: 700; color: #0a0a0a;">Shiva Krishna Manthena</p>
+                    <p style="margin: 2px 0 25px 0; font-size: 12px; color: #666;">Redlix Studio | Accounts Department</p>
+                    
+                    <div style="font-size: 11px; color: #999; line-height: 1.8;">
+                        <p style="margin: 0;">© 2026 Redlix Studio</p>
+                        <p style="margin: 0;">Software & IT infrastructure solutions</p>
+                        <p style="margin: 5px 0 0 0; color: #E61E32; font-weight: 600;">www.redlix.co.in</p>
+                    </div>
+                </div>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Payment received email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending payment received email:", error);
+        return { success: false, error };
+    }
+}
+
 
