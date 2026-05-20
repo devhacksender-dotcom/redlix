@@ -487,10 +487,15 @@ export async function sendPaymentReceivedEmail({ to, clientName, companyName, am
                 </div>
                 
                 <div style="padding: 40px;">
-                    <h1 style="color: #0a0a0a; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px 0;">
+                    <!-- Success Animation GIF -->
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <img src="https://raw.githubusercontent.com/ariyanshiputech/custom_quick_alert/main/screenshots/success.gif" alt="Success Checkmark" style="width: 75px; height: 75px; display: inline-block;" />
+                    </div>
+                    
+                    <h1 style="color: #0a0a0a; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px 0; text-align: center;">
                         Payment Confirmed
                     </h1>
-                    <div style="width: 40px; height: 2px; background-color: #10B981; margin-bottom: 30px;"></div>
+                    <div style="width: 40px; height: 2px; background-color: #10B981; margin: 0 auto 30px auto;"></div>
                     
                     <p style="font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
                         Hello <strong>${clientName}</strong>,

@@ -2221,8 +2221,13 @@ export default function AdminPortal() {
 
                                                         {/* Content */}
                                                         <div style={{ padding: '30px' }}>
-                                                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 5px 0', color: '#111' }}>Payment Confirmed</h2>
-                                                            <div style={{ width: '30px', height: '2px', backgroundColor: '#10B981', marginBottom: '20px' }} />
+                                                            {/* Success Animation GIF */}
+                                                            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                                                                <img src="https://raw.githubusercontent.com/ariyanshiputech/custom_quick_alert/main/screenshots/success.gif" alt="Success Checkmark" style={{ width: '70px', height: '70px', display: 'inline-block' }} />
+                                                            </div>
+
+                                                            <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 5px 0', color: '#111', textAlign: 'center' }}>Payment Confirmed</h2>
+                                                            <div style={{ width: '30px', height: '2px', backgroundColor: '#10B981', margin: '0 auto 20px auto' }} />
 
                                                             <p style={{ fontSize: '14px', lineHeight: '1.5', margin: '0 0 15px 0' }}>
                                                                 Hello <strong>{name}</strong>,
