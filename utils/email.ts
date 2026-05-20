@@ -346,3 +346,113 @@ export async function sendOnboardingEmail({ to, name, role }: SendOnboardingEmai
     }
 }
 
+interface SendPaymentDueEmailParams {
+    to: string;
+    clientName: string;
+    companyName: string;
+    amount: string;
+    dueDate: string;
+    invoiceFile?: {
+        name: string;
+        content: Buffer;
+    };
+}
+
+export async function sendPaymentDueEmail({ to, clientName, companyName, amount, dueDate, invoiceFile }: SendPaymentDueEmailParams) {
+    const attachments = invoiceFile ? [{
+        filename: invoiceFile.name,
+        content: invoiceFile.content,
+        contentType: 'application/pdf'
+    }] : [];
+
+    const mailOptions = {
+        from: `"Redlix Billing" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `Payment Pending Notification | Redlix Studio & ${companyName}`,
+        attachments,
+        html: `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
+                <!-- Header -->
+                <div style="background-color: #ffffff; padding: 20px 40px; text-align: left; border-bottom: 1px solid #eee;">
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 35px;" />
+                </div>
+                
+                <div style="padding: 40px;">
+                    <h1 style="color: #0a0a0a; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px 0;">
+                        Payment Reminder
+                    </h1>
+                    <div style="width: 40px; height: 2px; background-color: #E61E32; margin-bottom: 30px;"></div>
+                    
+                    <p style="font-size: 16px; line-height: 1.6; margin-bottom: 25px;">
+                        Hello <strong>${clientName}</strong>,
+                    </p>
+                    
+                    <p style="font-size: 15px; line-height: 1.6; color: #444; margin-bottom: 35px;">
+                        Your payment due of <strong>${amount}</strong> is pending. Please pay by <strong>${new Date(dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.
+                    </p>
+
+                    <!-- Payment Information -->
+                    <h3 style="font-size: 12px; font-weight: 700; color: #E61E32; margin-bottom: 15px;">Billing Details</h3>
+                    <div style="background-color: #f8f8f8; padding: 25px; margin-bottom: 30px; border: 1px solid #eee;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888; width: 140px;">Company</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${companyName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Billing Contact</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${clientName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Amount Due</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #E61E32;">${amount}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Due Date</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #1a1a1a;">${new Date(dueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px 0; font-size: 13px; color: #888;">Status</td>
+                                <td style="padding: 8px 0; font-size: 14px; font-weight: 600; color: #E61E32;">PENDING</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    ${invoiceFile ? `
+                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; margin-bottom: 30px; font-size: 14px; color: #166534;">
+                        <strong>Invoice Attached:</strong> The official PDF invoice (${invoiceFile.name}) is attached to this email. Please review the details.
+                    </div>
+                    ` : ''}
+                    
+                    <p style="font-size: 13px; line-height: 1.6; color: #888; text-align: center; font-style: italic;">
+                        If you have already processed the payment, please disregard this message or share the receipt with us.
+                    </p>
+                </div>
+
+                <!-- Footer -->
+                <div style="background-color: #fafafa; padding: 40px; border-top: 1px solid #eee;">
+                    <p style="margin: 0; font-weight: 700; color: #E61E32; font-size: 11px; letter-spacing: 0.1em; margin-bottom: 8px;">Billing lead</p>
+                    <p style="margin: 0; font-size: 18px; font-weight: 700; color: #0a0a0a;">Shiva Krishna Manthena</p>
+                    <p style="margin: 2px 0 25px 0; font-size: 12px; color: #666;">Redlix Studio | Accounts Department</p>
+                    
+                    <div style="font-size: 11px; color: #999; line-height: 1.8;">
+                        <p style="margin: 0;">© 2026 Redlix Studio</p>
+                        <p style="margin: 0;">Software & IT infrastructure solutions</p>
+                        <p style="margin: 5px 0 0 0; color: #E61E32; font-weight: 600;">www.redlix.co.in</p>
+                    </div>
+                </div>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Payment reminder email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending payment due email:", error);
+        return { success: false, error };
+    }
+}
+
+
