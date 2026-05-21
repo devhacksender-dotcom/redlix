@@ -487,9 +487,14 @@ export async function sendPaymentReceivedEmail({ to, clientName, companyName, am
                 </div>
                 
                 <div style="padding: 40px;">
-                    <!-- Success Animation GIF -->
+                    <!-- Success Animation (Lottie via iframe) -->
                     <div style="text-align: center; margin-bottom: 25px;">
-                        <img src="https://raw.githubusercontent.com/ariyanshiputech/custom_quick_alert/main/screenshots/success.gif" alt="Success Checkmark" style="width: 75px; height: 75px; display: inline-block;" />
+                        <iframe
+                            src="https://lottie.host/embed/f13997bb-c272-480a-88bc-7207fef2de93/GBzchfk01z.lottie"
+                            style="width: 150px; height: 150px; border: none; display: inline-block;"
+                            frameborder="0"
+                            allowfullscreen
+                        ></iframe>
                     </div>
                     
                     <h1 style="color: #0a0a0a; font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 10px 0; text-align: center;">
