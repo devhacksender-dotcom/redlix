@@ -3,117 +3,93 @@ import Link from "next/link";
 
 export default function CorporateFooter() {
     return (
-        <footer className="w-full bg-[#f8f9fa] font-sans text-[#5f6368]">
-            <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12 py-6 pt-8">
-
-                {/* Top Section: Social Links */}
-                <div className="flex items-center gap-6 pb-4">
-                    <span className="text-[14px] font-medium text-[#3c4043]">Follow us</span>
-                    <div className="flex items-center gap-5 text-[#5f6368]">
-                        <a href="#" className="hover:text-[#E61E32] transition-colors"><svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M16 2H8C4.691 2 2 4.691 2 8v8c0 3.309 2.691 6 6 6h8c3.309 0 6-2.691 6-6V8c0-3.309-2.691-6-6-6zm-4 15h-2v-2h2v2zm3-4H9v-2h6v2zm0-4H9V7h6v2z" /></svg></a>
-                        <a href="#" className="hover:text-[#E61E32] transition-colors"><svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" /></svg></a>
-                        <a href="#" className="hover:text-[#E61E32] transition-colors"><svg className="w-[20px] h-[20px]" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" /></svg></a>
-                        <a href="#" className="hover:text-[#E61E32] transition-colors"><svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg></a>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="w-full h-[1px] bg-[#dadce0] mb-6"></div>
-
-                {/* Main Links Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8 lg:gap-6 mb-10">
-
-                    {/* Column 1: Kiro LMS */}
-                    <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-semibold text-[#3c4043]">Kiro Hub</h4>
-                        <ul className="flex flex-col gap-3 text-[13px]">
-                            <li><a href="https://atlas.redlix.co.in/" target="_blank" rel="noopener noreferrer" className="hover:text-[#E61E32] transition-colors inline-flex items-center gap-1">Kiro Portal <span className="text-[10px] opacity-50">↗</span></a></li>
-                            <li><Link href="/intern-support" className="hover:text-[#E61E32] transition-colors inline-flex items-center gap-1">Intern Support</Link></li>
-                            <li><Link href="/resources" className="hover:text-[#E61E32] transition-colors">Knowledge Base</Link></li>
-                            <li><a href="https://cal.com/redlix.co.in" target="_blank" rel="noopener noreferrer" className="hover:text-[#E61E32] transition-colors inline-flex items-center gap-1">Project Launchpad <span className="text-[10px] opacity-50">↗</span></a></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 2: Redlix Learn */}
-                    <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-semibold text-[#3c4043]">Redlix Learn</h4>
-                        <ul className="flex flex-col gap-3 text-[13px]">
-                            <li><Link href="/atlas" className="hover:text-[#E61E32] transition-colors">Full Stack Mastery</Link></li>
-                            <li><Link href="/atlas" className="hover:text-[#E61E32] transition-colors">UI/UX Principles</Link></li>
-                            <li><Link href="/atlas" className="hover:text-[#E61E32] transition-colors">Architectural Design</Link></li>
-                            <li><Link href="/atlas" className="hover:text-[#E61E32] transition-colors inline-flex items-center gap-1">Learning Dashboard <span className="text-[10px] opacity-50">↗</span></Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 3: Our Agency */}
-                    <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-semibold text-[#3c4043]">Our Agency</h4>
-                        <ul className="flex flex-col gap-3 text-[13px]">
-                            <li><Link href="/about-us" className="hover:text-[#E61E32] transition-colors">About Redlix</Link></li>
-                            <li><Link href="/portfolio" className="hover:text-[#E61E32] transition-colors">Portfolio</Link></li>
-                            <li><Link href="/resources" className="hover:text-[#E61E32] transition-colors">Resources & Blog</Link></li>
-                            <li><Link href="/careers" className="hover:text-[#E61E32] transition-colors inline-flex items-center gap-1">Careers <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] px-1.5 py-0.5 font-bold rounded-sm ml-1">Hiring</span></Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 4: Legal & Security */}
-                    <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-semibold text-[#3c4043]">Legal & Security</h4>
-                        <ul className="flex flex-col gap-3 text-[13px]">
-                            <li><Link href="/privacy" className="hover:text-[#E61E32] transition-colors">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="hover:text-[#E61E32] transition-colors">Terms of Service</Link></li>
-                            <li><Link href="/cookies" className="hover:text-[#E61E32] transition-colors">Cookies Policy</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 5: Contact */}
-                    <div className="flex flex-col gap-4">
-                        <h4 className="text-[14px] font-semibold text-[#3c4043]">Connect</h4>
-                        <ul className="flex flex-col gap-3 text-[13px]">
-                            <li><a href="mailto:help.ckrdatapoint@gmail.com" className="hover:text-[#E61E32] transition-colors">help.ckrdatapoint@gmail.com</a></li>
-                            <li><span className="text-[#5f6368]">Hyderabad, India</span></li>
-                        </ul>
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="w-full h-[1px] bg-[#dadce0] mb-4"></div>
-
-                {/* Bottom Section */}
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-8 w-full md:w-auto">
-                        <Link href="/" className="flex items-center mr-6 transition-opacity hover:opacity-80">
+        <footer className="w-full bg-[#0C0D0E] font-sans text-zinc-400 pt-16 pb-12 border-t border-zinc-900">
+            <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
+                
+                {/* Main Split Grid */}
+                <div className="flex flex-col md:flex-row justify-between gap-12 md:gap-16 pb-12">
+                    
+                    {/* Left Side: Brand, Socials & Clutch Review */}
+                    <div className="flex flex-col items-start text-left max-w-xs">
+                        
+                        {/* Redlix Logo Only */}
+                        <Link href="/" className="group mb-4 inline-block">
                             <img
-                                src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1772213109/Screenshot_2026-02-27_at_22.49.23-removebg-preview_nn1jee.png"
+                                src="https://ik.imagekit.io/dypkhqxip/redlixlogo?updatedAt=1777318254456"
                                 alt="Redlix Logo"
-                                className="h-12 w-auto grayscale contrast-200 opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
+                                className="h-[48px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.05]"
                             />
                         </Link>
 
-                        <div className="flex flex-wrap items-center gap-6 lg:gap-8 text-[13px]">
-                            <Link href="/privacy" className="hover:text-[#E61E32] transition-colors">Privacy</Link>
-                            <Link href="/terms" className="hover:text-[#E61E32] transition-colors">Terms</Link>
-                            <Link href="/cookies" className="hover:text-[#E61E32] transition-colors">Cookies</Link>
-                            <Link href="/about-us" className="hover:text-[#E61E32] transition-colors">About Redlix</Link>
+                        {/* Social Links */}
+                        <div className="flex items-center gap-4 text-zinc-400 mt-2">
+                            <a href="#" className="hover:text-white transition-colors" aria-label="LinkedIn">
+                                <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                                </svg>
+                            </a>
+                            <a href="#" className="hover:text-white transition-colors" aria-label="X">
+                                <svg className="w-[15px] h-[15px]" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                </svg>
+                            </a>
+                            <a href="#" className="hover:text-white transition-colors" aria-label="Instagram">
+                                <svg className="w-[16px] h-[16px]" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                                </svg>
+                            </a>
                         </div>
+
+
                     </div>
 
-                    <div className="flex items-center gap-6 text-[13px]">
-                        <Link href="/resources" className="flex items-center gap-2 hover:text-[#E61E32] transition-colors">
-                            <svg className="w-[18px] h-[18px]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg>
-                            Help Center
-                        </Link>
-                        <div className="bg-[#f1f3f4] text-[12px] font-medium py-2 px-4 border-none focus:outline-none select-none text-[#5f6368]">
-                            English (US)
+                    {/* Right Side: Columns Links */}
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-10 md:gap-16">
+                        
+                        {/* Column 1: Quick Links */}
+                        <div className="flex flex-col gap-4 text-left">
+                            <h4 className="text-[13px] font-medium text-white tracking-wide">Quick Links</h4>
+                            <ul className="flex flex-col gap-2.5 text-[13px] text-zinc-400">
+                                <li><Link href="/" className="hover:text-white transition-colors">Services</Link></li>
+                                <li><Link href="/portfolio" className="hover:text-white transition-colors">Work</Link></li>
+                                <li><Link href="/#pricing" className="hover:text-white transition-colors">Plans</Link></li>
+                                <li><Link href="/resources" className="hover:text-white transition-colors">Blog</Link></li>
+                                <li><Link href="/#faq" className="hover:text-white transition-colors">FAQ</Link></li>
+                                <li><Link href="/resources" className="hover:text-white transition-colors">Resources</Link></li>
+                            </ul>
                         </div>
+
+                        {/* Column 2: Case Studies */}
+                        <div className="flex flex-col gap-4 text-left">
+                            <h4 className="text-[13px] font-medium text-white tracking-wide">Case Studies</h4>
+                            <ul className="flex flex-col gap-2.5 text-[13px] text-zinc-400">
+                                <li><Link href="/portfolio/piscidrop" className="hover:text-white transition-colors">PisciDrop : Website</Link></li>
+                                <li><Link href="/portfolio/dhasha-media" className="hover:text-white transition-colors">Dhasha : Product</Link></li>
+                                <li><Link href="/portfolio/hsga-telangana" className="hover:text-white transition-colors">HSGA : Portal</Link></li>
+                                <li><Link href="/portfolio/forge-digital-technologies" className="hover:text-white transition-colors">Forge : System</Link></li>
+                            </ul>
+                        </div>
+
+                        {/* Column 3: Legal */}
+                        <div className="flex flex-col gap-4 text-left">
+                            <h4 className="text-[13px] font-medium text-white tracking-wide">Legal</h4>
+                            <ul className="flex flex-col gap-2.5 text-[13px] text-zinc-400">
+                                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                                <li><a href="mailto:help.ckrdatapoint@gmail.com" className="hover:text-white transition-colors">Support</a></li>
+                            </ul>
+                        </div>
+
                     </div>
+
                 </div>
 
-                {/* Large Brand Statement */}
-                <div className="mt-10 md:mt-16 select-none overflow-hidden">
-                    <h2 className="text-[25vw] font-black text-[#E61E32]/[0.08] leading-none tracking-tighter text-center translate-y-8 md:translate-y-12">
-                        Redlix
-                    </h2>
+                {/* Divider */}
+                <div className="w-full h-[1px] bg-zinc-900 mb-8" />
+
+                {/* Bottom Row */}
+                <div className="text-center text-[12px] text-zinc-500 font-medium select-none">
+                    Redlix &copy; 2026 All Rights Reserved
                 </div>
 
             </div>

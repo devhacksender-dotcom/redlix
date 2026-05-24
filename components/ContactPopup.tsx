@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { X, Send, Search, HelpCircle } from "lucide-react";
+import { X, Send, Search } from "lucide-react";
 import { countries } from "@/utils/countries";
 
 const services = [
@@ -18,27 +18,12 @@ const ContactPopup = () => {
     const [showCountrySelector, setShowCountrySelector] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCountry, setSelectedCountry] = useState(countries.find(c => c.name === "India") || countries[0]);
-    const [isFirstVisit, setIsFirstVisit] = useState(false);
-
     const filteredCountries = useMemo(() => {
-        return countries.filter(c => 
-            c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        return countries.filter(c =>
+            c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.code.includes(searchQuery)
         );
     }, [searchQuery]);
-
-    useEffect(() => {
-        // Check if user has visited before
-        const hasVisited = localStorage.getItem("hasVisitedContact");
-        if (!hasVisited) {
-            setIsFirstVisit(true);
-            const timer = setTimeout(() => {
-                setIsOpen(true);
-                localStorage.setItem("hasVisitedContact", "true");
-            }, 3000); // Show after 3 seconds for first time visitors
-            return () => clearTimeout(timer);
-        }
-    }, []);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
@@ -78,7 +63,7 @@ const ContactPopup = () => {
             // Note: window.grecaptcha is loaded by the script in layout.tsx
             // @ts-ignore
             const token = window.grecaptcha?.enterprise?.getResponse();
-            
+
             if (!token) {
                 alert("Please complete the reCAPTCHA verification.");
                 setIsSubmitting(false);
@@ -125,21 +110,21 @@ const ContactPopup = () => {
             {/* Floating Action Button */}
             <button
                 onClick={togglePopup}
-                className="fixed bottom-8 right-8 z-[100] bg-[#E61E32] text-white px-6 py-4 flex items-center gap-3 shadow-2xl hover:scale-105 active:scale-95 transition-all group border border-white/10 rounded-none"
+                aria-label="Get in touch"
+                className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[100] bg-[#E61E32] hover:bg-[#CC192A] text-white px-6 py-3 flex items-center gap-2.5 rounded-xl text-[14px] font-semibold shadow-[0_4px_12px_rgba(230,30,50,0.25)] hover:shadow-[0_6px_20px_rgba(230,30,50,0.35)] active:scale-[0.98] transition-all duration-300"
             >
-                <HelpCircle className="w-5 h-5" />
-                <span className="text-[14px] font-bold tracking-tight">Get in Touch</span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Send className="w-4 h-4 shrink-0" />
+                <span>Get in Touch</span>
             </button>
 
             {/* Modal Overlay */}
             {isOpen && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-300">
-                    <div 
+                    <div
                         className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         onClick={togglePopup}
                     />
-                    
+
                     {/* Modal Content */}
                     <div className="relative w-full max-w-[1100px] h-fit max-h-[92vh] bg-[#1a1a1a] border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
                         {/* Header */}
@@ -147,7 +132,7 @@ const ContactPopup = () => {
                             <h2 className="text-[28px] md:text-[32px] font-bold text-[#E61E32] tracking-tight">
                                 Get in Touch with us
                             </h2>
-                            <button 
+                            <button
                                 onClick={togglePopup}
                                 className="text-white/40 hover:text-white transition-colors p-2"
                             >
@@ -164,9 +149,9 @@ const ContactPopup = () => {
                                         <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
                                             Your Name
                                         </label>
-                                        <input 
+                                        <input
                                             name="name"
-                                            type="text" 
+                                            type="text"
                                             required
                                             className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
                                             placeholder="Enter your name"
@@ -179,21 +164,21 @@ const ContactPopup = () => {
                                             Phone Number
                                         </label>
                                         <div className="flex h-11 relative">
-                                            <div 
+                                            <div
                                                 onClick={() => setShowCountrySelector(!showCountrySelector)}
                                                 className="flex items-center gap-2 border border-r-0 border-white/20 px-3 bg-white/5 shrink-0 cursor-pointer hover:bg-white/10 transition-colors"
                                             >
                                                 <img src={`https://flagcdn.com/w20/${selectedCountry.flag}.png`} alt={selectedCountry.name} className="w-4 h-auto" />
                                                 <span className="text-[12px] text-white/60">{selectedCountry.code}</span>
                                             </div>
-                                            
+
                                             {showCountrySelector && (
                                                 <div className="absolute top-full left-0 z-[120] w-72 mt-1 bg-[#1a1a1a] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-2">
                                                     {/* Search Bar */}
                                                     <div className="sticky top-0 bg-[#1a1a1a] p-3 border-b border-white/10">
                                                         <div className="relative">
                                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                                            <input 
+                                                            <input
                                                                 type="text"
                                                                 value={searchQuery}
                                                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -202,12 +187,12 @@ const ContactPopup = () => {
                                                             />
                                                         </div>
                                                     </div>
-                                                    
+
                                                     {/* Countries List */}
                                                     <div className="max-h-64 overflow-y-auto custom-scrollbar">
                                                         {filteredCountries.length > 0 ? (
                                                             filteredCountries.map((c) => (
-                                                                <div 
+                                                                <div
                                                                     key={c.name}
                                                                     onClick={() => {
                                                                         setSelectedCountry(c);
@@ -228,9 +213,9 @@ const ContactPopup = () => {
                                                 </div>
                                             )}
 
-                                            <input 
+                                            <input
                                                 name="phone"
-                                                type="tel" 
+                                                type="tel"
                                                 className="w-full h-full bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
                                                 placeholder="081234 56789"
                                             />
@@ -242,9 +227,9 @@ const ContactPopup = () => {
                                         <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
                                             Email
                                         </label>
-                                        <input 
+                                        <input
                                             name="email"
-                                            type="email" 
+                                            type="email"
                                             required
                                             className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
                                             placeholder="hello@example.com"
@@ -258,9 +243,9 @@ const ContactPopup = () => {
                                         <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
                                             Company Name
                                         </label>
-                                        <input 
+                                        <input
                                             name="company"
-                                            type="text" 
+                                            type="text"
                                             className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
                                             placeholder="Your business name"
                                         />
@@ -271,9 +256,9 @@ const ContactPopup = () => {
                                         <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
                                             Website Link (Optional)
                                         </label>
-                                        <input 
+                                        <input
                                             name="website"
-                                            type="url" 
+                                            type="url"
                                             className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
                                             placeholder="https://example.com"
                                         />
@@ -376,9 +361,9 @@ const ContactPopup = () => {
                                             Preferred Date & Time
                                         </label>
                                         <div className="relative flex items-center h-11 border border-white/20 px-4">
-                                            <input 
+                                            <input
                                                 name="preferredDateTime"
-                                                type="datetime-local" 
+                                                type="datetime-local"
                                                 className="w-full bg-transparent text-white/30 text-[12px] focus:outline-none [color-scheme:dark]"
                                             />
                                         </div>
@@ -421,7 +406,7 @@ const ContactPopup = () => {
                                     <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
                                         Message
                                     </label>
-                                    <textarea 
+                                    <textarea
                                         name="message"
                                         rows={3}
                                         required
@@ -432,7 +417,7 @@ const ContactPopup = () => {
 
                                 {/* Captcha Verification */}
                                 <div className="space-y-1">
-                                    <div 
+                                    <div
                                         id="recaptcha-container"
                                         className="g-recaptcha"
                                     ></div>
@@ -444,7 +429,7 @@ const ContactPopup = () => {
                                     <p className="text-[10px] text-white/20 leading-relaxed max-w-4xl font-light">
                                         By submitting this form, you acknowledge our <a href="/privacy" className="underline hover:text-white transition-colors">Privacy Policy</a>.
                                     </p>
-                                    <button 
+                                    <button
                                         disabled={isSubmitting}
                                         className="bg-[#E61E32] text-white px-8 py-2.5 flex items-center gap-3 shadow-xl hover:bg-[#CC192A] transition-all rounded-none group scale-100 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed border border-white/10"
                                     >

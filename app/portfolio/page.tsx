@@ -25,11 +25,11 @@ const projects = [
         description: "Designed and developed the official HSGA Telangana landing page. Elevated digital presence with fast, accessible design.",
     },
     {
-        title: "Forge Digital",
-        slug: "forge-digital",
-        category: "High-Performance B2B",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(3).png",
-        description: "Multi-vendor digital platform with dynamic pricing. Helped double sales velocity post-launch for Forge Digital Technologies.",
+        title: "SmartFit AI",
+        slug: "smartfit",
+        category: "AI Fitness & Wellness",
+        image: "https://ik.imagekit.io/dypkhqxip/smartfitai",
+        description: "AI-powered fitness platform delivering custom training programs and real-time posture analysis.",
     },
     {
         title: "HUS System",
@@ -87,7 +87,7 @@ export default function PortfolioPage() {
                                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out grayscale group-hover:grayscale-0"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300" />
-                                    
+
                                     <div className="absolute inset-0 p-8 flex flex-col justify-end">
                                         <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest mb-2">
                                             {project.category}

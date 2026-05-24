@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
-
+import React from "react";
 import Link from "next/link";
 
 const projects = [
@@ -9,189 +8,158 @@ const projects = [
         title: "PisciDrop",
         slug: "piscidrop",
         category: "Logistics & Supply Chain",
-        image: "https://ik.imagekit.io/dypkhqxip/ab.png",
-        description: "Next-generation logistics platform optimizing end-to-end delivery ecosystems. Features real-time tracking and intelligent route synchronization.",
+        image: "https://ik.imagekit.io/dypkhqxip/picsi",
+        description: "Redlix built our end-to-end aquaculture logistics platform with real-time tracking, automated dispatch, and supply chain analytics that transformed our delivery operations.",
+        badge: "Excited to support your impact.",
+        badgeColor: "bg-orange-100 text-orange-600",
+        author: "PisciDrop",
+        role: "Logistics Platform",
+        avatar: "https://ik.imagekit.io/dypkhqxip/picsi",
     },
     {
         title: "Dhasha Media",
         slug: "dhasha-media",
         category: "Internal Operations Engine",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(1).png",
-        description: "Custom internal operations system for media agency workflows. Automated bookings and complex workflows, improving efficiency.",
+        image: "https://ik.imagekit.io/dypkhqxip/dhashamedia",
+        description: "Redlix built our custom client management system that streamlined our entire workflow. What used to take hours now takes minutes for our agency operations.",
+        badge: "Proud to ship this together.",
+        badgeColor: "bg-zinc-100 text-zinc-600",
+        author: "Dhanush Reddy",
+        role: "Founder @ Dhasha Media",
+        avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1770931011/Screenshot_2026-02-13_at_02.45.59_kw8pih.png",
     },
     {
         title: "HSGA Telangana",
         slug: "hsga-telangana",
         category: "Government Infrastructure",
-        image: "https://ik.imagekit.io/dypkhqxip/Untitled%20design%20(1).png",
-        description: "Designed and developed the official HSGA Telangana landing page. Elevated digital presence with fast, accessible design.",
+        image: "https://ik.imagekit.io/dypkhqxip/hsga",
+        description: "We imagined a modern digital platform for state governance: Redlix brought it to life with precision, accessibility, and performance that serves thousands.",
+        badge: "Pushing boundaries is what we do.",
+        badgeColor: "bg-blue-100 text-blue-600",
+        author: "HSGA Telangana",
+        role: "Government Infrastructure",
+        avatar: "https://res.cloudinary.com/dq2suftps/image/upload/v1722516854/logo_bivaq2.jpg",
     },
     {
-        title: "Forge Digital",
-        slug: "forge-digital",
-        category: "High-Performance B2B",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(3).png",
-        description: "Multi-vendor digital platform with dynamic pricing. Helped double sales velocity post-launch for Forge Digital Technologies.",
+        title: "Forge Digital Technologies",
+        slug: "forge-digital-technologies",
+        category: "IT Solutions Company",
+        image: "https://ik.imagekit.io/dypkhqxip/fdt",
+        description: "Redlix built our enterprise-grade IT solutions platform with dynamic provisioning, multi-tenant architecture, and a seamless client onboarding experience.",
+        badge: "Loved building with Redlix.",
+        badgeColor: "bg-rose-100 text-rose-600",
+        author: "Forge Digital",
+        role: "Founder & CEO of FDT",
+        avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1771184951/Screenshot_2026-02-16_at_01.18.59_yodn7t.png",
     },
     {
         title: "HUS System",
         slug: "hus-system",
         category: "Government Infrastructure",
-        image: "https://ik.imagekit.io/dypkhqxip/Untitled%20design.png",
-        description: "Robust system engineered for large-scale state digital infrastructure. Precision engineering for complex governance use cases.",
+        image: "https://ik.imagekit.io/dypkhqxip/hus",
+        description: "The precision engineering in our governance platform is remarkable. Redlix built a system that handles complex management and coordination seamlessly.",
+        badge: "Execution without gaps.",
+        badgeColor: "bg-emerald-100 text-emerald-600",
+        author: "HUS System",
+        role: "Government Platform",
+        avatar: "https://res.cloudinary.com/dq2suftps/image/upload/v1722516854/logo_bivaq2.jpg",
     },
     {
         title: "NSS CMRIT Chapter",
         slug: "nss-cmrit",
         category: "Educational Organization",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(4).png",
-        description: "Website built for the student chapter with improved design and UX. Boosted interaction and conversion with fast loading and intuitive UX.",
+        image: "https://ik.imagekit.io/dypkhqxip/nss",
+        description: "An incredible collaboration that delivered beyond expectations. Redlix transformed our vision into a beautiful, functional platform that our community loves.",
+        badge: "Built for the community.",
+        badgeColor: "bg-violet-100 text-violet-600",
+        author: "NSS CMRIT",
+        role: "Student Chapter",
+        avatar: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiY63DjvYa-bL8ci8s5_KTiLm_9Mw_Wy0Xdw&s",
     },
     {
         title: "National E-Commerce Platform",
         slug: "national-ecommerce",
         category: "Retail & Commerce",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(2).png",
-        description: "High-conversion online retail store with real-time inventory synchronization. Delivered seamless global checkout and multi-currency support.",
+        image: "https://ik.imagekit.io/dypkhqxip/shop",
+        description: "Redlix built our B2B e-commerce platform with contract-based catalogues, client-specific SKUs, and dynamic discount programs that scaled our business.",
+        badge: "Truly exceptional work.",
+        badgeColor: "bg-amber-100 text-amber-600",
+        author: "E-Commerce",
+        role: "Retail Platform",
+        avatar: "https://res.cloudinary.com/dq2suftps/image/upload/v1722516854/logo_bivaq2.jpg",
+    },
+    {
+        title: "Student Forge",
+        slug: "student-forum",
+        category: "Educational Platform",
+        image: "https://ik.imagekit.io/dypkhqxip/sfredlix",
+        description: "Redlix designed and built an interactive student forum platform that simplifies peer discussions, resource sharing, and campus collaboration.",
+        badge: "Built for campus collaboration.",
+        badgeColor: "bg-indigo-100 text-indigo-600",
+        author: "Student Forge",
+        role: "Community Platform",
+        avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1771184951/Screenshot_2026-02-16_at_01.18.59_yodn7t.png",
     },
 ];
 
-// Duplicate projects multiple times to create a massive scrolling track for the "infinite" feel
-const extendedProjects = [...projects, ...projects, ...projects, ...projects];
-
-export default function ProjectsSection() {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-    // Smooth scroll logic for the navigation arrows
-    const scroll = (direction: "left" | "right") => {
-        if (scrollContainerRef.current) {
-            // Calculate scroll distance based on card width (400px) + gap (24px)
-            const scrollAmount = window.innerWidth < 640 ? 324 : 424;
-            scrollContainerRef.current.scrollBy({
-                left: direction === "left" ? -scrollAmount : scrollAmount,
-                behavior: "smooth"
-            });
-        }
-    };
-
-    // Auto-scroll logic for smooth infinite-like movement
-    useEffect(() => {
-        const container = scrollContainerRef.current;
-        if (!container) return;
-
-        let animationFrameId: number;
-        let isHovered = false;
-
-        const handleMouseEnter = () => isHovered = true;
-        const handleMouseLeave = () => isHovered = false;
-
-        container.addEventListener('mouseenter', handleMouseEnter);
-        container.addEventListener('mouseleave', handleMouseLeave);
-
-        const scrollStep = () => {
-            if (!isHovered && container) {
-                container.scrollLeft += 1; // Smooth 1px scroll automatically
-
-                // Simple reset when reaching near the end to simulate infinite looping
-                if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 10) {
-                    container.scrollLeft = 0;
-                }
-            }
-            animationFrameId = requestAnimationFrame(scrollStep);
-        };
-
-        animationFrameId = requestAnimationFrame(scrollStep);
-
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            container.removeEventListener('mouseenter', handleMouseEnter);
-            container.removeEventListener('mouseleave', handleMouseLeave);
-        };
-    }, []);
-
+function ProjectCard({ project, keyPrefix }: { project: typeof projects[0]; keyPrefix: string }) {
     return (
-        <section className="w-full bg-[#f8f9fa] font-sans py-16 lg:py-24 border-t border-gray-200 overflow-hidden">
-            <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12 mb-12">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                    <div className="max-w-2xl">
-                        <h2 className="text-[28px] sm:text-[34px] font-normal text-gray-900 tracking-tight mb-4">
-                            Featured Portfolio
-                        </h2>
-                        <p className="text-[14px] text-gray-500 leading-relaxed font-normal">
-                            Explore some of our recent digital transformations. From robust enterprise software to elegant consumer applications, see how we deliver results.
-                        </p>
-                    </div>
-
-                    {/* Navigation Arrows (replaces "View all projects" link) */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => scroll("left")}
-                            className="w-12 h-12 border-2 border-[#E61E32] rounded-none bg-transparent text-[#E61E32] hover:bg-[#E61E32]/5 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                            aria-label="Scroll left"
-                        >
-                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <button
-                            onClick={() => scroll("right")}
-                            className="w-12 h-12 border-2 border-[#E61E32] rounded-none bg-transparent text-[#E61E32] hover:bg-[#E61E32]/5 flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-                            aria-label="Scroll right"
-                        >
-                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
+        <Link
+            href={`/portfolio/${project.slug}`}
+            key={keyPrefix}
+            className="relative flex-none w-[450px] sm:w-[540px] bg-white border border-zinc-200/60 rounded-2xl overflow-hidden group cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 block flex flex-col"
+        >
+            <div className="p-3 pb-0">
+                <div className="w-full h-[290px] sm:h-[330px] rounded-xl overflow-hidden">
+                    <img
+                        src={project.image}
+                        alt={project.title}
+                        className="w-full h-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-500 pointer-events-none"
+                    />
                 </div>
             </div>
 
-            {/* Scrolling Cards Container */}
-            <div className="relative w-full">
-                {/* Scrollable Area */}
-                <div
-                    ref={scrollContainerRef}
-                    className="flex overflow-x-auto gap-6 px-4 sm:px-6 lg:px-12 pb-10"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                >
-                    {/* Hide scrollbar for webkit using standard CSS inline trick */}
-                    <style dangerouslySetInnerHTML={{
-                        __html: `
-                        div::-webkit-scrollbar {
-                            display: none;
-                        }
-                    `}} />
+            <div className="px-4 pt-4 pb-3 flex-grow flex flex-col min-h-0">
+                <p className="text-[13px] text-zinc-600 leading-relaxed mb-3 line-clamp-3">
+                    {project.description}
+                </p>
+                <div className="mb-2">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-medium ${project.badgeColor}`}>
+                        {project.badge}
+                    </span>
+                </div>
+            </div>
 
-                    {extendedProjects.map((project, index) => (
-                        <Link
-                            href={`/portfolio/${project.slug}`}
-                            key={index}
-                            className="relative flex-none w-[300px] sm:w-[400px] h-[450px] border border-gray-100 rounded-none overflow-hidden snap-center group cursor-pointer shadow-md hover:shadow-xl transition-shadow duration-300 block"
-                        >
-                            {/* Background Image */}
-                            <img
-                                src={project.image}
-                                alt={project.title}
-                                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out pointer-events-none"
-                            />
+            <div className="px-4 pb-3.5 flex items-center gap-2.5 border-t border-zinc-100 pt-2.5 mt-auto">
+                <img
+                    src={project.avatar}
+                    alt={project.author}
+                    className="w-9 h-9 rounded-full object-cover pointer-events-none"
+                />
+                <div className="min-w-0">
+                    <p className="text-[12px] font-semibold text-zinc-800 leading-tight truncate">{project.author}</p>
+                    <p className="text-[10.5px] text-zinc-400 truncate">{project.role}</p>
+                </div>
+            </div>
+        </Link>
+    );
+}
 
-                            {/* Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300 pointer-events-none" />
-
-                            {/* Content */}
-                            <div className="absolute inset-0 p-8 flex flex-col justify-end pointer-events-none">
-                                <span className="text-[11px] font-medium text-white/80 tracking-wide mb-2">
-                                    {project.category}
-                                </span>
-                                <h3 className="text-[20px] font-medium text-white tracking-tight mb-2">
-                                    {project.title}
-                                </h3>
-                                <p className="text-[14px] text-white/70 leading-relaxed line-clamp-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 font-normal">
-                                    {project.description}
-                                </p>
-                            </div>
-                        </Link>
-                    ))}
+export default function ProjectsSection() {
+    return (
+        <section className="w-full bg-zinc-50/50 py-2 lg:py-4 border-y border-zinc-100 overflow-hidden">
+            <div className="relative w-full overflow-hidden">
+                <div className="flex gap-4 animate-marquee-slow hover:[animation-play-state:paused] py-1 select-none items-stretch">
+                    <div className="flex items-stretch gap-4 flex-shrink-0">
+                        {projects.map((project, index) => (
+                            <ProjectCard key={`g1-${index}`} project={project} keyPrefix={`g1-${index}`} />
+                        ))}
+                    </div>
+                    <div className="flex items-stretch gap-4 flex-shrink-0">
+                        {projects.map((project, index) => (
+                            <ProjectCard key={`g2-${index}`} project={project} keyPrefix={`g2-${index}`} />
+                        ))}
+                    </div>
                 </div>
             </div>
         </section>

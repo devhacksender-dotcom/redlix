@@ -21,7 +21,7 @@ export default function AboutPage() {
                             <span className="text-[#E61E32] font-semibold text-[12px] tracking-widest uppercase mb-3 block">
                                 About Redlix Systems
                             </span>
-                            <h1 className="text-[32px] md:text-[42px] font-bold text-black leading-[1.1] tracking-tight mb-5">
+                            <h1 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-black leading-[1.1] tracking-tight mb-5">
                                 Who We Are
                             </h1>
                             <div className="space-y-4 text-[14px] text-[#5f6368] leading-relaxed max-w-xl pb-10 md:pb-0">
@@ -82,7 +82,7 @@ export default function AboutPage() {
 
                             {/* What We Do */}
                             <div>
-                                <h2 className="text-[28px] font-bold text-white leading-[1.2] tracking-tight mb-5">
+                                <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-white leading-[1.2] tracking-tight mb-5">
                                     What We Do
                                 </h2>
                                 <p className="text-[14px] text-gray-400 leading-relaxed mb-6">
@@ -110,7 +110,7 @@ export default function AboutPage() {
 
                             {/* Our Approach */}
                             <div>
-                                <h2 className="text-[28px] font-bold text-white leading-[1.2] tracking-tight mb-5">
+                                <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-white leading-[1.2] tracking-tight mb-5">
                                     Our Approach
                                 </h2>
                                 <p className="text-[14px] text-gray-400 leading-relaxed mb-6">
@@ -150,7 +150,7 @@ export default function AboutPage() {
 
                             {/* Why Choose */}
                             <div>
-                                <h2 className="text-[28px] font-bold text-black leading-[1.2] tracking-tight mb-5">
+                                <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-black leading-[1.2] tracking-tight mb-5">
                                     Why Choose Redlix Systems?
                                 </h2>
                                 <ul className="space-y-3 mb-6">

@@ -5,7 +5,7 @@ import { sendPaymentReceivedEmail } from "@/utils/email";
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { clientId, amount, paymentDate, receiptFile } = body;
+        const { clientId, amount, paymentDate, transactionId, receiptFile } = body;
 
         if (!clientId || !amount || !paymentDate) {
             return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
             companyName: client.companyName,
             amount,
             paymentDate,
+            transactionId: transactionId || undefined,
             receiptFile: decodedFile,
         });
 

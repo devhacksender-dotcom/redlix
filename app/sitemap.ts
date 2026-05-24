@@ -23,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const projectSlugs = [
         'dhasha-media',
         'hsga-telangana',
-        'forge-digital',
+        'smartfit',
         'hus-system',
         'nss-cmrit',
         'national-ecommerce'

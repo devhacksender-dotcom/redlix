@@ -17,7 +17,7 @@ export default function ConditionalNav({ children }: { children: React.ReactNode
     return (
         <>
             <Navbar />
-            <main className="pt-20">
+            <main>
                 {children}
             </main>
             <CookieButton />

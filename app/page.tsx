@@ -1,8 +1,9 @@
 import HeroSection from "@/components/HeroSection";
 import ServicesSection from "@/components/ServicesSection";
-import CallToAction from "@/components/CallToAction";
+import PricingSection from "@/components/PricingSection";
 import ProjectsSection from "@/components/ProjectsSection";
-import BlogsSection from "@/components/BlogsSection";
+import LogoTicker from "@/components/LogoTicker";
+import RevealSection from "@/components/RevealSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import FinalCTA from "@/components/FinalCTA";
 import FAQSection from "@/components/FAQSection";
@@ -14,9 +15,10 @@ export default function Home() {
       <main className="flex-grow">
         <HeroSection />
         <ProjectsSection />
+        <LogoTicker />
+        <RevealSection />
         <ServicesSection />
-        <CallToAction />
-        <BlogsSection />
+        <PricingSection />
         <TestimonialsSection />
         <FinalCTA />
         <FAQSection />

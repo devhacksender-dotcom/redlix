@@ -93,24 +93,24 @@ const projects = [
         }
     },
     {
-        title: "Forge Digital",
-        slug: "forge-digital",
-        link: "https://forgedigitaltechnologies.com",
-        category: "High-Performance B2B",
-        image: "https://ik.imagekit.io/dypkhqxip/ab%20(3).png",
-        description: "Multi-vendor digital platform with dynamic pricing. Helped double sales velocity post-launch for Forge Digital Technologies.",
-        clientInfo: { hq: "Hyderabad, Telangana", industry: "Digital Agency", size: "Startup (<50)" },
-        services: ["E-commerce Development", "UI/UX Design", "Custom Engine"],
-        quote: "B2B acceleration — Precise, Dynamic, Conversion-focused",
+        title: "SmartFit AI",
+        slug: "smartfit",
+        link: "https://smartfitai.com",
+        category: "AI Fitness & Wellness",
+        image: "https://ik.imagekit.io/dypkhqxip/smartfitai",
+        description: "AI-powered fitness platform delivering custom training programs and real-time posture analysis.",
+        clientInfo: { hq: "Bengaluru, Karnataka", industry: "AI & Wellness", size: "Startup (<50)" },
+        services: ["AI Integration", "UI/UX Design", "Custom Fitness Engine"],
+        quote: "AI training acceleration — Precise, Dynamic, Engagement-focused",
         founder: {
             name: "Jaswanth Sonti",
-            role: "Founder, Forge Digital",
+            role: "Founder, SmartFit AI",
             avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1771184951/Screenshot_2026-02-16_at_01.18.59_yodn7t.png"
         },
         testimonial: {
-            text: "Our sales velocity doubled since launch. The website Redlix built for us doesn't just look good - it converts and scales effortlessly.",
+            text: "Our user engagement doubled since launch. The platform Redlix built for us doesn't just track postures - it motivates and scales our user base effortlessly.",
             author: "Jaswanth Sonti",
-            role: "Founder @ Forge Digital"
+            role: "Founder @ SmartFit AI"
         }
     },
     {

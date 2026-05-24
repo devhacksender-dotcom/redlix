@@ -128,6 +128,7 @@ export default function AdminPortal() {
     const [receivedClientId, setReceivedClientId] = useState<number | "">("");
     const [receivedAmount, setReceivedAmount] = useState("");
     const [receivedDate, setReceivedDate] = useState("");
+    const [receivedTransactionId, setReceivedTransactionId] = useState("");
     const [receivedReceiptFile, setReceivedReceiptFile] = useState<{ name: string; type: string; base64: string } | null>(null);
     const [receivedSendStatus, setReceivedSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [receivedErrorMessage, setReceivedErrorMessage] = useState("");
@@ -552,6 +553,7 @@ export default function AdminPortal() {
                     clientId: Number(receivedClientId),
                     amount: receivedAmount,
                     paymentDate: receivedDate,
+                    transactionId: receivedTransactionId || undefined,
                     receiptFile: receivedReceiptFile,
                 }),
             });
@@ -562,6 +564,7 @@ export default function AdminPortal() {
                 setReceivedClientId("");
                 setReceivedAmount("");
                 setReceivedDate("");
+                setReceivedTransactionId("");
                 setReceivedReceiptFile(null);
                 setTimeout(() => setReceivedSendStatus('idle'), 4000);
             } else {
@@ -2085,7 +2088,7 @@ export default function AdminPortal() {
                                             })()
                                         )}
 
-                                        {/* Amount and Payment Date Row */}
+                                        {/* Amount, Payment Date, Transaction ID */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Received *</label>
@@ -2108,6 +2111,19 @@ export default function AdminPortal() {
                                                     className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white"
                                                 />
                                             </div>
+                                        </div>
+
+                                        {/* Transaction ID */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Transaction ID (Optional)</label>
+                                            <input 
+                                                type="text"
+                                                placeholder="e.g. TXN123456789 or UTR / UPI Ref No."
+                                                value={receivedTransactionId}
+                                                onChange={(e) => setReceivedTransactionId(e.target.value)}
+                                                className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white font-mono"
+                                            />
+                                            <p className="text-[10px] text-white/20">Will appear as a reference on the payment receipt email.</p>
                                         </div>
 
                                         {/* Receipt PDF Upload */}
