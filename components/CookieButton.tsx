@@ -67,52 +67,58 @@ export default function CookieButton() {
 
     return (
         <>
-            {/* The Light Glass Dock */}
+            {/* The Floating Privacy Consent Card */}
             {!hasDecided && !isOpen && (
-                <div className="fixed bottom-0 left-0 right-0 z-[120] w-full border-t border-zinc-200 bg-white/95 backdrop-blur-sm shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
-                    <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12 py-5 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-                        <div className="flex-1 min-w-0 space-y-2 max-w-4xl">
-                            <p className="text-[15px] font-semibold text-[#1E2022]">
-                                We value your privacy
-                            </p>
-                            <p className="text-[13px] sm:text-[14px] text-zinc-600 leading-relaxed">
-                                Redlix Studio uses cookies and similar technologies to keep this website secure, remember your preferences, and understand how visitors use our pages. Essential cookies are required for core features such as form protection (reCAPTCHA) and admin access. Optional analytics cookies help us measure traffic through Google Analytics only if you allow them.
-                            </p>
-                            <p className="text-[12px] sm:text-[13px] text-zinc-500 leading-relaxed">
-                                You can accept all cookies, decline optional analytics, or open settings to choose what we store. Your choice is saved in your browser and can be changed anytime by clearing site data. Read our{" "}
-                                <a href="/cookies" className="text-[#E61E32] hover:underline font-medium">
-                                    Cookies Policy
-                                </a>{" "}
-                                and{" "}
-                                <a href="/privacy" className="text-[#E61E32] hover:underline font-medium">
-                                    Privacy Policy
-                                </a>{" "}
-                                for full details on what we collect, how long we keep it, and your rights under Indian law (DPDP Act, 2023).
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0 lg:pt-1">
-                            <button
-                                onClick={() => handleSave(false, false)}
-                                className="flex-1 sm:flex-none px-5 py-2.5 bg-white hover:bg-zinc-50 border border-zinc-200/80 text-[#1E2022] rounded-xl text-[13px] font-semibold transition-all duration-300"
-                            >
-                                Decline
-                            </button>
-                            <button
-                                onClick={() => handleSave(true)}
-                                className="flex-1 sm:flex-none px-5 py-2.5 bg-[#1E2022] hover:bg-[#2C3036] text-white rounded-xl text-[13px] font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
-                            >
-                                Accept all
-                            </button>
+                <div className="fixed bottom-6 left-6 z-[120] max-w-[440px] w-[calc(100%-2rem)] bg-white border border-zinc-200/70 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden text-left font-sans">
+                    
+                    {/* Top Content */}
+                    <div className="p-5 sm:p-6 pb-4">
+                        <h3 className="text-[17px] sm:text-[18px] font-semibold text-zinc-950 flex items-center gap-2 mb-3 select-none">
+                            <span>🍪</span> We value your privacy!
+                        </h3>
+                        <p className="text-[13px] sm:text-[14px] font-bold text-zinc-950 leading-relaxed">
+                            Our website uses tracking cookies to understand how you interact with it. The tracking will be enabled only if you accept.{" "}
                             <button
                                 onClick={() => setIsOpen(true)}
-                                className="p-2.5 text-zinc-400 hover:text-zinc-800 transition-colors shrink-0"
-                                title="Cookie settings"
-                                aria-label="Cookie settings"
+                                className="text-zinc-950 hover:text-zinc-650 underline font-bold cursor-pointer focus:outline-none ml-1"
                             >
-                                <Settings className="w-5 h-5" />
+                                Manage preferences
                             </button>
-                        </div>
+                        </p>
                     </div>
+
+                    {/* Divider */}
+                    <div className="w-full h-[1px] bg-zinc-100" />
+
+                    {/* Action Buttons */}
+                    <div className="p-4 sm:p-5 flex gap-3 bg-white">
+                        <button
+                            onClick={() => handleSave(true)}
+                            className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] sm:text-[14px] rounded-lg transition-colors duration-200 focus:outline-none"
+                        >
+                            Accept all
+                        </button>
+                        <button
+                            onClick={() => handleSave(false, false)}
+                            className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] sm:text-[14px] rounded-lg transition-colors duration-200 focus:outline-none"
+                        >
+                            Reject all
+                        </button>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="w-full h-[1px] bg-zinc-100" />
+
+                    {/* Footer Policy Links */}
+                    <div className="px-5 sm:px-6 py-3.5 bg-white flex gap-6 text-[12.5px] text-zinc-800 font-medium select-none">
+                        <a href="/privacy" className="hover:text-zinc-550 transition-colors">
+                            Privacy Policy
+                        </a>
+                        <a href="/terms" className="hover:text-zinc-550 transition-colors">
+                            Terms of Service
+                        </a>
+                    </div>
+
                 </div>
             )}
 
