@@ -69,18 +69,18 @@ export default function CookieButton() {
         <>
             {/* The Floating Privacy Consent Card */}
             {!hasDecided && !isOpen && (
-                <div className="fixed bottom-6 left-6 z-[120] max-w-[440px] w-[calc(100%-2rem)] bg-white border border-zinc-200/70 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden text-left font-sans">
+                <div className="fixed bottom-6 left-6 z-[120] max-w-[420px] w-[calc(100%-2rem)] bg-white border border-zinc-200/70 rounded-[20px] shadow-[0_10px_35px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden text-left font-sans">
                     
                     {/* Top Content */}
-                    <div className="p-5 sm:p-6 pb-4">
-                        <h3 className="text-[17px] sm:text-[18px] font-semibold text-zinc-950 flex items-center gap-2 mb-3 select-none">
-                            <span>🍪</span> We value your privacy!
+                    <div className="p-4 sm:p-5 pb-3">
+                        <h3 className="text-[16px] sm:text-[17px] font-semibold text-zinc-950 flex items-center gap-2 mb-2 select-none">
+                            <span className="text-[22px] sm:text-[24px] leading-none">🍪</span> We value your privacy!
                         </h3>
-                        <p className="text-[13px] sm:text-[14px] font-bold text-zinc-950 leading-relaxed">
+                        <p className="text-[12.5px] sm:text-[13.5px] font-bold text-zinc-950 leading-relaxed">
                             Our website uses tracking cookies to understand how you interact with it. The tracking will be enabled only if you accept.{" "}
                             <button
                                 onClick={() => setIsOpen(true)}
-                                className="text-zinc-950 hover:text-zinc-650 underline font-bold cursor-pointer focus:outline-none ml-1"
+                                className="text-zinc-955 hover:text-zinc-650 underline font-bold cursor-pointer focus:outline-none ml-1"
                             >
                                 Manage preferences
                             </button>
@@ -91,16 +91,16 @@ export default function CookieButton() {
                     <div className="w-full h-[1px] bg-zinc-100" />
 
                     {/* Action Buttons */}
-                    <div className="p-4 sm:p-5 flex gap-3 bg-white">
+                    <div className="p-3 px-4 sm:px-5 flex gap-2.5 bg-white">
                         <button
                             onClick={() => handleSave(true)}
-                            className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] sm:text-[14px] rounded-lg transition-colors duration-200 focus:outline-none"
+                            className="flex-1 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] rounded-lg transition-colors duration-200 focus:outline-none"
                         >
                             Accept all
                         </button>
                         <button
                             onClick={() => handleSave(false, false)}
-                            className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] sm:text-[14px] rounded-lg transition-colors duration-200 focus:outline-none"
+                            className="flex-1 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-[13px] rounded-lg transition-colors duration-200 focus:outline-none"
                         >
                             Reject all
                         </button>
@@ -110,7 +110,7 @@ export default function CookieButton() {
                     <div className="w-full h-[1px] bg-zinc-100" />
 
                     {/* Footer Policy Links */}
-                    <div className="px-5 sm:px-6 py-3.5 bg-white flex gap-6 text-[12.5px] text-zinc-800 font-medium select-none">
+                    <div className="px-4 sm:px-5 py-2.5 bg-white flex gap-5 text-[12px] text-zinc-800 font-medium select-none">
                         <a href="/privacy" className="hover:text-zinc-550 transition-colors">
                             Privacy Policy
                         </a>
