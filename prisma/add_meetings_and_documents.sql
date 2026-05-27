@@ -1,3 +1,6 @@
+-- If you have already created the meetings table, run this line to add the missing column:
+-- ALTER TABLE "meetings" ADD COLUMN IF NOT EXISTS "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
 -- Create Table for meetings
 CREATE TABLE IF NOT EXISTS "meetings" (
     "id" SERIAL PRIMARY KEY,
@@ -6,7 +9,8 @@ CREATE TABLE IF NOT EXISTS "meetings" (
     "meetingLead" TEXT NOT NULL,
     "meetingLink" TEXT,
     "scheduledAt" TIMESTAMP(3) NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create Table for meeting_attendees
