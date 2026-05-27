@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
             prisma.task.deleteMany(),
             prisma.attendance.deleteMany(),
             prisma.payroll.deleteMany(),
+            prisma.leaveRequest.deleteMany(),
             prisma.employee.deleteMany(),
             prisma.document.deleteMany(),
             prisma.contactInquiry.deleteMany(),

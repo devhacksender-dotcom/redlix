@@ -128,7 +128,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "settings">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "settings">("overview");
 
     // Task management states
     interface Task {
@@ -192,6 +192,8 @@ export default function AdminPortal() {
     const [newTask, setNewTask] = useState({ title: "", description: "", employeeId: "", deadline: "" });
     const [taskFilter, setTaskFilter] = useState<"all" | "pending" | "in_progress" | "completed">("all");
     const [taskSearchQuery, setTaskSearchQuery] = useState("");
+    const [leaveStatusFilter, setLeaveStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+    const [leaveRemarks, setLeaveRemarks] = useState<{ [key: number]: string }>({});
 
     // Attendance state for selected employee
     interface Attendance {
@@ -292,6 +294,27 @@ export default function AdminPortal() {
         status: "pending"
     });
 
+    // Leave Management States
+    interface AdminLeave {
+        id: number;
+        employeeId: number;
+        startDate: string;
+        endDate: string;
+        type: string;
+        reason: string;
+        status: string;
+        adminNotes?: string;
+        createdAt: string;
+        employee: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+        };
+    }
+    const [leaves, setLeaves] = useState<AdminLeave[]>([]);
+    const [leavesLoading, setLeavesLoading] = useState(false);
+
     const fetchTasks = async () => {
         setLoading(true);
         try {
@@ -329,6 +352,8 @@ export default function AdminPortal() {
         } else if (activeTab === "payrolls") {
             fetchPayrolls();
             fetchEmployees(); // needed to allocate payrolls
+        } else if (activeTab === "leaves") {
+            fetchLeaves();
         } else {
             fetchClients();
         }
@@ -352,7 +377,8 @@ export default function AdminPortal() {
                 fetchTasks(),
                 fetchMeetings(),
                 fetchDocuments(),
-                fetchPayrolls()
+                fetchPayrolls(),
+                fetchLeaves()
             ]);
         } catch (error) {
             console.error("Failed to fetch all data:", error);
@@ -553,6 +579,39 @@ export default function AdminPortal() {
             }
         } catch (error) {
             console.error("Failed to delete payroll:", error);
+        }
+    };
+
+    const fetchLeaves = async () => {
+        setLeavesLoading(true);
+        try {
+            const res = await fetch("/api/admin/leaves");
+            const data = await res.json();
+            if (data.success) setLeaves(data.data);
+        } catch (error) {
+            console.error("Failed to fetch leaves:", error);
+        } finally {
+            setLeavesLoading(false);
+        }
+    };
+
+    const handleReviewLeave = async (leaveId: number, status: "approved" | "rejected", adminNotes: string) => {
+        try {
+            const res = await fetch(`/api/admin/leaves/${leaveId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status, adminNotes })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setLeaves(prev => prev.map(l => l.id === leaveId ? data.data : l));
+                alert(`Leave request successfully ${status}!`);
+            } else {
+                alert(data.message || "Failed to update leave status");
+            }
+        } catch (error) {
+            console.error("Failed to review leave:", error);
+            alert("A connection error occurred. Please try again.");
         }
     };
 
@@ -1264,6 +1323,14 @@ export default function AdminPortal() {
                         Payrolls
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("leaves")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Calendar className="w-4 h-4" />
+                        Leaves
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
@@ -1344,8 +1411,9 @@ export default function AdminPortal() {
                                                                 activeTab === "meetings" ? "Meetings" :
                                                                     activeTab === "documents" ? "Documents" :
                                                                         activeTab === "payrolls" ? "Payrolls" :
-                                                                            activeTab === "settings" ? "Settings" :
-                                                                                activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
+                                                                            activeTab === "leaves" ? "Leaves" :
+                                                                                activeTab === "settings" ? "Settings" :
+                                                                                    activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
                                 </span>
                             </div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
@@ -1359,8 +1427,9 @@ export default function AdminPortal() {
                                                             activeTab === "meetings" ? "Meeting management" :
                                                                 activeTab === "documents" ? "Document vault" :
                                                                     activeTab === "payrolls" ? "Payroll allocation" :
-                                                                        activeTab === "settings" ? "System Settings" :
-                                                                            activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                                                        activeTab === "leaves" ? "Leave Requests" :
+                                                                            activeTab === "settings" ? "System Settings" :
+                                                                                activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -1373,8 +1442,9 @@ export default function AdminPortal() {
                                                             activeTab === "meetings" ? "schedule and manage internal employee meetings" :
                                                                 activeTab === "documents" ? "upload and manage company and client documents" :
                                                                     activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
-                                                                        activeTab === "settings" ? "manage system controls and master settings" :
-                                                                            activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                                        activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
+                                                                            activeTab === "settings" ? "manage system controls and master settings" :
+                                                                                activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -3842,6 +3912,151 @@ export default function AdminPortal() {
                                                         </div>
                                                     )}
                                                 </div>
+                                            </div>
+                                        );
+                                    })()
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== LEAVES TAB ===== */}
+                        {activeTab === "leaves" && (
+                            <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
+                                {/* Leave Filters */}
+                                <div className="flex flex-wrap gap-2 shrink-0 border-b border-white/5 pb-4">
+                                    {(["all", "pending", "approved", "rejected"] as const).map((filter) => {
+                                        const count = filter === "all" 
+                                            ? leaves.length 
+                                            : leaves.filter(l => l.status === filter).length;
+                                        const isActive = leaveStatusFilter === filter;
+                                        return (
+                                            <button
+                                                key={filter}
+                                                onClick={() => setLeaveStatusFilter(filter)}
+                                                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border rounded-none ${
+                                                    isActive
+                                                        ? "bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/35"
+                                                        : "bg-white/5 text-white/50 border-white/5 hover:text-white hover:bg-white/10"
+                                                }`}
+                                            >
+                                                {filter} ({count})
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {leavesLoading ? (
+                                    <div className="flex items-center justify-center py-12">
+                                        <Loader2 className="w-6 h-6 animate-spin text-white/20" />
+                                    </div>
+                                ) : (
+                                    (() => {
+                                        const filtered = leaves.filter(leave => {
+                                            const matchesStatus = leaveStatusFilter === "all" || leave.status === leaveStatusFilter;
+                                            const matchesQuery = leave.employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                leave.employee.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                leave.reason.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                leave.type.toLowerCase().includes(searchQuery.toLowerCase());
+                                            return matchesStatus && matchesQuery;
+                                        });
+
+                                        return (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {filtered.length > 0 ? (
+                                                    filtered.map((leave) => {
+                                                        const start = new Date(leave.startDate);
+                                                        const end = new Date(leave.endDate);
+                                                        const diffTime = Math.abs(end.getTime() - start.getTime());
+                                                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                                                        return (
+                                                            <div key={leave.id} className="bg-white/5 border border-white/5 p-6 flex flex-col justify-between space-y-4 hover:border-white/10 transition-colors">
+                                                                <div className="space-y-3">
+                                                                    <div className="flex justify-between items-start gap-4">
+                                                                        <div>
+                                                                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">{leave.employee.name}</h4>
+                                                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-0.5">{leave.employee.role} &bull; {leave.employee.email}</p>
+                                                                        </div>
+                                                                        <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
+                                                                            leave.status === 'approved'
+                                                                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                                                : leave.status === 'rejected'
+                                                                                ? 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
+                                                                                : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                                                        }`}>
+                                                                            {leave.status}
+                                                                        </span>
+                                                                    </div>
+
+                                                                    <div className="h-[1px] bg-white/5" />
+
+                                                                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                                                                        <div>
+                                                                            <p className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Leave Duration</p>
+                                                                            <p className="font-semibold text-white mt-0.5">
+                                                                                {start.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                                {" - "}
+                                                                                {end.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                            </p>
+                                                                            <p className="text-[10px] text-white/40">{diffDays} {diffDays === 1 ? 'day' : 'days'}</p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-[9px] text-white/30 uppercase tracking-wider font-bold text-right">Leave Type</p>
+                                                                            <span className="inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70 mt-1">
+                                                                                {leave.type}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="text-xs text-white/70 bg-black/20 p-3 border border-white/[0.02] break-words">
+                                                                        <p className="text-[9px] font-semibold text-white/45 uppercase tracking-wider mb-1">Employee Reason</p>
+                                                                        {leave.reason}
+                                                                    </div>
+
+                                                                    {leave.adminNotes && (
+                                                                        <div className="text-xs text-white/70 bg-[#E61E32]/5 p-3 border border-[#E61E32]/10 break-words">
+                                                                            <p className="text-[9px] font-semibold text-[#E61E32] uppercase tracking-wider mb-1 font-bold">Admin Remarks</p>
+                                                                            {leave.adminNotes}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+
+                                                                {leave.status === "pending" && (
+                                                                    <div className="space-y-3 pt-2">
+                                                                        <div className="flex flex-col gap-1.5">
+                                                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Admin Notes / Remarks</label>
+                                                                            <textarea
+                                                                                placeholder="Enter approval/rejection remarks..."
+                                                                                value={leaveRemarks[leave.id] || ""}
+                                                                                onChange={(e) => setLeaveRemarks(prev => ({ ...prev, [leave.id]: e.target.value }))}
+                                                                                rows={2}
+                                                                                className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 rounded-none resize-none"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="grid grid-cols-2 gap-3">
+                                                                            <button
+                                                                                onClick={() => handleReviewLeave(leave.id, "approved", leaveRemarks[leave.id] || "")}
+                                                                                className="py-2 bg-green-500 hover:bg-green-600 text-black text-xs font-black uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer text-center"
+                                                                            >
+                                                                                Approve
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleReviewLeave(leave.id, "rejected", leaveRemarks[leave.id] || "")}
+                                                                                className="py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-black uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer text-center"
+                                                                            >
+                                                                                Reject
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <div className="md:col-span-2 py-20 text-center border border-dashed border-white/5">
+                                                        <p className="text-white/20 text-sm">No leave requests found matching filters.</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })()

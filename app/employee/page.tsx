@@ -77,7 +77,7 @@ export default function EmployeePortal() {
         address?: string;
         joinedAt?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves">("overview");
 
     // Task states
     interface EmployeeTask {
@@ -151,6 +151,25 @@ export default function EmployeePortal() {
     }
     const [employeePayrolls, setEmployeePayrolls] = useState<EmployeePayroll[]>([]);
     const [payrollsLoading, setPayrollsLoading] = useState(false);
+
+    // Leave requests states
+    interface EmployeeLeave {
+        id: number;
+        startDate: string;
+        endDate: string;
+        type: string;
+        reason: string;
+        status: string;
+        adminNotes?: string;
+        createdAt: string;
+    }
+    const [employeeLeaves, setEmployeeLeaves] = useState<EmployeeLeave[]>([]);
+    const [leavesLoading, setLeavesLoading] = useState(false);
+    const [leaveStartDate, setLeaveStartDate] = useState("");
+    const [leaveEndDate, setLeaveEndDate] = useState("");
+    const [leaveType, setLeaveType] = useState("sick");
+    const [leaveReason, setLeaveReason] = useState("");
+    const [leaveIsSubmitting, setLeaveIsSubmitting] = useState(false);
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
     const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
@@ -359,6 +378,8 @@ export default function EmployeePortal() {
             fetchEmployeeDocuments();
         } else if (activeTab === "payrolls") {
             fetchEmployeePayrolls();
+        } else if (activeTab === "leaves") {
+            fetchEmployeeLeaves();
         }
     }, [activeTab, employeeInfo]);
 
@@ -398,6 +419,19 @@ export default function EmployeePortal() {
             console.error("Failed to fetch payrolls:", error);
         } finally {
             setPayrollsLoading(false);
+        }
+    };
+
+    const fetchEmployeeLeaves = async () => {
+        setLeavesLoading(true);
+        try {
+            const res = await fetch("/api/employee/leaves");
+            const data = await res.json();
+            if (data.success) setEmployeeLeaves(data.data);
+        } catch (error) {
+            console.error("Failed to fetch leaves:", error);
+        } finally {
+            setLeavesLoading(false);
         }
     };
 
@@ -497,12 +531,46 @@ export default function EmployeePortal() {
                 fetchAttendanceInfo(),
                 fetchInternTickets(),
                 fetchEmployeeMeetings(),
-                fetchEmployeeDocuments()
+                fetchEmployeeDocuments(),
+                fetchEmployeeLeaves()
             ]);
         } catch (error) {
             console.error("Failed to fetch overview data:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleSubmitLeave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLeaveIsSubmitting(true);
+        try {
+            const res = await fetch("/api/employee/leaves", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    startDate: leaveStartDate,
+                    endDate: leaveEndDate,
+                    type: leaveType,
+                    reason: leaveReason
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEmployeeLeaves(prev => [data.data, ...prev]);
+                setLeaveStartDate("");
+                setLeaveEndDate("");
+                setLeaveType("sick");
+                setLeaveReason("");
+                alert("Leave request submitted successfully!");
+            } else {
+                alert(data.message || "Failed to submit leave request");
+            }
+        } catch (error) {
+            console.error("Failed to submit leave request:", error);
+            alert("A connection error occurred. Please try again.");
+        } finally {
+            setLeaveIsSubmitting(false);
         }
     };
 
@@ -695,6 +763,14 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        onClick={() => setActiveTab("leaves")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Calendar className="w-4 h-4" />
+                        Leaves
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("settings")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -748,7 +824,8 @@ export default function EmployeePortal() {
                                     activeTab === "attendance" ? "Attendance" :
                                         activeTab === "meetings" ? "Meetings" :
                                             activeTab === "documents" ? "Documents" :
-                                                activeTab === "payrolls" ? "Payrolls" : "Settings"}
+                                                activeTab === "payrolls" ? "Payrolls" :
+                                                    activeTab === "leaves" ? "Leaves" : "Settings"}
                         </span>
                         <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
                             — {activeTab === "overview" ? "your stats and activity" :
@@ -756,7 +833,8 @@ export default function EmployeePortal() {
                                     activeTab === "attendance" ? "punch in/out to log work hours" :
                                         activeTab === "meetings" ? "meetings you are invited to" :
                                             activeTab === "documents" ? "company and client resource files" :
-                                                activeTab === "payrolls" ? "monthly payments and history" : "update personal, payroll and address info"}
+                                                activeTab === "payrolls" ? "monthly payments and history" :
+                                                    activeTab === "leaves" ? "submit and track leave requests" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1504,6 +1582,145 @@ export default function EmployeePortal() {
                                                 <p className="text-white/20 text-sm">No payroll records allocated yet.</p>
                                             </div>
                                         )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ===== LEAVES TAB ===== */}
+                        {activeTab === "leaves" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500">
+                                {/* Left Column: Leave Form (5 cols) */}
+                                <div className="lg:col-span-5 space-y-6">
+                                    <div className="bg-white/5 border border-white/5 p-6">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-4">Request Time Off</h3>
+                                        <form onSubmit={handleSubmitLeave} className="space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Leave Type</label>
+                                                <select
+                                                    value={leaveType}
+                                                    onChange={(e) => setLeaveType(e.target.value)}
+                                                    required
+                                                    className="w-full bg-[#121212] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                >
+                                                    <option value="sick">Sick Leave</option>
+                                                    <option value="casual">Casual Leave</option>
+                                                    <option value="personal">Personal Leave</option>
+                                                    <option value="paid">Paid Leave</option>
+                                                    <option value="unpaid">Unpaid Leave</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Start Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={leaveStartDate}
+                                                        onChange={(e) => setLeaveStartDate(e.target.value)}
+                                                        required
+                                                        className="w-full bg-[#121212] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">End Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={leaveEndDate}
+                                                        onChange={(e) => setLeaveEndDate(e.target.value)}
+                                                        required
+                                                        className="w-full bg-[#121212] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Reason</label>
+                                                <textarea
+                                                    value={leaveReason}
+                                                    onChange={(e) => setLeaveReason(e.target.value)}
+                                                    required
+                                                    rows={4}
+                                                    placeholder="State the reason for your leave request..."
+                                                    className="w-full bg-[#121212] border border-white/10 px-3 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none"
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={leaveIsSubmitting}
+                                                className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-3 text-xs font-black uppercase tracking-widest transition-colors duration-200 disabled:opacity-50"
+                                            >
+                                                {leaveIsSubmitting ? "Submitting..." : "Submit Request"}
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                {/* Right Column: Leave History (7 cols) */}
+                                <div className="lg:col-span-7 flex flex-col h-full overflow-hidden">
+                                    <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full">
+                                        <div className="mb-4 shrink-0 flex justify-between items-center">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Request History</h3>
+                                            <span className="text-[10px] text-white/30">{employeeLeaves.length} requests</span>
+                                        </div>
+
+                                        <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin space-y-3">
+                                            {leavesLoading ? (
+                                                <p className="text-white/20 text-center py-10 animate-pulse text-xs">Loading leave history...</p>
+                                            ) : employeeLeaves.length > 0 ? (
+                                                employeeLeaves.map((leave) => {
+                                                    const start = new Date(leave.startDate);
+                                                    const end = new Date(leave.endDate);
+                                                    const diffTime = Math.abs(end.getTime() - start.getTime());
+                                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
+                                                    return (
+                                                        <div key={leave.id} className="bg-white/[0.02] border border-white/5 p-4 space-y-3 hover:border-white/10 transition-colors">
+                                                            <div className="flex justify-between items-start">
+                                                                <div>
+                                                                    <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70">
+                                                                        {leave.type} leave
+                                                                    </span>
+                                                                    <h4 className="text-xs font-semibold text-white mt-2">
+                                                                        {start.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                        {" - "}
+                                                                        {end.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
+                                                                    </h4>
+                                                                    <p className="text-[10px] text-white/30 mt-0.5">{diffDays} {diffDays === 1 ? 'day' : 'days'}</p>
+                                                                </div>
+
+                                                                <span className={`px-2.5 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
+                                                                    leave.status === 'approved'
+                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                                        : leave.status === 'rejected'
+                                                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
+                                                                        : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
+                                                                }`}>
+                                                                    {leave.status}
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="text-xs text-white/70 bg-black/20 p-2.5 border border-white/[0.02] break-words">
+                                                                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1">Reason</p>
+                                                                {leave.reason}
+                                                            </div>
+
+                                                            {leave.adminNotes && (
+                                                                <div className="text-xs text-white/70 bg-[#E61E32]/5 p-2.5 border border-[#E61E32]/10 break-words">
+                                                                    <p className="text-[10px] font-semibold text-[#E61E32] uppercase tracking-wider mb-1">Admin Remarks</p>
+                                                                    {leave.adminNotes}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div className="py-16 text-center border border-dashed border-white/5">
+                                                    <p className="text-white/20 text-xs">No leave requests submitted yet.</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
