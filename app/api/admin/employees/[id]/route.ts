@@ -16,7 +16,7 @@ export async function PATCH(
         }
 
         const body = await req.json();
-        const { name, email, role, password, offerLetterLink, joinedAt } = body;
+        const { name, email, role, password, offerLetterLink, joinedAt, phone, upiId, fatherName, mobile, altEmail, address } = body;
 
         // If email is changing, make sure it is unique
         if (email) {
@@ -38,6 +38,12 @@ export async function PATCH(
         if (password !== undefined) updateData.password = password;
         if (offerLetterLink !== undefined) updateData.offerLetterLink = offerLetterLink;
         if (joinedAt !== undefined) updateData.joinedAt = new Date(joinedAt);
+        if (phone !== undefined) updateData.phone = phone;
+        if (upiId !== undefined) updateData.upiId = upiId;
+        if (fatherName !== undefined) updateData.fatherName = fatherName;
+        if (mobile !== undefined) updateData.mobile = mobile;
+        if (altEmail !== undefined) updateData.altEmail = altEmail;
+        if (address !== undefined) updateData.address = address;
 
         const employee = await prisma.employee.update({
             where: { id },

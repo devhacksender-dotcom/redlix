@@ -76,6 +76,12 @@ interface Employee {
     password?: string;
     offerLetterLink?: string;
     joinedAt: string;
+    phone?: string;
+    upiId?: string;
+    fatherName?: string;
+    mobile?: string;
+    altEmail?: string;
+    address?: string;
 }
 
 interface SupportTicket {
@@ -677,7 +683,10 @@ export default function AdminPortal() {
     const filteredEmployees = employees.filter(emp =>
         emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        emp.role.toLowerCase().includes(searchQuery.toLowerCase())
+        emp.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (emp.phone && emp.phone.includes(searchQuery)) ||
+        (emp.upiId && emp.upiId.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (emp.mobile && emp.mobile.includes(searchQuery))
     );
 
     const filteredTickets = tickets.filter(t =>
@@ -1457,7 +1466,7 @@ export default function AdminPortal() {
                                                                 type="text"
                                                                 value={selectedEmployee.name}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, name: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
@@ -1467,7 +1476,7 @@ export default function AdminPortal() {
                                                                 type="email"
                                                                 value={selectedEmployee.email}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, email: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
                                                     </div>
@@ -1479,7 +1488,7 @@ export default function AdminPortal() {
                                                                 type="text"
                                                                 value={selectedEmployee.role}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, role: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
@@ -1488,9 +1497,72 @@ export default function AdminPortal() {
                                                                 type="text"
                                                                 value={selectedEmployee.password || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, password: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
+                                                            <input
+                                                                type="tel"
+                                                                value={selectedEmployee.phone || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, phone: e.target.value })}
+                                                                placeholder="+91 XXXXX XXXXX"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">UPI ID (For Payrolls)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedEmployee.upiId || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, upiId: e.target.value })}
+                                                                placeholder="username@upi"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Father's Name</label>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedEmployee.fatherName || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, fatherName: e.target.value })}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Emergency Mobile</label>
+                                                            <input
+                                                                type="tel"
+                                                                value={selectedEmployee.mobile || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, mobile: e.target.value })}
+                                                                placeholder="XXXXXXXXXX"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Alternative Email</label>
+                                                            <input
+                                                                type="email"
+                                                                value={selectedEmployee.altEmail || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, altEmail: e.target.value })}
+                                                                placeholder="name@personal.com"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Postal Address (For Goodies/Deliveries)</label>
+                                                        <textarea
+                                                            rows={2}
+                                                            value={selectedEmployee.address || ""}
+                                                            onChange={(e) => setSelectedEmployee({ ...selectedEmployee, address: e.target.value })}
+                                                            placeholder="House No, Street Name, Area, City, State, Pincode"
+                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none resize-none font-sans"
+                                                        />
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
@@ -1499,7 +1571,7 @@ export default function AdminPortal() {
                                                                 type="date"
                                                                 value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString() })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
@@ -1509,7 +1581,7 @@ export default function AdminPortal() {
                                                                 value={selectedEmployee.offerLetterLink || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, offerLetterLink: e.target.value })}
                                                                 placeholder="https://..."
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
                                                     </div>
@@ -1517,14 +1589,14 @@ export default function AdminPortal() {
                                                         <button
                                                             type="submit"
                                                             disabled={isSubmitting}
-                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50"
+                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none"
                                                         >
                                                             {isSubmitting ? "Updating..." : "Save Changes"}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsEditingEmployee(false)}
-                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10 rounded-none"
                                                         >
                                                             Cancel
                                                         </button>
@@ -1532,26 +1604,47 @@ export default function AdminPortal() {
                                                 </form>
                                             ) : (
                                                 <>
-                                                    <div className="grid grid-cols-1 gap-6">
-                                                        <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                            <InfoBlock label="Email Address" value={selectedEmployee.email} />
-                                                            <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        {/* Column 1: Employment & Contact */}
+                                                        <div className="space-y-6">
+                                                            <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
+                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Employment & Contact</p>
+                                                                <InfoBlock label="Email Address" value={selectedEmployee.email} />
+                                                                <InfoBlock label="Phone Number" value={selectedEmployee.phone || "Not Provided"} />
+                                                                <InfoBlock label="Alternative Email" value={selectedEmployee.altEmail || "Not Provided"} />
+                                                                <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                            </div>
+
+                                                            <div className="p-4 bg-white/[0.02] border border-white/5">
+                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
+                                                                {selectedEmployee.offerLetterLink ? (
+                                                                    <a
+                                                                        href={selectedEmployee.offerLetterLink}
+                                                                        target="_blank"
+                                                                        className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors rounded-none"
+                                                                    >
+                                                                        <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
+                                                                        <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/60" />
+                                                                    </a>
+                                                                ) : (
+                                                                    <p className="text-xs text-white/30 italic">No link provided</p>
+                                                                )}
+                                                            </div>
                                                         </div>
 
-                                                        <div className="p-4 bg-white/[0.02] border border-white/5">
-                                                            <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
-                                                            {selectedEmployee.offerLetterLink ? (
-                                                                <a
-                                                                    href={selectedEmployee.offerLetterLink}
-                                                                    target="_blank"
-                                                                    className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors"
-                                                                >
-                                                                    <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
-                                                                    <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/60" />
-                                                                </a>
-                                                            ) : (
-                                                                <p className="text-xs text-white/30 italic">No link provided</p>
-                                                            )}
+                                                        {/* Column 2: Payroll & Personal/Goodies */}
+                                                        <div className="space-y-6">
+                                                            <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
+                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Payroll Info</p>
+                                                                <InfoBlock label="UPI ID" value={selectedEmployee.upiId || "Not Provided"} />
+                                                            </div>
+
+                                                            <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
+                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Personal & Goodies</p>
+                                                                <InfoBlock label="Father's Name" value={selectedEmployee.fatherName || "Not Provided"} />
+                                                                <InfoBlock label="Emergency Mobile" value={selectedEmployee.mobile || "Not Provided"} />
+                                                                <InfoBlock label="Postal Address" value={selectedEmployee.address || "Not Provided"} />
+                                                            </div>
                                                         </div>
                                                     </div>
 

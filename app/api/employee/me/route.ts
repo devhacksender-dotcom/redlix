@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import prisma from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
     try {
@@ -16,13 +17,32 @@ export async function GET(request: NextRequest) {
         
         try {
             const { payload } = await jwtVerify(token, secret);
+            const employeeId = payload.employeeId as number;
+
+            const employee = await prisma.employee.findUnique({
+                where: { id: employeeId },
+            });
+
+            if (!employee) {
+                return NextResponse.json(
+                    { success: false, message: "Employee profile not found" },
+                    { status: 404 }
+                );
+            }
+
             return NextResponse.json({
                 success: true,
                 data: {
-                    id: payload.employeeId,
-                    name: payload.name,
-                    email: payload.email,
-                    role: payload.role,
+                    id: employee.id,
+                    name: employee.name,
+                    email: employee.email,
+                    role: employee.role,
+                    phone: employee.phone,
+                    upiId: employee.upiId,
+                    fatherName: employee.fatherName,
+                    mobile: employee.mobile,
+                    altEmail: employee.altEmail,
+                    address: employee.address,
                 }
             });
         } catch (err) {

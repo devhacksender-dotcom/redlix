@@ -43,6 +43,12 @@ model Employee {
   offerLetterLink String?
   resetToken      String?
   resetTokenExpiry DateTime?
+  phone           String?
+  upiId           String?
+  fatherName      String?
+  mobile          String?
+  altEmail        String?
+  address         String?
   joinedAt        DateTime @default(now())
   createdAt       DateTime @default(now())
 
