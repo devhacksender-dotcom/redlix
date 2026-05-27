@@ -24,7 +24,8 @@ import {
     Edit2,
     CreditCard,
     FileText,
-    AlertCircle
+    AlertCircle,
+    ChevronDown
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -145,6 +146,7 @@ export default function AdminPortal() {
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [isEditingClient, setIsEditingClient] = useState(false);
     const [isEditingEmployee, setIsEditingEmployee] = useState(false);
+    const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     
     // Employee Form State
@@ -183,6 +185,12 @@ export default function AdminPortal() {
             fetchInternTickets();
         } else {
             fetchClients();
+        }
+    }, [activeTab]);
+
+    useEffect(() => {
+        if (activeTab === "payment-due-sender" || activeTab === "payment-received-sender") {
+            setIsPaymentsOpen(true);
         }
     }, [activeTab]);
 
@@ -736,20 +744,48 @@ export default function AdminPortal() {
                         <Briefcase className="w-4 h-4" />
                         Clients
                     </button>
-                    <button 
-                        onClick={() => setActiveTab("payment-due-sender")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-due-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-                    >
-                        <CreditCard className="w-4 h-4" />
-                        Payment Due Sender
-                    </button>
-                    <button 
-                        onClick={() => setActiveTab("payment-received-sender")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-received-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
-                    >
-                        <CheckCircle2 className="w-4 h-4" />
-                        Payment Received Sender
-                    </button>
+                    <div className="space-y-1">
+                        <button 
+                            onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+                                (activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender')
+                                ? 'text-[#E61E32] bg-[#E61E32]/5' 
+                                : 'text-white/50 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <CreditCard className="w-4 h-4" />
+                                <span>Payments</span>
+                            </div>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isPaymentsOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isPaymentsOpen && (
+                            <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
+                                <button 
+                                    onClick={() => setActiveTab("payment-due-sender")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-colors ${
+                                        activeTab === 'payment-due-sender' 
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32]' 
+                                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current" />
+                                    Due Mail Sender
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab("payment-received-sender")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-colors ${
+                                        activeTab === 'payment-received-sender' 
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32]' 
+                                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current" />
+                                    Payment Received Sender
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </nav>
 
                 <button 

@@ -22,7 +22,7 @@ const Navbar = () => {
                     <div className="flex-shrink-0 flex items-center">
                         <Link href="/" className="flex items-center gap-2 group">
                             <img
-                                src="https://ik.imagekit.io/dypkhqxip/redlixlogo?updatedAt=1777318254456"
+                                src="https://ik.imagekit.io/dypkhqxip/logo.png"
                                 alt="Redlix Logo"
                                 className="h-[20px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.03]"
                             />
