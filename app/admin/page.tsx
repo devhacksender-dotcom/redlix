@@ -2298,9 +2298,9 @@ export default function AdminPortal() {
 
                                                                             return (
                                                                                 <tr key={att.id} className="border-b border-white/5 text-white/80 hover:bg-white/[0.02]">
-                                                                                    <td className="py-2">{pIn.toLocaleDateString()}</td>
-                                                                                    <td className="py-2">{pIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                                                                    <td className="py-2">{pOut ? pOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}</td>
+                                                                                    <td className="py-2">{pIn.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
+                                                                                    <td className="py-2">{pIn.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}</td>
+                                                                                    <td className="py-2">{pOut ? pOut.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) : "Active"}</td>
                                                                                     <td className={`py-2 text-right font-medium ${pOut ? 'text-white/60' : 'text-[#E61E32] animate-pulse'}`}>{durationStr}</td>
                                                                                 </tr>
                                                                             );
@@ -3362,7 +3362,7 @@ export default function AdminPortal() {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-4 text-[10px] text-white/30">
-                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}</span>
                                                     <span className="flex items-center gap-1"><Users className="w-3 h-3" />{meeting.attendees.length} attendees</span>
                                                 </div>
                                             </div>
@@ -3390,7 +3390,7 @@ export default function AdminPortal() {
                                             </div>
                                             <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
                                                 <p className="text-[10px] text-white/30 uppercase tracking-wider">Scheduled At</p>
-                                                <p className="text-sm font-semibold text-white">{new Date(selectedMeeting.scheduledAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}</p>
+                                                <p className="text-sm font-semibold text-white">{new Date(selectedMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
                                             </div>
                                         </div>
 

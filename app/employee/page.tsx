@@ -152,6 +152,19 @@ export default function EmployeePortal() {
             rawDate: Date;
         }[] = [];
         
+        const getISTTimeParts = (date: Date) => {
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Kolkata',
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: false
+            });
+            const parts = formatter.formatToParts(date);
+            const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+            const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0', 10);
+            return { hour, minute };
+        };
+
         const today = new Date();
         const start = joinedAtStr ? new Date(joinedAtStr) : new Date();
         if (!joinedAtStr) {
@@ -171,12 +184,12 @@ export default function EmployeePortal() {
         end.setHours(23, 59, 59, 999);
         
         while (curr.getTime() <= end.getTime()) {
-            const dateStrKey = curr.toLocaleDateString();
+            const dateStrKey = curr.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
             const dateObj = new Date(curr);
             
             const logsForDay = history.filter(h => {
                 const d = new Date(h.punchIn);
-                return d.toLocaleDateString() === dateStrKey;
+                return d.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) === dateStrKey;
             }).sort((a, b) => new Date(a.punchIn).getTime() - new Date(b.punchIn).getTime());
             
             if (logsForDay.length > 0) {
@@ -186,13 +199,12 @@ export default function EmployeePortal() {
                 const pIn = new Date(firstLog.punchIn);
                 const pOut = lastLog.punchOut ? new Date(lastLog.punchOut) : null;
                 
-                const hour = pIn.getHours();
-                const minute = pIn.getMinutes();
-                const isLate = hour > 10 || (hour === 10 && minute > 0);
+                const istTime = getISTTimeParts(pIn);
+                const isLate = istTime.hour > 10 || (istTime.hour === 10 && istTime.minute > 0);
                 
-                const punchInTimeStr = pIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const punchInTimeStr = pIn.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' });
                 const punchOutTimeStr = pOut 
-                    ? pOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                    ? pOut.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) 
                     : (lastLog.punchOut === null ? "Active" : "-");
                 
                 const dayWorkMinutes = logsForDay.reduce((sum, r) => sum + r.workMinutes, 0);
@@ -202,14 +214,16 @@ export default function EmployeePortal() {
                     punchIn: punchInTimeStr,
                     punchOut: punchOutTimeStr,
                     status: isLate ? "Absent" : "Present",
-                    statusReason: isLate ? "Late Check-in (after 10:00 AM)" : "Present on time",
+                    statusReason: isLate ? "Late Check-in (after 10:00 AM IST)" : "Present on time",
                     workMinutes: dayWorkMinutes,
                     isActive: lastLog.punchOut === null,
                     rawDate: dateObj
                 });
             } else {
-                const isToday = dateObj.toLocaleDateString() === today.toLocaleDateString();
-                const isBefore10AM = today.getHours() < 10;
+                const todayISTStr = today.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+                const isToday = dateStrKey === todayISTStr;
+                const todayISTTime = getISTTimeParts(today);
+                const isBefore10AM = todayISTTime.hour < 10;
                 
                 let status: "Present" | "Absent" | "Pending" = "Absent";
                 let statusReason = "No Check-in recorded";
@@ -217,10 +231,10 @@ export default function EmployeePortal() {
                 if (isToday) {
                     if (isBefore10AM) {
                         status = "Pending";
-                        statusReason = "Pending Check-in (cutoff 10:00 AM)";
+                        statusReason = "Pending Check-in (cutoff 10:00 AM IST)";
                     } else {
                         status = "Absent";
-                        statusReason = "Missed 10:00 AM cutoff";
+                        statusReason = "Missed 10:00 AM IST cutoff";
                     }
                 }
                 
@@ -944,10 +958,10 @@ export default function EmployeePortal() {
                                 <div className="bg-white/5 border border-white/5 p-8 flex flex-col items-center justify-center text-center space-y-8 min-h-[350px]">
                                     <div className="space-y-2">
                                         <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
-                                            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                         </div>
                                         <div className="text-xs text-white/30 uppercase tracking-widest">
-                                            {currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                            {currentTime.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                         </div>
                                     </div>
 
@@ -958,7 +972,7 @@ export default function EmployeePortal() {
                                                 {activeAttendanceSession ? (
                                                     <span className="text-[#E61E32] flex items-center justify-center gap-1.5">
                                                         <span className="w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />
-                                                        Active session started at {new Date(activeAttendanceSession.punchIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        Active session started at {new Date(activeAttendanceSession.punchIn).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                 ) : (
                                                     <span className="text-white/40">You are clocked out.</span>
@@ -1288,7 +1302,7 @@ export default function EmployeePortal() {
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-3 text-[10px] text-white/30">
-                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}</span>
                                                     <span className="flex items-center gap-1"><Users className="w-3 h-3" />{meeting.attendees.length}</span>
                                                 </div>
                                             </div>
@@ -1311,7 +1325,7 @@ export default function EmployeePortal() {
                                             </div>
                                             <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
                                                 <p className="text-[10px] text-white/30 uppercase tracking-wider">Date & Time</p>
-                                                <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}</p>
+                                                <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
                                             </div>
                                         </div>
 
