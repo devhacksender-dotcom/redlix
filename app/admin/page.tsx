@@ -26,7 +26,11 @@ import {
     FileText,
     AlertCircle,
     ChevronDown,
-    ListTodo
+    ListTodo,
+    Video,
+    Download,
+    Link as LinkIcon,
+    X
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -123,7 +127,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents">("overview");
 
     // Task management states
     interface Task {
@@ -141,6 +145,44 @@ export default function AdminPortal() {
             role: string;
         };
     }
+
+    // Meeting states
+    interface MeetingAttendee {
+        id: number;
+        employeeId: number;
+        employee: { id: number; name: string; email: string; role: string };
+    }
+    interface Meeting {
+        id: number;
+        title: string;
+        description?: string;
+        meetingLead: string;
+        meetingLink?: string;
+        scheduledAt: string;
+        attendees: MeetingAttendee[];
+        createdAt: string;
+    }
+    const [meetings, setMeetings] = useState<Meeting[]>([]);
+    const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+    const [showAddMeetingForm, setShowAddMeetingForm] = useState(false);
+    const [newMeeting, setNewMeeting] = useState({ title: "", description: "", meetingLead: "", meetingLink: "", scheduledAt: "", attendeeIds: [] as number[] });
+    const [meetingsLoading, setMeetingsLoading] = useState(false);
+
+    // Document states
+    interface Document {
+        id: number;
+        title: string;
+        description?: string;
+        category: string;
+        fileUrl: string;
+        fileName: string;
+        uploadedBy: string;
+        createdAt: string;
+    }
+    const [documents, setDocuments] = useState<Document[]>([]);
+    const [showAddDocForm, setShowAddDocForm] = useState(false);
+    const [newDoc, setNewDoc] = useState({ title: "", description: "", category: "company", fileUrl: "", fileName: "" });
+    const [documentsLoading, setDocumentsLoading] = useState(false);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [showAddTaskForm, setShowAddTaskForm] = useState(false);
@@ -245,6 +287,11 @@ export default function AdminPortal() {
             fetchTickets();
         } else if (activeTab === "intern-support") {
             fetchInternTickets();
+        } else if (activeTab === "meetings") {
+            fetchMeetings();
+            fetchEmployees();
+        } else if (activeTab === "documents") {
+            fetchDocuments();
         } else {
             fetchClients();
         }
@@ -265,13 +312,110 @@ export default function AdminPortal() {
                 fetchTickets(),
                 fetchInternTickets(),
                 fetchClients(),
-                fetchTasks()
+                fetchTasks(),
+                fetchMeetings(),
+                fetchDocuments()
             ]);
         } catch (error) {
             console.error("Failed to fetch all data:", error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchMeetings = async () => {
+        setMeetingsLoading(true);
+        try {
+            const res = await fetch("/api/admin/meetings");
+            const data = await res.json();
+            if (data.success) setMeetings(data.data);
+        } catch (error) {
+            console.error("Failed to fetch meetings:", error);
+        } finally {
+            setMeetingsLoading(false);
+        }
+    };
+
+    const handleAddMeeting = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/admin/meetings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newMeeting)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMeetings(prev => [data.data, ...prev]);
+                setShowAddMeetingForm(false);
+                setNewMeeting({ title: "", description: "", meetingLead: "", meetingLink: "", scheduledAt: "", attendeeIds: [] });
+            } else {
+                alert(data.message || "Failed to create meeting");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteMeeting = async (id: number) => {
+        if (!confirm("Delete this meeting?")) return;
+        try {
+            const res = await fetch(`/api/admin/meetings/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setMeetings(prev => prev.filter(m => m.id !== id));
+                if (selectedMeeting?.id === id) setSelectedMeeting(null);
+            }
+        } catch (err) { console.error(err); }
+    };
+
+    const fetchDocuments = async () => {
+        setDocumentsLoading(true);
+        try {
+            const res = await fetch("/api/admin/documents");
+            const data = await res.json();
+            if (data.success) setDocuments(data.data);
+        } catch (error) {
+            console.error("Failed to fetch documents:", error);
+        } finally {
+            setDocumentsLoading(false);
+        }
+    };
+
+    const handleAddDocument = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/admin/documents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newDoc)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDocuments(prev => [data.data, ...prev]);
+                setShowAddDocForm(false);
+                setNewDoc({ title: "", description: "", category: "company", fileUrl: "", fileName: "" });
+            } else {
+                alert(data.message || "Failed to add document");
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteDocument = async (id: number) => {
+        if (!confirm("Delete this document?")) return;
+        try {
+            const res = await fetch(`/api/admin/documents/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) setDocuments(prev => prev.filter(d => d.id !== id));
+        } catch (err) { console.error(err); }
     };
 
     const fetchInquiries = async () => {
@@ -957,6 +1101,22 @@ export default function AdminPortal() {
                         Clients
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("meetings")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Video className="w-4 h-4" />
+                        Meetings
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("documents")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <FileText className="w-4 h-4" />
+                        Documents
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
@@ -1023,7 +1183,9 @@ export default function AdminPortal() {
                                                 activeTab === "support" ? "Support system" :
                                                     activeTab === "intern-support" ? "Intern support system" :
                                                         activeTab === "clients" ? "Client management" :
-                                                            activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                                            activeTab === "meetings" ? "Meeting management" :
+                                                                activeTab === "documents" ? "Document vault" :
+                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -1033,7 +1195,9 @@ export default function AdminPortal() {
                                                 activeTab === "employees" ? "manage organization structure" :
                                                     activeTab === "tasks" ? "assign and track tasks for team members" :
                                                         activeTab === "clients" ? "monitor client projects and meetings" :
-                                                            activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                            activeTab === "meetings" ? "schedule and manage internal employee meetings" :
+                                                                activeTab === "documents" ? "upload and manage company and client documents" :
+                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -1062,6 +1226,24 @@ export default function AdminPortal() {
                                 >
                                     <Plus className="w-4 h-4" />
                                     Assign Task
+                                </button>
+                            )}
+                            {activeTab === "meetings" && (
+                                <button
+                                    onClick={() => setShowAddMeetingForm(!showAddMeetingForm)}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Schedule Meeting
+                                </button>
+                            )}
+                            {activeTab === "documents" && (
+                                <button
+                                    onClick={() => setShowAddDocForm(!showAddDocForm)}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Document
                                 </button>
                             )}
                             {activeTab === "clients" && (
@@ -3101,6 +3283,223 @@ export default function AdminPortal() {
                                         })()}
                                     </div>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* ===== MEETINGS TAB ===== */}
+                        {activeTab === "meetings" && (
+                            <div className="h-full flex gap-6 animate-in fade-in duration-500 overflow-hidden">
+                                {/* Left: Meeting List + Form */}
+                                <div className="w-[420px] shrink-0 flex flex-col gap-4 overflow-y-auto pr-1">
+                                    {showAddMeetingForm && (
+                                        <form onSubmit={handleAddMeeting} className="bg-white/[0.02] border border-white/10 p-5 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Schedule New Meeting</h3>
+                                                <button type="button" onClick={() => setShowAddMeetingForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
+                                            </div>
+                                            <input required placeholder="Meeting title *" value={newMeeting.title} onChange={e => setNewMeeting(p => ({ ...p, title: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                            <textarea placeholder="Description (optional)" value={newMeeting.description} onChange={e => setNewMeeting(p => ({ ...p, description: e.target.value }))} rows={2} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 resize-none" />
+                                            <input required placeholder="Meeting lead name *" value={newMeeting.meetingLead} onChange={e => setNewMeeting(p => ({ ...p, meetingLead: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                            <input placeholder="Meeting link (Google Meet / Zoom)" value={newMeeting.meetingLink} onChange={e => setNewMeeting(p => ({ ...p, meetingLink: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                            <div>
+                                                <label className="text-[10px] text-white/30 uppercase tracking-wider mb-1 block">Scheduled Date & Time *</label>
+                                                <input required type="datetime-local" value={newMeeting.scheduledAt} onChange={e => setNewMeeting(p => ({ ...p, scheduledAt: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30" />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] text-white/30 uppercase tracking-wider mb-2 block">Select Attendees</label>
+                                                <div className="space-y-1 max-h-40 overflow-y-auto">
+                                                    {employees.map(emp => (
+                                                        <label key={emp.id} className="flex items-center gap-2 cursor-pointer group">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={newMeeting.attendeeIds.includes(emp.id)}
+                                                                onChange={e => {
+                                                                    if (e.target.checked) {
+                                                                        setNewMeeting(p => ({ ...p, attendeeIds: [...p.attendeeIds, emp.id] }));
+                                                                    } else {
+                                                                        setNewMeeting(p => ({ ...p, attendeeIds: p.attendeeIds.filter(id => id !== emp.id) }));
+                                                                    }
+                                                                }}
+                                                                className="accent-[#E61E32]"
+                                                            />
+                                                            <span className="text-xs text-white/60 group-hover:text-white">{emp.name} <span className="text-white/30">({emp.role})</span></span>
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Video className="w-4 h-4" /> Schedule Meeting</>}
+                                            </button>
+                                        </form>
+                                    )}
+
+                                    {meetingsLoading ? (
+                                        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    ) : meetings.length === 0 ? (
+                                        <div className="text-center py-12 text-white/20 text-sm">No meetings scheduled yet.</div>
+                                    ) : (
+                                        meetings.map(meeting => (
+                                            <div
+                                                key={meeting.id}
+                                                onClick={() => setSelectedMeeting(meeting)}
+                                                className={`p-4 border cursor-pointer transition-all space-y-2 ${
+                                                    selectedMeeting?.id === meeting.id
+                                                        ? 'border-[#E61E32]/40 bg-[#E61E32]/5'
+                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">{meeting.title}</p>
+                                                        <p className="text-[10px] text-white/40 mt-0.5">Lead: {meeting.meetingLead}</p>
+                                                    </div>
+                                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${
+                                                        new Date(meeting.scheduledAt) > new Date()
+                                                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                                            : 'bg-white/5 text-white/30 border border-white/10'
+                                                    }`}>
+                                                        {new Date(meeting.scheduledAt) > new Date() ? 'Upcoming' : 'Completed'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-4 text-[10px] text-white/30">
+                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                    <span className="flex items-center gap-1"><Users className="w-3 h-3" />{meeting.attendees.length} attendees</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                {/* Right: Meeting Detail */}
+                                {selectedMeeting ? (
+                                    <div className="flex-1 bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white">{selectedMeeting.title}</h3>
+                                                {selectedMeeting.description && <p className="text-sm text-white/40 mt-1">{selectedMeeting.description}</p>}
+                                            </div>
+                                            <button onClick={() => handleDeleteMeeting(selectedMeeting.id)} className="p-2 hover:bg-[#E61E32]/10 text-white/30 hover:text-[#E61E32] transition-colors">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
+                                                <p className="text-sm font-semibold text-white">{selectedMeeting.meetingLead}</p>
+                                            </div>
+                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Scheduled At</p>
+                                                <p className="text-sm font-semibold text-white">{new Date(selectedMeeting.scheduledAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}</p>
+                                            </div>
+                                        </div>
+
+                                        {selectedMeeting.meetingLink && (
+                                            <div className="bg-white/[0.03] border border-white/5 p-4">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Meeting Link</p>
+                                                <a href={selectedMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline">
+                                                    <LinkIcon className="w-4 h-4" />{selectedMeeting.meetingLink}
+                                                </a>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">Attendees ({selectedMeeting.attendees.length})</p>
+                                            <div className="space-y-2">
+                                                {selectedMeeting.attendees.map(att => (
+                                                    <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5">
+                                                        <div className="w-7 h-7 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center">
+                                                            <User className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-white">{att.employee.name}</p>
+                                                            <p className="text-[10px] text-white/30">{att.employee.role} &middot; {att.employee.email}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {selectedMeeting.attendees.length === 0 && (
+                                                    <p className="text-sm text-white/20">No attendees assigned.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center text-white/15 text-sm">
+                                        Select a meeting to see details
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== DOCUMENTS TAB ===== */}
+                        {activeTab === "documents" && (
+                            <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto">
+                                {showAddDocForm && (
+                                    <form onSubmit={handleAddDocument} className="bg-white/[0.02] border border-white/10 p-5 grid grid-cols-2 gap-4">
+                                        <div className="col-span-2 flex items-center justify-between">
+                                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Add New Document</h3>
+                                            <button type="button" onClick={() => setShowAddDocForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
+                                        </div>
+                                        <input required placeholder="Document title *" value={newDoc.title} onChange={e => setNewDoc(p => ({ ...p, title: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                        <select value={newDoc.category} onChange={e => setNewDoc(p => ({ ...p, category: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30">
+                                            <option value="company">Company Document</option>
+                                            <option value="client">Client Document</option>
+                                            <option value="requirement">Requirement Document</option>
+                                            <option value="legal">Legal / Compliance</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                        <input required placeholder="File name (e.g. NDA_2026.pdf) *" value={newDoc.fileName} onChange={e => setNewDoc(p => ({ ...p, fileName: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                        <input required placeholder="File URL (Google Drive / S3 link) *" value={newDoc.fileUrl} onChange={e => setNewDoc(p => ({ ...p, fileUrl: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
+                                        <textarea placeholder="Description (optional)" value={newDoc.description} onChange={e => setNewDoc(p => ({ ...p, description: e.target.value }))} rows={2} className="col-span-2 bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 resize-none" />
+                                        <button type="submit" disabled={isSubmitting} className="col-span-2 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FileText className="w-4 h-4" /> Add Document</>}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {documentsLoading ? (
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                ) : documents.length === 0 ? (
+                                    <div className="text-center py-16 text-white/20 text-sm">No documents uploaded yet. Click &ldquo;Add Document&rdquo; to get started.</div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        {documents.map(doc => {
+                                            const categoryColors: Record<string, string> = {
+                                                company: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                                                client: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                                                requirement: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+                                                legal: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+                                                other: 'text-white/40 bg-white/5 border-white/10'
+                                            };
+                                            return (
+                                                <div key={doc.id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-5 space-y-3 transition-colors group">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <FileText className="w-5 h-5 text-[#E61E32] shrink-0" />
+                                                            <div>
+                                                                <p className="text-sm font-semibold text-white">{doc.title}</p>
+                                                                <p className="text-[10px] text-white/30">{doc.fileName}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={() => handleDeleteDocument(doc.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-[#E61E32]/10 text-white/30 hover:text-[#E61E32] transition-all">
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                    {doc.description && <p className="text-xs text-white/40 line-clamp-2">{doc.description}</p>}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border ${categoryColors[doc.category] || categoryColors.other}`}>
+                                                            {doc.category}
+                                                        </span>
+                                                        <span className="text-[10px] text-white/20">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full py-2 bg-white/5 hover:bg-[#E61E32]/10 border border-white/10 hover:border-[#E61E32]/20 text-white/60 hover:text-[#E61E32] text-xs font-medium transition-all justify-center">
+                                                        <Download className="w-3.5 h-3.5" /> View / Download
+                                                    </a>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

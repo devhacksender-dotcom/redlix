@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
                     mobile: employee.mobile,
                     altEmail: employee.altEmail,
                     address: employee.address,
+                    joinedAt: employee.joinedAt,
                 }
             });
         } catch (err) {

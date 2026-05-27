@@ -22,7 +22,11 @@ import {
     ChevronDown,
     ListTodo,
     Hand,
-    AlertTriangle
+    AlertTriangle,
+    Video,
+    Download,
+    FileText,
+    Link as LinkIcon
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -73,7 +77,7 @@ export default function EmployeePortal() {
         address?: string;
         joinedAt?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "intern-support" | "attendance" | "settings">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "intern-support" | "attendance" | "settings" | "meetings" | "documents">("overview");
 
     // Task states
     interface EmployeeTask {
@@ -100,6 +104,40 @@ export default function EmployeePortal() {
     const [attendanceLoading, setAttendanceLoading] = useState(false);
     const [isPunching, setIsPunching] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
+
+    // Meeting states (read-only for employee)
+    interface EmployeeMeetingAttendee {
+        id: number;
+        employeeId: number;
+        employee: { id: number; name: string; role: string };
+    }
+    interface EmployeeMeeting {
+        id: number;
+        title: string;
+        description?: string;
+        meetingLead: string;
+        meetingLink?: string;
+        scheduledAt: string;
+        attendees: EmployeeMeetingAttendee[];
+        createdAt: string;
+    }
+    const [employeeMeetings, setEmployeeMeetings] = useState<EmployeeMeeting[]>([]);
+    const [selectedEmpMeeting, setSelectedEmpMeeting] = useState<EmployeeMeeting | null>(null);
+    const [meetingsLoading, setMeetingsLoading] = useState(false);
+
+    // Document states (read-only for employee)
+    interface EmployeeDocument {
+        id: number;
+        title: string;
+        description?: string;
+        category: string;
+        fileUrl: string;
+        fileName: string;
+        uploadedBy: string;
+        createdAt: string;
+    }
+    const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([]);
+    const [documentsLoading, setDocumentsLoading] = useState(false);
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
     const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
@@ -268,8 +306,38 @@ export default function EmployeePortal() {
             fetchEmployeeTasks();
         } else if (activeTab === "attendance") {
             fetchAttendanceInfo();
+        } else if (activeTab === "meetings") {
+            fetchEmployeeMeetings();
+        } else if (activeTab === "documents") {
+            fetchEmployeeDocuments();
         }
     }, [activeTab, employeeInfo]);
+
+    const fetchEmployeeMeetings = async () => {
+        setMeetingsLoading(true);
+        try {
+            const res = await fetch("/api/employee/meetings");
+            const data = await res.json();
+            if (data.success) setEmployeeMeetings(data.data);
+        } catch (error) {
+            console.error("Failed to fetch meetings:", error);
+        } finally {
+            setMeetingsLoading(false);
+        }
+    };
+
+    const fetchEmployeeDocuments = async () => {
+        setDocumentsLoading(true);
+        try {
+            const res = await fetch("/api/employee/documents");
+            const data = await res.json();
+            if (data.success) setEmployeeDocuments(data.data);
+        } catch (error) {
+            console.error("Failed to fetch documents:", error);
+        } finally {
+            setDocumentsLoading(false);
+        }
+    };
 
     const fetchEmployeeTasks = async () => {
         setTasksLoading(true);
@@ -553,6 +621,22 @@ export default function EmployeePortal() {
                         <CreditCard className="w-4 h-4" />
                         Settings
                     </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("meetings")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Video className="w-4 h-4" />
+                        Meetings
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("documents")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <FileText className="w-4 h-4" />
+                        Documents
+                    </button>
                 </nav>
 
                 {/* Profile card at bottom */}
@@ -597,13 +681,17 @@ export default function EmployeePortal() {
                             {activeTab === "overview" ? "Dashboard Overview" :
                                 activeTab === "tasks" ? "Assigned Tasks" :
                                     activeTab === "intern-support" ? "Intern Support System" :
-                                        activeTab === "attendance" ? "Time Log & Attendance" : "Profile & Settings"}
+                                        activeTab === "attendance" ? "Time Log & Attendance" :
+                                            activeTab === "meetings" ? "My Meetings" :
+                                                activeTab === "documents" ? "Company Documents" : "Profile & Settings"}
                         </span>
                         <span className="text-white/50 text-[11px] hidden sm:inline">
                             — {activeTab === "overview" ? "your stats and activity" :
                                 activeTab === "tasks" ? "view and update task progress" :
                                     activeTab === "intern-support" ? "manage intern technical issues" :
-                                        activeTab === "attendance" ? "punch in/out to log work hours" : "update personal, payroll and address info"}
+                                        activeTab === "attendance" ? "punch in/out to log work hours" :
+                                            activeTab === "meetings" ? "meetings you are invited to" :
+                                                activeTab === "documents" ? "company and client resource files" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1160,6 +1248,151 @@ export default function EmployeePortal() {
                                         ) : "Save Settings"}
                                     </button>
                                 </form>
+                            </div>
+                        )}
+
+                        {/* ===== MEETINGS TAB ===== */}
+                        {activeTab === "meetings" && (
+                            <div className="h-full flex gap-6 animate-in fade-in duration-500 overflow-hidden">
+                                {/* Left: meetings list */}
+                                <div className="w-[380px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-1">
+                                    {meetingsLoading ? (
+                                        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    ) : employeeMeetings.length === 0 ? (
+                                        <div className="text-center py-16 space-y-2">
+                                            <Video className="w-10 h-10 text-white/10 mx-auto" />
+                                            <p className="text-white/20 text-sm">No meetings scheduled for you yet.</p>
+                                        </div>
+                                    ) : (
+                                        employeeMeetings.map(meeting => (
+                                            <div
+                                                key={meeting.id}
+                                                onClick={() => setSelectedEmpMeeting(meeting)}
+                                                className={`p-4 border cursor-pointer transition-all space-y-2 ${
+                                                    selectedEmpMeeting?.id === meeting.id
+                                                        ? 'border-[#E61E32]/40 bg-[#E61E32]/5'
+                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
+                                                }`}
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white">{meeting.title}</p>
+                                                        <p className="text-[10px] text-white/40 mt-0.5">Lead: {meeting.meetingLead}</p>
+                                                    </div>
+                                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${
+                                                        new Date(meeting.scheduledAt) > new Date()
+                                                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                                                            : 'bg-white/5 text-white/30 border border-white/10'
+                                                    }`}>
+                                                        {new Date(meeting.scheduledAt) > new Date() ? 'Upcoming' : 'Done'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-3 text-[10px] text-white/30">
+                                                    <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                    <span className="flex items-center gap-1"><Users className="w-3 h-3" />{meeting.attendees.length}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+
+                                {/* Right: detail panel */}
+                                {selectedEmpMeeting ? (
+                                    <div className="flex-1 bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white">{selectedEmpMeeting.title}</h3>
+                                            {selectedEmpMeeting.description && <p className="text-sm text-white/40 mt-1">{selectedEmpMeeting.description}</p>}
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
+                                                <p className="text-sm font-semibold text-white">{selectedEmpMeeting.meetingLead}</p>
+                                            </div>
+                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Date & Time</p>
+                                                <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString([], { dateStyle: 'full', timeStyle: 'short' })}</p>
+                                            </div>
+                                        </div>
+
+                                        {selectedEmpMeeting.meetingLink && (
+                                            <div className="bg-white/[0.03] border border-white/5 p-4">
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Join Meeting</p>
+                                                <a href={selectedEmpMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline">
+                                                    <LinkIcon className="w-4 h-4" />{selectedEmpMeeting.meetingLink}
+                                                </a>
+                                            </div>
+                                        )}
+
+                                        <div>
+                                            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">All Attendees ({selectedEmpMeeting.attendees.length})</p>
+                                            <div className="space-y-2">
+                                                {selectedEmpMeeting.attendees.map(att => (
+                                                    <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5">
+                                                        <div className="w-7 h-7 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center">
+                                                            <User className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-white">{att.employee.name}</p>
+                                                            <p className="text-[10px] text-white/30">{att.employee.role}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center text-white/15 text-sm">
+                                        Select a meeting to view details
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== DOCUMENTS TAB ===== */}
+                        {activeTab === "documents" && (
+                            <div className="h-full flex flex-col gap-4 animate-in fade-in duration-500 overflow-y-auto">
+                                {documentsLoading ? (
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                ) : employeeDocuments.length === 0 ? (
+                                    <div className="text-center py-16 space-y-2">
+                                        <FileText className="w-10 h-10 text-white/10 mx-auto" />
+                                        <p className="text-white/20 text-sm">No documents have been uploaded yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                        {employeeDocuments.map(doc => {
+                                            const categoryColors: Record<string, string> = {
+                                                company: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                                                client: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                                                requirement: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+                                                legal: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+                                                other: 'text-white/40 bg-white/5 border-white/10'
+                                            };
+                                            return (
+                                                <div key={doc.id} className="bg-white/[0.02] border border-white/5 hover:border-white/15 p-5 space-y-3 transition-colors">
+                                                    <div className="flex items-center gap-2">
+                                                        <FileText className="w-5 h-5 text-[#E61E32] shrink-0" />
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold text-white truncate">{doc.title}</p>
+                                                            <p className="text-[10px] text-white/30 truncate">{doc.fileName}</p>
+                                                        </div>
+                                                    </div>
+                                                    {doc.description && <p className="text-xs text-white/40 line-clamp-2">{doc.description}</p>}
+                                                    <div className="flex items-center justify-between">
+                                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border ${categoryColors[doc.category] || categoryColors.other}`}>
+                                                            {doc.category}
+                                                        </span>
+                                                        <span className="text-[10px] text-white/20">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                    <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full py-2 bg-white/5 hover:bg-[#E61E32]/10 border border-white/10 hover:border-[#E61E32]/20 text-white/60 hover:text-[#E61E32] text-xs font-medium transition-all justify-center">
+                                                        <Download className="w-3.5 h-3.5" /> View / Download
+                                                    </a>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

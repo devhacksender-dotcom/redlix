@@ -54,6 +54,7 @@ model Employee {
 
   tasks           Task[]
   attendance      Attendance[]
+  meetings        MeetingAttendee[]
 
   @@map("employees")
 }
@@ -126,4 +127,42 @@ model Attendance {
   updatedAt   DateTime  @updatedAt
 
   @@map("attendance")
+}
+
+model Meeting {
+  id          Int               @id @default(autoincrement())
+  title       String
+  description String?
+  meetingLead String
+  meetingLink String?
+  scheduledAt DateTime
+  attendees   MeetingAttendee[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("meetings")
+}
+
+model MeetingAttendee {
+  id         Int      @id @default(autoincrement())
+  meetingId  Int
+  employeeId Int
+  meeting    Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, employeeId])
+  @@map("meeting_attendees")
+}
+
+model Document {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  category    String   @default("company")
+  fileUrl     String
+  fileName    String
+  uploadedBy  String   @default("Admin")
+  createdAt   DateTime @default(now())
+
+  @@map("documents")
 }
