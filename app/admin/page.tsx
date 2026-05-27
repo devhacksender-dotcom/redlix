@@ -25,7 +25,8 @@ import {
     CreditCard,
     FileText,
     AlertCircle,
-    ChevronDown
+    ChevronDown,
+    ListTodo
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -122,7 +123,43 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender">("overview");
+
+    // Task management states
+    interface Task {
+        id: number;
+        title: string;
+        description?: string;
+        status: string;
+        deadline?: string;
+        employeeId: number;
+        createdAt: string;
+        employee?: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+        };
+    }
+
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [showAddTaskForm, setShowAddTaskForm] = useState(false);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [isEditingTask, setIsEditingTask] = useState(false);
+    const [newTask, setNewTask] = useState({ title: "", description: "", employeeId: "", deadline: "" });
+    const [taskFilter, setTaskFilter] = useState<"all" | "pending" | "in_progress" | "completed">("all");
+    const [taskSearchQuery, setTaskSearchQuery] = useState("");
+
+    // Attendance state for selected employee
+    interface Attendance {
+        id: number;
+        employeeId: number;
+        punchIn: string;
+        punchOut?: string;
+        workMinutes: number;
+    }
+    const [selectedEmployeeAttendance, setSelectedEmployeeAttendance] = useState<Attendance[]>([]);
+    const [loadingAttendance, setLoadingAttendance] = useState(false);
 
     // Payment Due Sender Form State
     const [paymentClientId, setPaymentClientId] = useState<number | "">("");
@@ -179,6 +216,21 @@ export default function AdminPortal() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sendEmailStatus, setSendEmailStatus] = useState<{ id: number, action?: string, status: 'idle' | 'sending' | 'success' | 'error' } | null>(null);
 
+    const fetchTasks = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch("/api/admin/tasks");
+            const data = await res.json();
+            if (data.success) {
+                setTasks(data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch tasks:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === "overview") {
             fetchAllData();
@@ -186,6 +238,9 @@ export default function AdminPortal() {
             fetchInquiries();
         } else if (activeTab === "employees") {
             fetchEmployees();
+        } else if (activeTab === "tasks") {
+            fetchTasks();
+            fetchEmployees(); // needed to assign tasks
         } else if (activeTab === "support") {
             fetchTickets();
         } else if (activeTab === "intern-support") {
@@ -209,7 +264,8 @@ export default function AdminPortal() {
                 fetchEmployees(),
                 fetchTickets(),
                 fetchInternTickets(),
-                fetchClients()
+                fetchClients(),
+                fetchTasks()
             ]);
         } catch (error) {
             console.error("Failed to fetch all data:", error);
@@ -290,6 +346,115 @@ export default function AdminPortal() {
             console.error("Failed to fetch clients:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchEmployeeAttendance = async (employeeId: number) => {
+        setLoadingAttendance(true);
+        try {
+            const res = await fetch(`/api/admin/employees/${employeeId}/attendance`);
+            const data = await res.json();
+            if (data.success) {
+                setSelectedEmployeeAttendance(data.data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch attendance:", err);
+        } finally {
+            setLoadingAttendance(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedEmployee) {
+            fetchEmployeeAttendance(selectedEmployee.id);
+        } else {
+            setSelectedEmployeeAttendance([]);
+        }
+    }, [selectedEmployee]);
+
+    const handleAddTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/admin/tasks", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newTask),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setTasks([data.data, ...tasks]);
+                setShowAddTaskForm(false);
+                setNewTask({ title: "", description: "", employeeId: "", deadline: "" });
+            } else {
+                alert(data.message || "Failed to add task");
+            }
+        } catch (error) {
+            console.error("Failed to add task:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleUpdateTask = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedTask) return;
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`/api/admin/tasks/${selectedTask.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(selectedTask),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setTasks(tasks.map(t => t.id === selectedTask.id ? data.data : t));
+                setIsEditingTask(false);
+                setSelectedTask(data.data);
+            } else {
+                alert(data.message || "Failed to update task");
+            }
+        } catch (error) {
+            console.error("Failed to update task:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteTask = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this task?")) return;
+        try {
+            const res = await fetch(`/api/admin/tasks/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setTasks(prev => prev.filter(t => t.id !== id));
+                if (selectedTask?.id === id) setSelectedTask(null);
+            } else {
+                alert(data.message || "Failed to delete task");
+            }
+        } catch (error) {
+            console.error("Failed to delete task:", error);
+        }
+    };
+
+    const handleUpdateTaskStatus = async (id: number, status: string) => {
+        try {
+            const res = await fetch(`/api/admin/tasks/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+                if (selectedTask?.id === id) {
+                    setSelectedTask(prev => prev ? { ...prev, status } : null);
+                }
+            } else {
+                alert(data.message || "Failed to update task status");
+            }
+        } catch (error) {
+            console.error("Failed to update task status:", error);
         }
     };
 
@@ -702,6 +867,15 @@ export default function AdminPortal() {
         (c.appName && c.appName.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
+    const filteredTasks = tasks.filter(t => {
+        const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (t.description && t.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+            (t.employee && t.employee.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        
+        const matchesFilter = taskFilter === "all" || t.status === taskFilter;
+        return matchesSearch && matchesFilter;
+    });
+
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
             {/* Simple Sidebar */}
@@ -765,6 +939,14 @@ export default function AdminPortal() {
                     >
                         <Users className="w-4 h-4" />
                         Employees
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("tasks")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <ListTodo className="w-4 h-4" />
+                        Tasks
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -837,10 +1019,11 @@ export default function AdminPortal() {
                                 {activeTab === "overview" ? "Dashboard overview" :
                                     activeTab === "inquiries" ? "Inquiry management" :
                                         activeTab === "employees" ? "Employee portal" :
-                                            activeTab === "support" ? "Support system" :
-                                                activeTab === "intern-support" ? "Intern support system" :
-                                                    activeTab === "clients" ? "Client management" :
-                                                        activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                            activeTab === "tasks" ? "Task management" :
+                                                activeTab === "support" ? "Support system" :
+                                                    activeTab === "intern-support" ? "Intern support system" :
+                                                        activeTab === "clients" ? "Client management" :
+                                                            activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -848,8 +1031,9 @@ export default function AdminPortal() {
                                         activeTab === "support" ? "manage and resolve technical issues" :
                                             activeTab === "intern-support" ? "manage intern technical and portal issues" :
                                                 activeTab === "employees" ? "manage organization structure" :
-                                                    activeTab === "clients" ? "monitor client projects and meetings" :
-                                                        activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                    activeTab === "tasks" ? "assign and track tasks for team members" :
+                                                        activeTab === "clients" ? "monitor client projects and meetings" :
+                                                            activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -857,24 +1041,33 @@ export default function AdminPortal() {
                                 <>
                                     <button
                                         onClick={() => { setShowAddForm(!showAddForm); setShowOnboardForm(false); }}
-                                        className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors"
+                                        className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Add employee
                                     </button>
                                     <button
                                         onClick={() => { setShowOnboardForm(!showOnboardForm); setShowAddForm(false); }}
-                                        className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 text-xs font-semibold transition-colors"
+                                        className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
                                     >
                                         <Users className="w-4 h-4" />
                                         Onboard employee
                                     </button>
                                 </>
                             )}
+                            {activeTab === "tasks" && (
+                                <button
+                                    onClick={() => { setShowAddTaskForm(!showAddTaskForm); setIsEditingTask(false); setSelectedTask(null); }}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Assign Task
+                                </button>
+                            )}
                             {activeTab === "clients" && (
                                 <button
                                     onClick={() => setShowAddClientForm(!showAddClientForm)}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors"
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Register client
@@ -1222,6 +1415,253 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
                                             <p className="text-sm uppercase tracking-widest font-medium">Select an intern ticket to view details</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === "tasks" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+                                {/* Task List or Add Task Form */}
+                                <div className="space-y-4 h-full flex flex-col overflow-hidden">
+                                    {showAddTaskForm ? (
+                                        <div className="bg-white/5 border border-white/10 p-8 animate-in slide-in-from-top-4 duration-300">
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h3 className="text-lg font-bold uppercase tracking-tight">Assign New Task</h3>
+                                                <button onClick={() => setShowAddTaskForm(false)} className="text-white/40 hover:text-white text-xs">Cancel</button>
+                                            </div>
+                                            <form onSubmit={handleAddTask} className="space-y-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Task Title</label>
+                                                    <input
+                                                        required
+                                                        type="text"
+                                                        value={newTask.title}
+                                                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                                                        className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
+                                                    <textarea
+                                                        rows={3}
+                                                        value={newTask.description}
+                                                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                                                        className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none resize-none font-sans"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Assign To Employee</label>
+                                                        <select
+                                                            required
+                                                            value={newTask.employeeId}
+                                                            onChange={(e) => setNewTask({ ...newTask, employeeId: e.target.value })}
+                                                            className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none text-white"
+                                                        >
+                                                            <option value="" disabled>Select employee</option>
+                                                            {employees.map((emp) => (
+                                                                <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Deadline</label>
+                                                        <input
+                                                            type="date"
+                                                            value={newTask.deadline}
+                                                            onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
+                                                            className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    disabled={isSubmitting}
+                                                    type="submit"
+                                                    className="w-full bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none cursor-pointer"
+                                                >
+                                                    {isSubmitting ? "Assigning..." : "Assign Task"}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="flex gap-2 border-b border-white/5 pb-3 shrink-0">
+                                                {(["all", "pending", "in_progress", "completed"] as const).map((filter) => (
+                                                    <button
+                                                        key={filter}
+                                                        onClick={() => setTaskFilter(filter)}
+                                                        className={`px-3 py-1 text-[10px] uppercase font-bold tracking-widest border transition-all rounded-none cursor-pointer ${taskFilter === filter ? 'bg-[#E61E32]/10 border-[#E61E32] text-[#E61E32]' : 'bg-transparent border-white/5 text-white/40 hover:text-white hover:border-white/10'}`}
+                                                    >
+                                                        {filter.replace("_", " ")}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
+                                                {loading ? (
+                                                    <p className="text-white/20 text-center py-10 animate-pulse">Loading tasks...</p>
+                                                ) : filteredTasks.length > 0 ? (
+                                                    filteredTasks.map((t) => (
+                                                        <div
+                                                            key={t.id}
+                                                            onClick={() => {
+                                                                setSelectedTask(t);
+                                                                setIsEditingTask(false);
+                                                            }}
+                                                            className={`p-5 border transition-all cursor-pointer ${selectedTask?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                        >
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <h3 className="font-bold text-white truncate max-w-[200px]" title={t.title}>{t.title}</h3>
+                                                                <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                                    {t.status.replace("_", " ")}
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex justify-between items-end">
+                                                                <div>
+                                                                    <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Assigned: {t.employee?.name || "Unknown"}</p>
+                                                                    <p className="text-xs text-white/40 truncate max-w-[250px]" title={t.description || ""}>{t.description || "No description."}</p>
+                                                                </div>
+                                                                {t.deadline && (
+                                                                    <span className="text-[9px] text-white/20 uppercase tracking-tighter shrink-0">
+                                                                        Due {new Date(t.deadline).toLocaleDateString()}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="py-20 text-center border border-dashed border-white/5">
+                                                        <p className="text-white/20 text-sm">No tasks found.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+
+                                {/* Task Details Panel */}
+                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                    {selectedTask ? (
+                                        <div className="space-y-8 animate-in fade-in duration-300">
+                                            <div className="flex items-center justify-between pb-6 border-b border-white/5">
+                                                <div>
+                                                    <h3 className="text-xl font-bold">{selectedTask.title}</h3>
+                                                    <p className="text-xs text-[#E61E32] font-bold uppercase tracking-widest mt-1">Assigned to: {selectedTask.employee?.name} ({selectedTask.employee?.role})</p>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <button
+                                                        onClick={() => setIsEditingTask(!isEditingTask)}
+                                                        className={`p-2 transition-colors ${isEditingTask ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
+                                                        title="Edit Task"
+                                                    >
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteTask(selectedTask.id)}
+                                                        className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
+                                                        title="Delete Task"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {isEditingTask ? (
+                                                <form onSubmit={handleUpdateTask} className="space-y-6 bg-white/[0.02] p-6 border border-white/5">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Task Title</label>
+                                                        <input
+                                                            required
+                                                            type="text"
+                                                            value={selectedTask.title}
+                                                            onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })}
+                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
+                                                        <textarea
+                                                            rows={3}
+                                                            value={selectedTask.description || ""}
+                                                            onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })}
+                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none resize-none font-sans"
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Status</label>
+                                                            <select
+                                                                value={selectedTask.status}
+                                                                onChange={(e) => setSelectedTask({ ...selectedTask, status: e.target.value })}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none text-white"
+                                                            >
+                                                                <option value="pending">Pending</option>
+                                                                <option value="in_progress">In Progress</option>
+                                                                <option value="completed">Completed</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Deadline</label>
+                                                            <input
+                                                                type="date"
+                                                                value={selectedTask.deadline ? new Date(selectedTask.deadline).toISOString().split('T')[0] : ""}
+                                                                onChange={(e) => setSelectedTask({ ...selectedTask, deadline: e.target.value })}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-4">
+                                                        <button
+                                                            type="submit"
+                                                            disabled={isSubmitting}
+                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none cursor-pointer"
+                                                        >
+                                                            {isSubmitting ? "Updating..." : "Save Changes"}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsEditingTask(false)}
+                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10 rounded-none cursor-pointer"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <div className="space-y-6">
+                                                    <div className="p-6 bg-white/[0.02] border border-white/5 space-y-4">
+                                                        <InfoBlock label="Description" value={selectedTask.description || "No description provided."} />
+                                                        <InfoBlock label="Deadline" value={selectedTask.deadline ? new Date(selectedTask.deadline).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : "No deadline"} />
+                                                        <div className="space-y-0.5">
+                                                            <p className="text-[11px] font-medium text-white/20">Task Status</p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                {(["pending", "in_progress", "completed"] as const).map((status) => (
+                                                                    <button
+                                                                        key={status}
+                                                                        onClick={() => handleUpdateTaskStatus(selectedTask.id, status)}
+                                                                        className={`px-3 py-1 text-[9px] uppercase font-bold tracking-wider border rounded-none transition-colors cursor-pointer ${selectedTask.status === status
+                                                                            ? status === 'completed'
+                                                                                ? 'bg-green-500/20 border-green-500/50 text-green-400'
+                                                                                : status === 'in_progress'
+                                                                                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
+                                                                                    : 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
+                                                                            : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
+                                                                            }`}
+                                                                    >
+                                                                        {status.replace("_", " ")}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center text-center opacity-20">
+                                            <p className="text-sm uppercase tracking-widest font-medium">Select a task to view details</p>
                                         </div>
                                     )}
                                 </div>
@@ -1646,6 +2086,49 @@ export default function AdminPortal() {
                                                                 <InfoBlock label="Postal Address" value={selectedEmployee.address || "Not Provided"} />
                                                             </div>
                                                         </div>
+                                                    </div>
+
+                                                    {/* Attendance History Block */}
+                                                    <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
+                                                        <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Attendance Logs</p>
+                                                        {loadingAttendance ? (
+                                                            <p className="text-xs text-white/30 animate-pulse py-2">Loading attendance logs...</p>
+                                                        ) : selectedEmployeeAttendance.length > 0 ? (
+                                                            <div className="max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                                                                <table className="w-full text-left text-xs">
+                                                                    <thead>
+                                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                                            <th className="py-2">Date</th>
+                                                                            <th className="py-2">Clock In</th>
+                                                                            <th className="py-2">Clock Out</th>
+                                                                            <th className="py-2 text-right">Duration</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {selectedEmployeeAttendance.map((att) => {
+                                                                            const pIn = new Date(att.punchIn);
+                                                                            const pOut = att.punchOut ? new Date(att.punchOut) : null;
+                                                                            const hours = Math.floor(att.workMinutes / 60);
+                                                                            const mins = att.workMinutes % 60;
+                                                                            const durationStr = pOut 
+                                                                                ? `${hours > 0 ? `${hours}h ` : ''}${mins}m`
+                                                                                : "Punched In";
+
+                                                                            return (
+                                                                                <tr key={att.id} className="border-b border-white/5 text-white/80 hover:bg-white/[0.02]">
+                                                                                    <td className="py-2">{pIn.toLocaleDateString()}</td>
+                                                                                    <td className="py-2">{pIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                                                                    <td className="py-2">{pOut ? pOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}</td>
+                                                                                    <td className={`py-2 text-right font-medium ${pOut ? 'text-white/60' : 'text-[#E61E32] animate-pulse'}`}>{durationStr}</td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-xs text-white/30 italic py-2">No attendance logs found for this employee.</p>
+                                                        )}
                                                     </div>
 
                                                     <div className="pt-6 space-y-3">

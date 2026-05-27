@@ -52,6 +52,9 @@ model Employee {
   joinedAt        DateTime @default(now())
   createdAt       DateTime @default(now())
 
+  tasks           Task[]
+  attendance      Attendance[]
+
   @@map("employees")
 }
 
@@ -96,4 +99,31 @@ model InternSupport {
   createdAt    DateTime @default(now())
 
   @@map("intern_support")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  status      String   @default("pending") // pending, in_progress, completed
+  deadline    DateTime?
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model Attendance {
+  id          Int       @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  punchIn     DateTime  @default(now())
+  punchOut    DateTime?
+  workMinutes Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("attendance")
 }
