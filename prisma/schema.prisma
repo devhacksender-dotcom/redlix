@@ -55,6 +55,7 @@ model Employee {
   tasks           Task[]
   attendance      Attendance[]
   meetings        MeetingAttendee[]
+  payrolls        Payroll[]
 
   @@map("employees")
 }
@@ -165,4 +166,19 @@ model Document {
   createdAt   DateTime @default(now())
 
   @@map("documents")
+}
+
+model Payroll {
+  id          Int       @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  month       String
+  amount      Float
+  status      String    @default("pending") // e.g. "pending", "paid"
+  upiId       String?
+  paidAt      DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("payrolls")
 }

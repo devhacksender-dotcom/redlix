@@ -36,3 +36,17 @@ CREATE TABLE IF NOT EXISTS "documents" (
     "uploadedBy" TEXT NOT NULL DEFAULT 'Admin',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create Table for payrolls
+CREATE TABLE IF NOT EXISTS "payrolls" (
+    "id" SERIAL PRIMARY KEY,
+    "employeeId" INTEGER NOT NULL,
+    "month" TEXT NOT NULL,
+    "amount" DOUBLE PRECISION NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "upiId" TEXT,
+    "paidAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "payrolls_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "employees"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);

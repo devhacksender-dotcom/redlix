@@ -127,7 +127,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls">("overview");
 
     // Task management states
     interface Task {
@@ -258,6 +258,35 @@ export default function AdminPortal() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sendEmailStatus, setSendEmailStatus] = useState<{ id: number, action?: string, status: 'idle' | 'sending' | 'success' | 'error' } | null>(null);
 
+    // Payroll Management States
+    interface AdminPayroll {
+        id: number;
+        employeeId: number;
+        month: string;
+        amount: number;
+        status: string;
+        upiId?: string;
+        paidAt?: string;
+        createdAt: string;
+        employee: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+            upiId?: string;
+        };
+    }
+    const [payrolls, setPayrolls] = useState<AdminPayroll[]>([]);
+    const [payrollsLoading, setPayrollsLoading] = useState(false);
+    const [selectedPayroll, setSelectedPayroll] = useState<AdminPayroll | null>(null);
+    const [showAddPayrollForm, setShowAddPayrollForm] = useState(false);
+    const [newPayroll, setNewPayroll] = useState({
+        employeeId: "",
+        month: "",
+        amount: "",
+        status: "pending"
+    });
+
     const fetchTasks = async () => {
         setLoading(true);
         try {
@@ -292,6 +321,9 @@ export default function AdminPortal() {
             fetchEmployees();
         } else if (activeTab === "documents") {
             fetchDocuments();
+        } else if (activeTab === "payrolls") {
+            fetchPayrolls();
+            fetchEmployees(); // needed to allocate payrolls
         } else {
             fetchClients();
         }
@@ -314,7 +346,8 @@ export default function AdminPortal() {
                 fetchClients(),
                 fetchTasks(),
                 fetchMeetings(),
-                fetchDocuments()
+                fetchDocuments(),
+                fetchPayrolls()
             ]);
         } catch (error) {
             console.error("Failed to fetch all data:", error);
@@ -445,6 +478,76 @@ export default function AdminPortal() {
             console.error("Failed to fetch employees:", error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchPayrolls = async () => {
+        setPayrollsLoading(true);
+        try {
+            const res = await fetch("/api/admin/payrolls");
+            const data = await res.json();
+            if (data.success) setPayrolls(data.data);
+        } catch (error) {
+            console.error("Failed to fetch payrolls:", error);
+        } finally {
+            setPayrollsLoading(false);
+        }
+    };
+
+    const handleAllocatePayroll = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/admin/payrolls", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newPayroll)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPayrolls([data.data, ...payrolls]);
+                setShowAddPayrollForm(false);
+                setNewPayroll({ employeeId: "", month: "", amount: "", status: "pending" });
+            } else {
+                alert(data.message || "Failed to allocate payroll");
+            }
+        } catch (error) {
+            console.error("Failed to allocate payroll:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleMarkPayrollPaid = async (payrollId: number) => {
+        try {
+            const res = await fetch(`/api/admin/payrolls/${payrollId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "paid" })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setPayrolls(prev => prev.map(p => p.id === payrollId ? data.data : p));
+            } else {
+                alert(data.message || "Failed to update payroll status");
+            }
+        } catch (error) {
+            console.error("Failed to update payroll status:", error);
+        }
+    };
+
+    const handleDeletePayroll = async (payrollId: number) => {
+        if (!confirm("Are you sure you want to delete this payroll record?")) return;
+        try {
+            const res = await fetch(`/api/admin/payrolls/${payrollId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setPayrolls(prev => prev.filter(p => p.id !== payrollId));
+            } else {
+                alert(data.message || "Failed to delete payroll record");
+            }
+        } catch (error) {
+            console.error("Failed to delete payroll:", error);
         }
     };
 
@@ -1117,6 +1220,14 @@ export default function AdminPortal() {
                         Documents
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("payrolls")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <CreditCard className="w-4 h-4" />
+                        Payrolls
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
@@ -1175,6 +1286,23 @@ export default function AdminPortal() {
                     {/* Header */}
                     <div className="flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
                         <div>
+                            <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-white/30 mb-1.5">
+                                <span>Admin</span>
+                                <span className="text-white/10 font-normal">/</span>
+                                <span className="text-[#E61E32]">
+                                    {activeTab === "overview" ? "Overview" :
+                                        activeTab === "inquiries" ? "Inquiries" :
+                                            activeTab === "employees" ? "Employees" :
+                                                activeTab === "tasks" ? "Tasks" :
+                                                    activeTab === "support" ? "Support" :
+                                                        activeTab === "intern-support" ? "Intern Support" :
+                                                            activeTab === "clients" ? "Clients" :
+                                                                activeTab === "meetings" ? "Meetings" :
+                                                                    activeTab === "documents" ? "Documents" :
+                                                                        activeTab === "payrolls" ? "Payrolls" :
+                                                                            activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
+                                </span>
+                            </div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
                                 {activeTab === "overview" ? "Dashboard overview" :
                                     activeTab === "inquiries" ? "Inquiry management" :
@@ -1185,7 +1313,8 @@ export default function AdminPortal() {
                                                         activeTab === "clients" ? "Client management" :
                                                             activeTab === "meetings" ? "Meeting management" :
                                                                 activeTab === "documents" ? "Document vault" :
-                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                                                    activeTab === "payrolls" ? "Payroll allocation" :
+                                                                        activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -1197,7 +1326,8 @@ export default function AdminPortal() {
                                                         activeTab === "clients" ? "monitor client projects and meetings" :
                                                             activeTab === "meetings" ? "schedule and manage internal employee meetings" :
                                                                 activeTab === "documents" ? "upload and manage company and client documents" :
-                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                                    activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
+                                                                        activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -1253,6 +1383,15 @@ export default function AdminPortal() {
                                 >
                                     <Plus className="w-4 h-4" />
                                     Register client
+                                </button>
+                            )}
+                            {activeTab === "payrolls" && (
+                                <button
+                                    onClick={() => setShowAddPayrollForm(!showAddPayrollForm)}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Allocate Payroll
                                 </button>
                             )}
                             <div className="relative w-72">
@@ -3499,6 +3638,166 @@ export default function AdminPortal() {
                                             );
                                         })}
                                     </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== PAYROLLS TAB ===== */}
+                        {activeTab === "payrolls" && (
+                            <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
+                                {showAddPayrollForm && (
+                                    <form onSubmit={handleAllocatePayroll} className="bg-white/[0.02] border border-white/10 p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+                                        <div className="md:col-span-2 lg:col-span-4 flex items-center justify-between">
+                                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Allocate New Payroll</h3>
+                                            <button type="button" onClick={() => setShowAddPayrollForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
+                                        </div>
+                                        
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Employee *</label>
+                                            <select 
+                                                required 
+                                                value={newPayroll.employeeId} 
+                                                onChange={e => setNewPayroll(p => ({ ...p, employeeId: e.target.value }))} 
+                                                className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                                            >
+                                                <option value="" disabled className="bg-[#111]">-- Choose Employee --</option>
+                                                {employees.map(emp => (
+                                                    <option key={emp.id} value={emp.id} className="bg-[#111]">
+                                                        {emp.name} ({emp.role})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Month (e.g. May 2026) *</label>
+                                            <input 
+                                                required 
+                                                placeholder="e.g. May 2026" 
+                                                value={newPayroll.month} 
+                                                onChange={e => setNewPayroll(p => ({ ...p, month: e.target.value }))} 
+                                                className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" 
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount (INR) *</label>
+                                            <input 
+                                                required 
+                                                type="number" 
+                                                min="0"
+                                                placeholder="e.g. 50000" 
+                                                value={newPayroll.amount} 
+                                                onChange={e => setNewPayroll(p => ({ ...p, amount: e.target.value }))} 
+                                                className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" 
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Status *</label>
+                                            <select 
+                                                value={newPayroll.status} 
+                                                onChange={e => setNewPayroll(p => ({ ...p, status: e.target.value }))} 
+                                                className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                                            >
+                                                <option value="pending" className="bg-[#111]">Pending</option>
+                                                <option value="paid" className="bg-[#111]">Paid</option>
+                                            </select>
+                                        </div>
+
+                                        <button type="submit" disabled={isSubmitting} className="md:col-span-2 lg:col-span-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4" /> Allocate Payroll</>}
+                                        </button>
+                                    </form>
+                                )}
+
+                                {payrollsLoading ? (
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                ) : (
+                                    (() => {
+                                        const filtered = payrolls.filter(p =>
+                                            p.employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            p.month.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            p.employee.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            (p.upiId && p.upiId.toLowerCase().includes(searchQuery.toLowerCase()))
+                                        );
+
+                                        return (
+                                            <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden">
+                                                <div className="overflow-x-auto">
+                                                    {filtered.length > 0 ? (
+                                                        <table className="w-full text-left text-xs">
+                                                            <thead>
+                                                                <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                                    <th className="py-3">Employee</th>
+                                                                    <th className="py-3">Month</th>
+                                                                    <th className="py-3">Amount</th>
+                                                                    <th className="py-3">UPI ID</th>
+                                                                    <th className="py-3">Status</th>
+                                                                    <th className="py-3">Payment Date</th>
+                                                                    <th className="py-3 text-right">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {filtered.map(p => (
+                                                                    <tr key={p.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                        <td className="py-3">
+                                                                            <p className="font-semibold text-white">{p.employee.name}</p>
+                                                                            <p className="text-[10px] text-white/40">{p.employee.role}</p>
+                                                                        </td>
+                                                                        <td className="py-3 font-medium text-white/90">{p.month}</td>
+                                                                        <td className="py-3 text-white font-semibold">₹{p.amount.toLocaleString('en-IN')}</td>
+                                                                        <td className="py-3 font-mono text-white/40">{p.upiId || p.employee.upiId || "Not provided"}</td>
+                                                                        <td className="py-3">
+                                                                            <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
+                                                                                p.status === 'paid'
+                                                                                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                                                    : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
+                                                                            }`}>
+                                                                                {p.status}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="py-3 text-white/40">
+                                                                            {p.paidAt
+                                                                                ? new Date(p.paidAt).toLocaleString('en-IN', {
+                                                                                      timeZone: 'Asia/Kolkata',
+                                                                                      dateStyle: 'medium',
+                                                                                      timeStyle: 'short'
+                                                                                  })
+                                                                                : "-"}
+                                                                        </td>
+                                                                        <td className="py-3 text-right">
+                                                                            <div className="flex justify-end gap-2">
+                                                                                {p.status === "pending" && (
+                                                                                    <button 
+                                                                                        onClick={() => handleMarkPayrollPaid(p.id)}
+                                                                                        className="px-2.5 py-1 bg-green-500 hover:bg-green-600 text-black text-[9px] font-extrabold uppercase tracking-wider transition-all rounded-none cursor-pointer"
+                                                                                    >
+                                                                                        Mark Paid
+                                                                                    </button>
+                                                                                )}
+                                                                                <button 
+                                                                                    onClick={() => handleDeletePayroll(p.id)}
+                                                                                    className="p-1 text-white/35 hover:text-[#E61E32] transition-colors"
+                                                                                    title="Delete allocation record"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    ) : (
+                                                        <div className="py-16 text-center text-white/20 text-sm">
+                                                            No payroll records found. Click &ldquo;Allocate Payroll&rdquo; to add a new record.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()
                                 )}
                             </div>
                         )}

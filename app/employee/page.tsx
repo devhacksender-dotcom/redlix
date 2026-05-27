@@ -77,7 +77,7 @@ export default function EmployeePortal() {
         address?: string;
         joinedAt?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls">("overview");
 
     // Task states
     interface EmployeeTask {
@@ -138,6 +138,19 @@ export default function EmployeePortal() {
     }
     const [employeeDocuments, setEmployeeDocuments] = useState<EmployeeDocument[]>([]);
     const [documentsLoading, setDocumentsLoading] = useState(false);
+
+    // Payroll states
+    interface EmployeePayroll {
+        id: number;
+        month: string;
+        amount: number;
+        status: string;
+        upiId?: string;
+        paidAt?: string;
+        createdAt: string;
+    }
+    const [employeePayrolls, setEmployeePayrolls] = useState<EmployeePayroll[]>([]);
+    const [payrollsLoading, setPayrollsLoading] = useState(false);
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
     const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
@@ -344,6 +357,8 @@ export default function EmployeePortal() {
             fetchEmployeeMeetings();
         } else if (activeTab === "documents") {
             fetchEmployeeDocuments();
+        } else if (activeTab === "payrolls") {
+            fetchEmployeePayrolls();
         }
     }, [activeTab, employeeInfo]);
 
@@ -370,6 +385,19 @@ export default function EmployeePortal() {
             console.error("Failed to fetch documents:", error);
         } finally {
             setDocumentsLoading(false);
+        }
+    };
+
+    const fetchEmployeePayrolls = async () => {
+        setPayrollsLoading(true);
+        try {
+            const res = await fetch("/api/employee/payrolls");
+            const data = await res.json();
+            if (data.success) setEmployeePayrolls(data.data);
+        } catch (error) {
+            console.error("Failed to fetch payrolls:", error);
+        } finally {
+            setPayrollsLoading(false);
         }
     };
 
@@ -467,7 +495,9 @@ export default function EmployeePortal() {
             await Promise.all([
                 fetchEmployeeTasks(),
                 fetchAttendanceInfo(),
-                fetchInternTickets()
+                fetchInternTickets(),
+                fetchEmployeeMeetings(),
+                fetchEmployeeDocuments()
             ]);
         } catch (error) {
             console.error("Failed to fetch overview data:", error);
@@ -657,6 +687,14 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        onClick={() => setActiveTab("payrolls")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <CreditCard className="w-4 h-4" />
+                        Payrolls
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("settings")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -701,21 +739,24 @@ export default function EmployeePortal() {
             <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
                 {/* Red Top Bar */}
                 <div className="shrink-0 bg-[#E61E32] flex items-center justify-between px-6 py-3">
-                    <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-4 h-4 text-white/80" />
-                        <span className="text-white text-[13px] font-semibold tracking-wide">
-                            {activeTab === "overview" ? "Dashboard Overview" :
+                    <div className="flex items-center gap-2 text-[12px] font-medium text-white">
+                        <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
+                        <span className="opacity-40">/</span>
+                        <span className="font-bold uppercase tracking-wider">
+                            {activeTab === "overview" ? "Overview" :
                                 activeTab === "tasks" ? "Assigned Tasks" :
-                                    activeTab === "attendance" ? "Time Log & Attendance" :
-                                        activeTab === "meetings" ? "My Meetings" :
-                                            activeTab === "documents" ? "Company Documents" : "Profile & Settings"}
+                                    activeTab === "attendance" ? "Attendance" :
+                                        activeTab === "meetings" ? "Meetings" :
+                                            activeTab === "documents" ? "Documents" :
+                                                activeTab === "payrolls" ? "Payrolls" : "Settings"}
                         </span>
-                        <span className="text-white/50 text-[11px] hidden sm:inline">
+                        <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
                             — {activeTab === "overview" ? "your stats and activity" :
                                 activeTab === "tasks" ? "view and update task progress" :
                                     activeTab === "attendance" ? "punch in/out to log work hours" :
                                         activeTab === "meetings" ? "meetings you are invited to" :
-                                            activeTab === "documents" ? "company and client resource files" : "update personal, payroll and address info"}
+                                            activeTab === "documents" ? "company and client resource files" :
+                                                activeTab === "payrolls" ? "monthly payments and history" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -759,7 +800,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
                                     <StatCard
                                         icon={<ListTodo className="w-5 h-5" />}
                                         label="Total Tasks"
@@ -794,6 +835,20 @@ export default function EmployeePortal() {
                                         value={Number((attendanceHistory.reduce((sum, r) => sum + r.workMinutes, 0) / 60).toFixed(1))}
                                         sublabel={`${attendanceHistory.length} clock logs`}
                                         color="text-[#E61E32]"
+                                    />
+                                    <StatCard
+                                        icon={<Video className="w-5 h-5" />}
+                                        label="Meetings"
+                                        value={employeeMeetings.length}
+                                        sublabel={`${employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length} upcoming`}
+                                        color="text-pink-500"
+                                    />
+                                    <StatCard
+                                        icon={<FileText className="w-5 h-5" />}
+                                        label="Documents"
+                                        value={employeeDocuments.length}
+                                        sublabel="Shared resources"
+                                        color="text-purple-500"
                                     />
                                 </div>
 
@@ -1365,6 +1420,92 @@ export default function EmployeePortal() {
                                         })}
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* ===== PAYROLLS TAB ===== */}
+                        {activeTab === "payrolls" && (
+                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500">
+                                {/* Payroll Overview Cards */}
+                                {(() => {
+                                    const totalPaid = employeePayrolls
+                                        .filter(p => p.status === "paid")
+                                        .reduce((sum, p) => sum + p.amount, 0);
+                                    const totalPending = employeePayrolls
+                                        .filter(p => p.status === "pending")
+                                        .reduce((sum, p) => sum + p.amount, 0);
+
+                                    return (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
+                                            <div className="bg-white/[0.02] border border-white/5 p-5 space-y-2 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Total Paid</p>
+                                                <h4 className="text-2xl font-bold text-white">₹{totalPaid.toLocaleString('en-IN')}</h4>
+                                                <p className="text-[10px] text-white/30">Transferred to your linked UPI ID</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/5 p-5 space-y-2 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest font-black">Total Pending</p>
+                                                <h4 className="text-2xl font-bold text-white">₹{totalPending.toLocaleString('en-IN')}</h4>
+                                                <p className="text-[10px] text-white/30">Awaiting bank/admin processing</p>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
+
+                                {/* Payroll History Table */}
+                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full">
+                                    <div className="mb-4 shrink-0">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Monthly Payrolls & Payouts</h3>
+                                    </div>
+
+                                    <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
+                                        {payrollsLoading ? (
+                                            <p className="text-white/20 text-center py-10 animate-pulse">Loading payroll records...</p>
+                                        ) : employeePayrolls.length > 0 ? (
+                                            <table className="w-full text-left text-xs">
+                                                <thead>
+                                                    <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                        <th className="py-3">Payout Month</th>
+                                                        <th className="py-3">Amount</th>
+                                                        <th className="py-3">UPI Address</th>
+                                                        <th className="py-3">Status</th>
+                                                        <th className="py-3 text-right">Transfer Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {employeePayrolls.map((payroll) => (
+                                                        <tr key={payroll.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                            <td className="py-3 font-semibold text-white">{payroll.month}</td>
+                                                            <td className="py-3 text-white/90 font-semibold">₹{payroll.amount.toLocaleString('en-IN')}</td>
+                                                            <td className="py-3 font-mono text-[11px] text-white/40">{payroll.upiId || employeeInfo?.upiId || "No UPI ID set"}</td>
+                                                            <td className="py-3">
+                                                                <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
+                                                                    payroll.status === 'paid'
+                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                                        : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
+                                                                }`}>
+                                                                    {payroll.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-3 text-right text-white/40">
+                                                                {payroll.paidAt
+                                                                    ? new Date(payroll.paidAt).toLocaleString('en-IN', {
+                                                                          timeZone: 'Asia/Kolkata',
+                                                                          dateStyle: 'medium',
+                                                                          timeStyle: 'short'
+                                                                      })
+                                                                    : "-"}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        ) : (
+                                            <div className="py-20 text-center border border-dashed border-white/5">
+                                                <p className="text-white/20 text-sm">No payroll records allocated yet.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
