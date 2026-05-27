@@ -144,6 +144,7 @@ export default function AdminPortal() {
     const [selectedInternTicket, setSelectedInternTicket] = useState<InternSupport | null>(null);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [isEditingClient, setIsEditingClient] = useState(false);
+    const [isEditingEmployee, setIsEditingEmployee] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     
     // Employee Form State
@@ -340,6 +341,46 @@ export default function AdminPortal() {
             }
         } catch (error) {
             console.error("Failed to onboard employee:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteEmployee = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this employee?")) return;
+        try {
+            const res = await fetch(`/api/admin/employees/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setEmployees(prev => prev.filter(emp => emp.id !== id));
+                if (selectedEmployee?.id === id) setSelectedEmployee(null);
+            } else {
+                alert(data.message || "Failed to delete employee");
+            }
+        } catch (error) {
+            console.error("Failed to delete employee:", error);
+        }
+    };
+
+    const handleUpdateEmployee = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedEmployee) return;
+        setIsSubmitting(true);
+        try {
+            const res = await fetch(`/api/admin/employees/${selectedEmployee.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(selectedEmployee),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setEmployees(employees.map(emp => emp.id === selectedEmployee.id ? data.data : emp));
+                setIsEditingEmployee(false);
+            } else {
+                alert(data.message || "Failed to update employee");
+            }
+        } catch (error) {
+            console.error("Failed to update employee:", error);
         } finally {
             setIsSubmitting(false);
         }
@@ -647,7 +688,7 @@ export default function AdminPortal() {
         <main className="min-h-screen bg-[#0a0a0a] text-white flex font-sans">
             {/* Simple Sidebar */}
             <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8">
-                <div>
+                <div className="px-4">
                     <h1 className="text-lg font-semibold text-white tracking-tight">Admin</h1>
                     <p className="text-[11px] text-white/30 mt-0.5">Status: online</p>
                 </div>
@@ -655,56 +696,56 @@ export default function AdminPortal() {
                 <nav className="flex-grow space-y-1">
                     <button 
                         onClick={() => setActiveTab("overview")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Globe className="w-4 h-4" />
                         Overview
                     </button>
                     <button 
                         onClick={() => setActiveTab("inquiries")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'inquiries' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/40 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'inquiries' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Inbox className="w-4 h-4" />
                         Inquiries
                     </button>
                     <button 
                         onClick={() => setActiveTab("support")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <MessageSquare className="w-4 h-4" />
                         Support tickets
                     </button>
                     <button 
                         onClick={() => setActiveTab("intern-support")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Users className="w-4 h-4" />
                         Intern support
                     </button>
                     <button 
                         onClick={() => setActiveTab("employees")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Users className="w-4 h-4" />
                         Employees
                     </button>
                     <button 
                         onClick={() => setActiveTab("clients")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Briefcase className="w-4 h-4" />
                         Clients
                     </button>
                     <button 
                         onClick={() => setActiveTab("payment-due-sender")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-due-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-due-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <CreditCard className="w-4 h-4" />
                         Payment Due Sender
                     </button>
                     <button 
                         onClick={() => setActiveTab("payment-received-sender")}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-received-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'payment-received-sender' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <CheckCircle2 className="w-4 h-4" />
                         Payment Received Sender
@@ -713,7 +754,7 @@ export default function AdminPortal() {
 
                 <button 
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10"
+                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10"
                 >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -1236,12 +1277,15 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
                                             {loading ? (
-                                                <p className="text-white/20 text-center py-10">Loading employees...</p>
+                                            <p className="text-white/20 text-center py-10">Loading employees...</p>
                                             ) : filteredEmployees.length > 0 ? (
                                                 filteredEmployees.map((emp) => (
                                                     <div 
                                                         key={emp.id}
-                                                        onClick={() => setSelectedEmployee(emp)}
+                                                        onClick={() => {
+                                                            setSelectedEmployee(emp);
+                                                            setIsEditingEmployee(false);
+                                                        }}
                                                         className={`p-5 border transition-all cursor-pointer ${selectedEmployee?.id === emp.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
                                                     >
                                                         <div className="flex justify-between items-start">
@@ -1310,7 +1354,7 @@ export default function AdminPortal() {
                                 <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
                                     {selectedEmployee ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
-                                            <div className="space-y-2 pb-6 border-b border-white/5">
+                                            <div className="flex items-center justify-between pb-6 border-b border-white/5">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-12 bg-white/10 flex items-center justify-center border border-white/10">
                                                         <User className="w-6 h-6 text-white/40" />
@@ -1320,66 +1364,158 @@ export default function AdminPortal() {
                                                         <p className="text-sm text-[#E61E32] font-bold uppercase tracking-widest">{selectedEmployee.role}</p>
                                                     </div>
                                                 </div>
+                                                <div className="flex items-center gap-4">
+                                                    <button 
+                                                        onClick={() => setIsEditingEmployee(!isEditingEmployee)}
+                                                        className={`p-2 transition-colors ${isEditingEmployee ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
+                                                        title="Edit Employee"
+                                                    >
+                                                        <Edit2 className="w-5 h-5" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteEmployee(selectedEmployee.id)}
+                                                        className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
+                                                        title="Delete Employee"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 gap-6">
-                                                <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                    <InfoBlock label="Email Address" value={selectedEmployee.email} />
-                                                    <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
-                                                </div>
-
-                                                <div className="p-4 bg-white/[0.02] border border-white/5">
-                                                    <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
-                                                    {selectedEmployee.offerLetterLink ? (
-                                                        <a 
-                                                            href={selectedEmployee.offerLetterLink} 
-                                                            target="_blank" 
-                                                            className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors"
+                                            {isEditingEmployee ? (
+                                                <form onSubmit={handleUpdateEmployee} className="space-y-6 bg-white/[0.02] p-6 border border-white/5 animate-in slide-in-from-top-4 duration-300">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                            <input 
+                                                                required
+                                                                type="text"
+                                                                value={selectedEmployee.name}
+                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, name: e.target.value})}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
+                                                            <input 
+                                                                required
+                                                                type="email"
+                                                                value={selectedEmployee.email}
+                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, email: e.target.value})}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
+                                                            <input 
+                                                                required
+                                                                type="text"
+                                                                value={selectedEmployee.role}
+                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, role: e.target.value})}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Joined Date</label>
+                                                            <input 
+                                                                type="date"
+                                                                value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
+                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString()})}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                        <input 
+                                                            type="url"
+                                                            value={selectedEmployee.offerLetterLink || ""}
+                                                            onChange={(e) => setSelectedEmployee({...selectedEmployee, offerLetterLink: e.target.value})}
+                                                            placeholder="https://..."
+                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                        />
+                                                    </div>
+                                                    <div className="flex gap-4">
+                                                        <button 
+                                                            type="submit"
+                                                            disabled={isSubmitting}
+                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50"
                                                         >
-                                                            <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
-                                                            <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/60" />
-                                                        </a>
-                                                    ) : (
-                                                        <p className="text-xs text-white/30 italic">No link provided</p>
-                                                    )}
-                                                </div>
-                                            </div>
+                                                            {isSubmitting ? "Updating..." : "Save Changes"}
+                                                        </button>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => setIsEditingEmployee(false)}
+                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            ) : (
+                                                <>
+                                                    <div className="grid grid-cols-1 gap-6">
+                                                        <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
+                                                            <InfoBlock label="Email Address" value={selectedEmployee.email} />
+                                                            <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                        </div>
 
-                                            <div className="pt-6 space-y-3">
-                                                <button 
-                                                    onClick={() => sendOfferLetter(selectedEmployee.id)}
-                                                    disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
-                                                    className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
-                                                >
-                                                    {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'sending' ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : (
-                                                        <Mail className="w-4 h-4" />
-                                                    )}
-                                                    Send Official Offer Email
-                                                </button>
-                                                <button 
-                                                    onClick={() => sendOnboardingEmail(selectedEmployee.id)}
-                                                    disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
-                                                    className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/80 font-bold py-4 text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
-                                                >
-                                                    {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'sending' ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : (
-                                                        <Send className="w-4 h-4" />
-                                                    )}
-                                                    Send Onboarding Email
-                                                </button>
-                                                {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'error' && (
-                                                    <p className="text-[10px] text-[#E61E32] text-center mt-2 font-bold uppercase">Error sending email. Check logs.</p>
-                                                )}
-                                                {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success' && (
-                                                    <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Offer letter sent successfully!</p>
-                                                )}
-                                                {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success' && (
-                                                    <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Onboarding email sent successfully!</p>
-                                                )}
-                                            </div>
+                                                        <div className="p-4 bg-white/[0.02] border border-white/5">
+                                                            <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
+                                                            {selectedEmployee.offerLetterLink ? (
+                                                                <a 
+                                                                    href={selectedEmployee.offerLetterLink} 
+                                                                    target="_blank" 
+                                                                    className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors"
+                                                                >
+                                                                    <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
+                                                                    <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/60" />
+                                                                </a>
+                                                            ) : (
+                                                                <p className="text-xs text-white/30 italic">No link provided</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-6 space-y-3">
+                                                        <button 
+                                                            onClick={() => sendOfferLetter(selectedEmployee.id)}
+                                                            disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
+                                                            className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
+                                                        >
+                                                            {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'sending' ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <Mail className="w-4 h-4" />
+                                                            )}
+                                                            Send Official Offer Email
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => sendOnboardingEmail(selectedEmployee.id)}
+                                                            disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
+                                                            className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/80 font-bold py-4 text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
+                                                        >
+                                                            {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'sending' ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <Send className="w-4 h-4" />
+                                                            )}
+                                                            Send Onboarding Email
+                                                        </button>
+                                                        {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'error' && (
+                                                            <p className="text-[10px] text-[#E61E32] text-center mt-2 font-bold uppercase">Error sending email. Check logs.</p>
+                                                        )}
+                                                        {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success' && (
+                                                            <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Offer letter sent successfully!</p>
+                                                        )}
+                                                        {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success' && (
+                                                            <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Onboarding email sent successfully!</p>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
