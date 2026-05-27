@@ -77,7 +77,7 @@ export default function EmployeePortal() {
         address?: string;
         joinedAt?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "intern-support" | "attendance" | "settings" | "meetings" | "documents">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents">("overview");
 
     // Task states
     interface EmployeeTask {
@@ -256,6 +256,28 @@ export default function EmployeePortal() {
         return report.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
     };
 
+    const getAttendanceStats = (report: ReturnType<typeof getDailyAttendanceList>) => {
+        const totalDays = report.length;
+        const presentDays = report.filter(r => r.status === "Present").length;
+        const absentDays = report.filter(r => r.status === "Absent").length;
+        const pendingDays = report.filter(r => r.status === "Pending").length;
+        
+        const totalMinutes = report.reduce((sum, r) => sum + r.workMinutes, 0);
+        const totalHours = (totalMinutes / 60).toFixed(1);
+        
+        const avgMinutes = presentDays > 0 ? (totalMinutes / presentDays) : 0;
+        const avgHours = (avgMinutes / 60).toFixed(1);
+        
+        return {
+            totalDays,
+            presentDays,
+            absentDays,
+            pendingDays,
+            totalHours,
+            avgHours
+        };
+    };
+
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
@@ -314,8 +336,6 @@ export default function EmployeePortal() {
 
         if (activeTab === "overview") {
             fetchAllOverviewData();
-        } else if (activeTab === "intern-support") {
-            fetchInternTickets();
         } else if (activeTab === "tasks") {
             fetchEmployeeTasks();
         } else if (activeTab === "attendance") {
@@ -613,27 +633,11 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
-                        onClick={() => setActiveTab("intern-support")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <Users className="w-4 h-4" />
-                        Intern Support
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
                         onClick={() => setActiveTab("attendance")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Clock className="w-4 h-4" />
                         Attendance
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("settings")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <CreditCard className="w-4 h-4" />
-                        Settings
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -650,6 +654,14 @@ export default function EmployeePortal() {
                     >
                         <FileText className="w-4 h-4" />
                         Documents
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("settings")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <User className="w-4 h-4" />
+                        Profile & Settings
                     </button>
                 </nav>
 
@@ -694,33 +706,19 @@ export default function EmployeePortal() {
                         <span className="text-white text-[13px] font-semibold tracking-wide">
                             {activeTab === "overview" ? "Dashboard Overview" :
                                 activeTab === "tasks" ? "Assigned Tasks" :
-                                    activeTab === "intern-support" ? "Intern Support System" :
-                                        activeTab === "attendance" ? "Time Log & Attendance" :
-                                            activeTab === "meetings" ? "My Meetings" :
-                                                activeTab === "documents" ? "Company Documents" : "Profile & Settings"}
+                                    activeTab === "attendance" ? "Time Log & Attendance" :
+                                        activeTab === "meetings" ? "My Meetings" :
+                                            activeTab === "documents" ? "Company Documents" : "Profile & Settings"}
                         </span>
                         <span className="text-white/50 text-[11px] hidden sm:inline">
                             — {activeTab === "overview" ? "your stats and activity" :
                                 activeTab === "tasks" ? "view and update task progress" :
-                                    activeTab === "intern-support" ? "manage intern technical issues" :
-                                        activeTab === "attendance" ? "punch in/out to log work hours" :
-                                            activeTab === "meetings" ? "meetings you are invited to" :
-                                                activeTab === "documents" ? "company and client resource files" : "update personal, payroll and address info"}
+                                    activeTab === "attendance" ? "punch in/out to log work hours" :
+                                        activeTab === "meetings" ? "meetings you are invited to" :
+                                            activeTab === "documents" ? "company and client resource files" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
-                        {activeTab === "intern-support" && (
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
-                                <input
-                                    type="text"
-                                    placeholder="Search support..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-64 bg-white/20 border border-white/30 text-white placeholder-white/50 px-10 py-1.5 text-sm focus:outline-none focus:bg-white/30 rounded-none"
-                                />
-                            </div>
-                        )}
                         {handRaiseSuccess ? (
                             <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider">
                                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -953,194 +951,154 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "attendance" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-                                {/* Punch Actions Card */}
-                                <div className="bg-white/5 border border-white/5 p-8 flex flex-col items-center justify-center text-center space-y-8 min-h-[350px]">
-                                    <div className="space-y-2">
-                                        <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
-                                            {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                        </div>
-                                        <div className="text-xs text-white/30 uppercase tracking-widest">
-                                            {currentTime.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-4 w-full max-w-sm">
-                                        <div className="p-4 bg-white/[0.02] border border-white/5">
-                                            <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Current Status</p>
-                                            <p className="text-sm font-semibold mt-1">
-                                                {activeAttendanceSession ? (
-                                                    <span className="text-[#E61E32] flex items-center justify-center gap-1.5">
-                                                        <span className="w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />
-                                                        Active session started at {new Date(activeAttendanceSession.punchIn).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-white/40">You are clocked out.</span>
-                                                )}
-                                            </p>
-                                        </div>
-
-                                        {activeAttendanceSession ? (
-                                            <button
-                                                disabled={isPunching}
-                                                onClick={handlePunchOut}
-                                                className="w-full bg-[#E61E32] hover:bg-[#ff1f34] text-white font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
-                                            >
-                                                {isPunching ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : "Punch Out"}
-                                            </button>
-                                        ) : (
-                                            <button
-                                                disabled={isPunching}
-                                                onClick={handlePunchIn}
-                                                className="w-full bg-white hover:bg-white/95 text-black font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
-                                            >
-                                                {isPunching ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : "Punch In"}
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Attendance History Table */}
-                                <div className="bg-white/5 border border-white/5 p-8 flex flex-col overflow-hidden h-full">
-                                    <div className="mb-4 shrink-0 flex justify-between items-center">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Daily Attendance Logs</h3>
-                                        {/* Summary badges */}
-                                        <div className="flex gap-2">
-                                            <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-widest">
-                                                Present: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
+                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-6">
+                                {/* Attendance Statistics */}
+                                {(() => {
+                                    const stats = getAttendanceStats(getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt));
+                                    return (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 shrink-0">
+                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Present Days</p>
+                                                <h4 className="text-xl font-bold text-green-400">{stats.presentDays}</h4>
+                                                <p className="text-[9px] text-white/20">Checked in on-time</p>
                                             </div>
-                                            <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold uppercase tracking-widest">
-                                                Absent: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
+                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest font-black">Absent Days</p>
+                                                <h4 className="text-xl font-bold text-[#E61E32]">{stats.absentDays}</h4>
+                                                <p className="text-[9px] text-white/20">Missed / Late check-ins</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-yellow-500/80 uppercase tracking-widest">Pending Today</p>
+                                                <h4 className="text-xl font-bold text-yellow-500">{stats.pendingDays}</h4>
+                                                <p className="text-[9px] text-white/20">Before 10:00 AM today</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Total Work Time</p>
+                                                <h4 className="text-xl font-bold text-white/90">{stats.totalHours} hrs</h4>
+                                                <p className="text-[9px] text-white/20">Accrued this period</p>
+                                            </div>
+                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors">
+                                                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Avg Hours / Day</p>
+                                                <h4 className="text-xl font-bold text-white/95">{stats.avgHours} hrs</h4>
+                                                <p className="text-[9px] text-white/20">Per present day</p>
                                             </div>
                                         </div>
-                                    </div>
+                                    );
+                                })()}
 
-                                    <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
-                                        {attendanceLoading ? (
-                                            <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
-                                        ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
-                                            <table className="w-full text-left text-xs">
-                                                <thead>
-                                                    <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
-                                                        <th className="py-2.5">Date</th>
-                                                        <th className="py-2.5">Punch In</th>
-                                                        <th className="py-2.5">Punch Out</th>
-                                                        <th className="py-2.5">Status</th>
-                                                        <th className="py-2.5 text-right">Work Time</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
-                                                        const hours = Math.floor(att.workMinutes / 60);
-                                                        const mins = att.workMinutes % 60;
-                                                        const durationStr = att.punchIn !== "-" 
-                                                            ? (att.isActive ? "Active" : `${hours > 0 ? `${hours}h ` : ''}${mins}m`)
-                                                            : "-";
-
-                                                        return (
-                                                            <tr key={att.dateStr} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
-                                                                <td className="py-2.5">{att.dateStr}</td>
-                                                                <td className="py-2.5">{att.punchIn}</td>
-                                                                <td className="py-2.5">{att.punchOut}</td>
-                                                                <td className="py-2.5 flex items-center gap-2">
-                                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
-                                                                        {att.status}
-                                                                    </span>
-                                                                    <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
-                                                                </td>
-                                                                <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        ) : (
-                                            <div className="py-20 text-center border border-dashed border-white/5">
-                                                <p className="text-white/20 text-sm">No attendance records found.</p>
+                                {/* Main Attendance Content */}
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow min-h-[400px]">
+                                    {/* Punch Actions Card */}
+                                    <div className="bg-white/5 border border-white/5 p-8 flex flex-col items-center justify-center text-center space-y-8 min-h-[350px]">
+                                        <div className="space-y-2">
+                                            <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
+                                                {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                             </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                                            <div className="text-xs text-white/30 uppercase tracking-widest">
+                                                {currentTime.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                            </div>
+                                        </div>
 
-                        {activeTab === "intern-support" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-                                {/* Ticket List */}
-                                <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin">
-                                    {loading ? (
-                                        <p className="text-white/20 text-center py-10">Loading tickets...</p>
-                                    ) : filteredInternTickets.length > 0 ? (
-                                        filteredInternTickets.map((t) => (
-                                            <div
-                                                key={t.id}
-                                                onClick={() => setSelectedInternTicket(t)}
-                                                className={`p-5 border transition-all cursor-pointer ${selectedInternTicket?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
-                                            >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-bold text-white flex items-center gap-2">
-                                                        {t.problemPage}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${t.status === 'pending' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'bg-green-500/10 text-green-500'}`}>
-                                                            {t.status}
+                                        <div className="space-y-4 w-full max-w-sm">
+                                            <div className="p-4 bg-white/[0.02] border border-white/5">
+                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Current Status</p>
+                                                <p className="text-sm font-semibold mt-1">
+                                                    {activeAttendanceSession ? (
+                                                        <span className="text-[#E61E32] flex items-center justify-center gap-1.5">
+                                                            <span className="w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />
+                                                            Active session started at {new Date(activeAttendanceSession.punchIn).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
                                                         </span>
-                                                    </h3>
-                                                    <span className="text-[10px] text-white/20 uppercase tracking-tighter">
-                                                        {new Date(t.createdAt).toLocaleDateString()}
-                                                    </span>
-                                                </div>
-                                                <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">{t.name} • {t.batchNumber}</p>
-                                                <p className="text-xs text-white/40 truncate">{t.description}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="py-20 text-center border border-dashed border-white/5">
-                                            <p className="text-white/20 text-sm">No intern support tickets found.</p>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Ticket Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
-                                    {selectedInternTicket ? (
-                                        <div className="space-y-8 animate-in fade-in duration-300">
-                                            <div className="space-y-4 pb-6 border-b border-white/5">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="text-xl font-bold">{selectedInternTicket.problemPage}</h3>
-                                                    <div className="flex gap-2">
-                                                        {selectedInternTicket.status === 'pending' && (
-                                                            <button
-                                                                onClick={() => handleUpdateInternTicketStatus(selectedInternTicket.id, 'resolved')}
-                                                                className="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500 hover:text-white transition-all cursor-pointer"
-                                                            >
-                                                                Mark Resolved
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/30 font-medium">
-                                                    <span className="flex items-center gap-1.5"><User className="w-3.5 h-3.5" /> {selectedInternTicket.name}</span>
-                                                    <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> {selectedInternTicket.email}</span>
-                                                    <span className="flex items-center gap-1.5"><Building className="w-3.5 h-3.5" /> {selectedInternTicket.college}</span>
-                                                    <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {selectedInternTicket.batchNumber}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Problem Description</h4>
-                                                <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
-                                                    {selectedInternTicket.description}
+                                                    ) : (
+                                                        <span className="text-white/40">You are clocked out.</span>
+                                                    )}
                                                 </p>
                                             </div>
+
+                                            {activeAttendanceSession ? (
+                                                <button
+                                                    disabled={isPunching}
+                                                    onClick={handlePunchOut}
+                                                    className="w-full bg-[#E61E32] hover:bg-[#ff1f34] text-white font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                >
+                                                    {isPunching ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : "Punch Out"}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    disabled={isPunching}
+                                                    onClick={handlePunchIn}
+                                                    className="w-full bg-white hover:bg-white/95 text-black font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                >
+                                                    {isPunching ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : "Punch In"}
+                                                </button>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select a ticket to view details</p>
+                                    </div>
+
+                                    {/* Attendance History Table */}
+                                    <div className="bg-white/5 border border-white/5 p-8 flex flex-col overflow-hidden h-full">
+                                        <div className="mb-4 shrink-0 flex justify-between items-center">
+                                            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Daily Attendance Logs</h3>
+                                            {/* Summary badges */}
+                                            <div className="flex gap-2">
+                                                <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-widest">
+                                                    Present: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
+                                                </div>
+                                                <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold uppercase tracking-widest">
+                                                    Absent: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
+                                                </div>
+                                            </div>
                                         </div>
-                                    )}
+
+                                        <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
+                                            {attendanceLoading ? (
+                                                <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
+                                            ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
+                                                <table className="w-full text-left text-xs">
+                                                    <thead>
+                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                            <th className="py-2.5">Date</th>
+                                                            <th className="py-2.5">Punch In</th>
+                                                            <th className="py-2.5">Punch Out</th>
+                                                            <th className="py-2.5">Status</th>
+                                                            <th className="py-2.5 text-right">Work Time</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
+                                                            const hours = Math.floor(att.workMinutes / 60);
+                                                            const mins = att.workMinutes % 60;
+                                                            const durationStr = att.punchIn !== "-" 
+                                                                ? (att.isActive ? "Active" : `${hours > 0 ? `${hours}h ` : ''}${mins}m`)
+                                                                : "-";
+
+                                                            return (
+                                                                <tr key={att.dateStr} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                    <td className="py-2.5">{att.dateStr}</td>
+                                                                    <td className="py-2.5">{att.punchIn}</td>
+                                                                    <td className="py-2.5">{att.punchOut}</td>
+                                                                    <td className="py-2.5 flex items-center gap-2">
+                                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                                            {att.status}
+                                                                        </span>
+                                                                        <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
+                                                                    </td>
+                                                                    <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            ) : (
+                                                <div className="py-20 text-center border border-dashed border-white/5">
+                                                    <p className="text-white/20 text-sm">No attendance records found.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
