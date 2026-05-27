@@ -18,17 +18,14 @@ const Navbar = () => {
             <div className={`w-full bg-[#1E2022]/95 backdrop-blur-md border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ${isOpen ? "rounded-xl" : "rounded-lg"}`}>
                 <div className="flex items-center justify-between px-5 py-1.5">
 
-                    {/* LEFT SIDE: Image Logo & Text */}
+                    {/* LEFT SIDE: Image Logo */}
                     <div className="flex-shrink-0 flex items-center">
-                        <Link href="/" className="flex items-center gap-2 group">
+                        <Link href="/" className="flex items-center group">
                             <img
-                                src="https://ik.imagekit.io/dypkhqxip/logo.png"
+                                src="https://ik.imagekit.io/dypkhqxip/redlixlogo?updatedAt=1777318254456"
                                 alt="Redlix Logo"
-                                className="h-[20px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.03]"
+                                className="h-[24px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.03]"
                             />
-                            <span className="text-white text-[17px] font-bold tracking-tight select-none">
-                                redlix
-                            </span>
                         </Link>
                     </div>
 

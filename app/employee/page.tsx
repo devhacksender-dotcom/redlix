@@ -581,7 +581,7 @@ export default function EmployeePortal() {
                 {/* Separator between logo and nav */}
                 <div className="h-[1px] bg-white/5 mx-0" />
 
-                <nav className="flex-grow space-y-1 px-3 pt-4">
+                <nav className="flex-grow space-y-1 px-3 pt-4 overflow-y-auto min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <button
                         onClick={() => setActiveTab("overview")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
