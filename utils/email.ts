@@ -580,4 +580,53 @@ export async function sendPaymentReceivedEmail({ to, clientName, companyName, am
     }
 }
 
+interface SendResetPasswordEmailParams {
+    to: string;
+    name: string;
+    resetLink: string;
+}
+
+export async function sendResetPasswordEmail({ to, name, resetLink }: SendResetPasswordEmailParams) {
+    const mailOptions = {
+        from: `"Redlix Security" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: "Reset your Redlix Employee Portal Password",
+        html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.5;">
+                <div style="margin-bottom: 30px;">
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 40px;" />
+                </div>
+                
+                <p>Hello ${name},</p>
+                
+                <p>We received a request to reset the password for your Redlix Employee Portal account.</p>
+                
+                <p>Click the button below to choose a new password. This link will expire in 1 hour.</p>
+                
+                <p style="margin: 30px 0;">
+                    <a href="${resetLink}" style="background-color: #E61E32; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">
+                        Reset Password
+                    </a>
+                </p>
+                
+                <p>If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+                
+                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p style="margin: 0; font-weight: bold;">The Redlix Security Team</p>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #666;">Redlix Studio | Software & IT Solutions</p>
+                </div>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Password reset email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending password reset email:", error);
+        return { success: false, error };
+    }
+}
+
 

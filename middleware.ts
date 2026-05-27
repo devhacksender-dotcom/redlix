@@ -3,15 +3,14 @@ import { jwtVerify } from "jose";
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
 
-    // 1. Only process requests starting with /admin
+    // 1. Process requests starting with /admin
     if (pathname.startsWith("/admin")) {
-        // 2. Allow requests to the login page itself
         if (pathname === "/admin/login") {
             return NextResponse.next();
         }
 
-        // 3. Check for the admin token
         const token = request.cookies.get("admin_token")?.value;
 
         if (!token) {
@@ -19,29 +18,51 @@ export async function middleware(request: NextRequest) {
         }
 
         try {
-            const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
             await jwtVerify(token, secret);
             return NextResponse.next();
         } catch (error) {
-            console.error("Auth Middleware Error:", error);
+            console.error("Admin Auth Middleware Error:", error);
             return NextResponse.redirect(new URL("/admin/login", request.url));
         }
     }
 
-    // Protect administrative APIs as well
-    if (pathname.startsWith("/api/admin")) {
-        // Allow the login API itself
-        if (pathname === "/api/admin/login") {
+    // 2. Process requests starting with /employee
+    if (pathname.startsWith("/employee")) {
+        if (pathname === "/employee/login" || pathname === "/employee/reset-password") {
             return NextResponse.next();
         }
 
-        const token = request.cookies.get("admin_token")?.value;
+        const token = request.cookies.get("employee_token")?.value;
+
+        if (!token) {
+            return NextResponse.redirect(new URL("/employee/login", request.url));
+        }
+
+        try {
+            await jwtVerify(token, secret);
+            return NextResponse.next();
+        } catch (error) {
+            console.error("Employee Auth Middleware Error:", error);
+            return NextResponse.redirect(new URL("/employee/login", request.url));
+        }
+    }
+
+    // 3. Protect employee APIs
+    if (pathname.startsWith("/api/employee")) {
+        if (
+            pathname === "/api/employee/login" ||
+            pathname === "/api/employee/forgot-password" ||
+            pathname === "/api/employee/reset-password"
+        ) {
+            return NextResponse.next();
+        }
+
+        const token = request.cookies.get("employee_token")?.value;
         if (!token) {
             return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
         }
 
         try {
-            const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
             await jwtVerify(token, secret);
             return NextResponse.next();
         } catch (error) {
@@ -49,10 +70,47 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // 4. Protect administrative APIs (Permit either admin_token or employee_token)
+    if (pathname.startsWith("/api/admin")) {
+        if (pathname === "/api/admin/login") {
+            return NextResponse.next();
+        }
+
+        const adminToken = request.cookies.get("admin_token")?.value;
+        const employeeToken = request.cookies.get("employee_token")?.value;
+
+        if (adminToken) {
+            try {
+                await jwtVerify(adminToken, secret);
+                return NextResponse.next();
+            } catch (error) {
+                // fall through to check employee token if admin token failed
+            }
+        }
+
+        if (employeeToken) {
+            try {
+                await jwtVerify(employeeToken, secret);
+                return NextResponse.next();
+            } catch (error) {
+                // both tokens invalid
+            }
+        }
+
+        return NextResponse.json(
+            { success: false, message: "Unauthorized access" },
+            { status: 401 }
+        );
+    }
+
     return NextResponse.next();
 }
 
-// Ensure middleware only runs where necessary
 export const config = {
-    matcher: ["/admin/:path*", "/api/admin/:path*"],
+    matcher: [
+        "/admin/:path*",
+        "/api/admin/:path*",
+        "/employee/:path*",
+        "/api/employee/:path*",
+    ],
 };

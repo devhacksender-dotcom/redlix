@@ -39,7 +39,10 @@ model Employee {
   name            String
   email           String   @unique
   role            String
+  password        String   @default("redlix_emp_2026")
   offerLetterLink String?
+  resetToken      String?
+  resetTokenExpiry DateTime?
   joinedAt        DateTime @default(now())
   createdAt       DateTime @default(now())
 

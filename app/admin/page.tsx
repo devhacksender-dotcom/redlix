@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-    Search, 
-    Mail, 
-    Phone, 
+import {
+    Search,
+    Mail,
+    Phone,
     User,
-    Building, 
-    Calendar, 
+    Building,
+    Calendar,
     CheckCircle2,
     Inbox,
     LogOut,
@@ -73,6 +73,7 @@ interface Employee {
     name: string;
     email: string;
     role: string;
+    password?: string;
     offerLetterLink?: string;
     joinedAt: string;
 }
@@ -148,21 +149,21 @@ export default function AdminPortal() {
     const [isEditingEmployee, setIsEditingEmployee] = useState(false);
     const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
-    
+
     // Employee Form State
     const [showAddForm, setShowAddForm] = useState(false);
     const [showOnboardForm, setShowOnboardForm] = useState(false);
-    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", offerLetterLink: "" });
+    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", password: "", offerLetterLink: "" });
     const [newOnboardEmployee, setNewOnboardEmployee] = useState({ name: "", email: "", role: "" });
-    
+
     // Client Form State
     const [showAddClientForm, setShowAddClientForm] = useState(false);
-    const [newClient, setNewClient] = useState({ 
-        companyName: "", 
-        appName: "", 
-        clientName: "", 
-        email: "", 
-        phone: "", 
+    const [newClient, setNewClient] = useState({
+        companyName: "",
+        appName: "",
+        clientName: "",
+        email: "",
+        phone: "",
         meetingTemplate: "Discovery Call",
         meetingTime: "",
         developerName: "",
@@ -318,7 +319,7 @@ export default function AdminPortal() {
             if (data.success) {
                 setEmployees([data.data, ...employees]);
                 setShowAddForm(false);
-                setNewEmployee({ name: "", email: "", role: "", offerLetterLink: "" });
+                setNewEmployee({ name: "", email: "", role: "", password: "", offerLetterLink: "" });
             } else {
                 alert(data.message || "Failed to add employee");
             }
@@ -407,12 +408,12 @@ export default function AdminPortal() {
             if (data.success) {
                 setClients([data.data, ...clients]);
                 setShowAddClientForm(false);
-                setNewClient({ 
-                    companyName: "", 
-                    appName: "", 
-                    clientName: "", 
-                    email: "", 
-                    phone: "", 
+                setNewClient({
+                    companyName: "",
+                    appName: "",
+                    clientName: "",
+                    email: "",
+                    phone: "",
                     meetingTemplate: "Discovery Call",
                     meetingTime: "",
                     developerName: "",
@@ -654,10 +655,10 @@ export default function AdminPortal() {
 
     const markAsRead = async (id: number) => {
         try {
-            await fetch(`/api/admin/inquiries/${id}`, { 
-                method: "PATCH", 
+            await fetch(`/api/admin/inquiries/${id}`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ isRead: true }) 
+                body: JSON.stringify({ isRead: true })
             });
             setInquiries(prev => prev.map(inv => inv.id === id ? { ...inv, isRead: true } : inv));
             if (selectedInquiry?.id === id) {
@@ -668,90 +669,110 @@ export default function AdminPortal() {
         }
     };
 
-    const filteredInquiries = inquiries.filter(inv => 
-        inv.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredInquiries = inquiries.filter(inv =>
+        inv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         inv.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const filteredEmployees = employees.filter(emp => 
-        emp.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredEmployees = employees.filter(emp =>
+        emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         emp.role.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const filteredTickets = tickets.filter(t => 
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredTickets = tickets.filter(t =>
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.subject.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const filteredClients = clients.filter(c => 
-        c.companyName.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredClients = clients.filter(c =>
+        c.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (c.appName && c.appName.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     return (
-        <main className="min-h-screen bg-[#0a0a0a] text-white flex font-sans">
+        <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
             {/* Simple Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8">
-                <div className="px-4">
-                    <h1 className="text-lg font-semibold text-white tracking-tight">Admin</h1>
-                    <p className="text-[11px] text-white/30 mt-0.5">Status: online</p>
+            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
+                <div className="px-4 space-y-4">
+                    <div className="flex items-center gap-2">
+                        <img
+                            src="https://ik.imagekit.io/dypkhqxip/logo.png"
+                            alt="Redlix Logo"
+                            className="h-[24px] w-auto brightness-0 invert opacity-95"
+                        />
+                        <span className="text-white text-[17px] font-bold tracking-tight select-none">
+                            Redlix
+                        </span>
+                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20">
+                            Admin
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-white/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <span>Online</span>
+                    </div>
                 </div>
 
                 <nav className="flex-grow space-y-1">
-                    <button 
+                    <button
                         onClick={() => setActiveTab("overview")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Globe className="w-4 h-4" />
                         Overview
                     </button>
-                    <button 
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("inquiries")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'inquiries' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Inbox className="w-4 h-4" />
                         Inquiries
                     </button>
-                    <button 
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("support")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <MessageSquare className="w-4 h-4" />
                         Support tickets
                     </button>
-                    <button 
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("intern-support")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Users className="w-4 h-4" />
                         Intern support
                     </button>
-                    <button 
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("employees")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Users className="w-4 h-4" />
                         Employees
                     </button>
-                    <button 
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("clients")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Briefcase className="w-4 h-4" />
                         Clients
                     </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <div className="space-y-1">
-                        <button 
+                        <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
-                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
-                                (activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender')
-                                ? 'text-[#E61E32] bg-[#E61E32]/5' 
-                                : 'text-white/50 hover:text-white hover:bg-white/5'
-                            }`}
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender')
+                                ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
+                                : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
+                                }`}
                         >
                             <div className="flex items-center gap-3">
                                 <CreditCard className="w-4 h-4" />
@@ -761,26 +782,24 @@ export default function AdminPortal() {
                         </button>
                         {isPaymentsOpen && (
                             <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
-                                <button 
+                                <button
                                     onClick={() => setActiveTab("payment-due-sender")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-colors ${
-                                        activeTab === 'payment-due-sender' 
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32]' 
-                                        : 'text-white/40 hover:text-white hover:bg-white/5'
-                                    }`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payment-due-sender'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current" />
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Due Mail Sender
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => setActiveTab("payment-received-sender")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-colors ${
-                                        activeTab === 'payment-received-sender' 
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32]' 
-                                        : 'text-white/40 hover:text-white hover:bg-white/5'
-                                    }`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payment-received-sender'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current" />
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Payment Received Sender
                                 </button>
                             </div>
@@ -788,9 +807,11 @@ export default function AdminPortal() {
                     </div>
                 </nav>
 
-                <button 
+                <div className="h-[1px] bg-white/5" />
+
+                <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10"
+                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10 rounded-none"
                 >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -798,41 +819,41 @@ export default function AdminPortal() {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-grow p-8 overflow-hidden">
-                <div className="max-w-6xl mx-auto space-y-8 h-full flex flex-col">
+            <div className="flex-grow p-8 overflow-y-auto h-full">
+                <div className="max-w-7xl mx-auto space-y-8 h-full flex flex-col">
                     {/* Header */}
                     <div className="flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
                         <div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
-                                {activeTab === "overview" ? "Dashboard overview" : 
-                                 activeTab === "inquiries" ? "Inquiry management" : 
-                                 activeTab === "employees" ? "Employee portal" : 
-                                 activeTab === "support" ? "Support system" : 
-                                 activeTab === "intern-support" ? "Intern support system" : 
-                                 activeTab === "clients" ? "Client management" : 
-                                 activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                {activeTab === "overview" ? "Dashboard overview" :
+                                    activeTab === "inquiries" ? "Inquiry management" :
+                                        activeTab === "employees" ? "Employee portal" :
+                                            activeTab === "support" ? "Support system" :
+                                                activeTab === "intern-support" ? "Intern support system" :
+                                                    activeTab === "clients" ? "Client management" :
+                                                        activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
-                                {activeTab === "overview" ? "real-time system metrics and activity" : 
-                                 activeTab === "inquiries" ? "view and respond to incoming messages" : 
-                                 activeTab === "support" ? "manage and resolve technical issues" : 
-                                 activeTab === "intern-support" ? "manage intern technical and portal issues" : 
-                                 activeTab === "employees" ? "manage organization structure" : 
-                                 activeTab === "clients" ? "monitor client projects and meetings" : 
-                                 activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                {activeTab === "overview" ? "real-time system metrics and activity" :
+                                    activeTab === "inquiries" ? "view and respond to incoming messages" :
+                                        activeTab === "support" ? "manage and resolve technical issues" :
+                                            activeTab === "intern-support" ? "manage intern technical and portal issues" :
+                                                activeTab === "employees" ? "manage organization structure" :
+                                                    activeTab === "clients" ? "monitor client projects and meetings" :
+                                                        activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
                             {activeTab === "employees" && (
                                 <>
-                                    <button 
+                                    <button
                                         onClick={() => { setShowAddForm(!showAddForm); setShowOnboardForm(false); }}
                                         className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors"
                                     >
                                         <Plus className="w-4 h-4" />
                                         Add employee
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => { setShowOnboardForm(!showOnboardForm); setShowAddForm(false); }}
                                         className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 text-xs font-semibold transition-colors"
                                     >
@@ -842,7 +863,7 @@ export default function AdminPortal() {
                                 </>
                             )}
                             {activeTab === "clients" && (
-                                <button 
+                                <button
                                     onClick={() => setShowAddClientForm(!showAddClientForm)}
                                     className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors"
                                 >
@@ -852,7 +873,7 @@ export default function AdminPortal() {
                             )}
                             <div className="relative w-72">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                <input 
+                                <input
                                     type="text"
                                     placeholder={`Search ${activeTab}...`}
                                     value={searchQuery}
@@ -869,38 +890,38 @@ export default function AdminPortal() {
                             <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-                                    <StatCard 
-                                        icon={<Inbox className="w-5 h-5" />} 
-                                        label="Total inquiries" 
-                                        value={inquiries.length} 
+                                    <StatCard
+                                        icon={<Inbox className="w-5 h-5" />}
+                                        label="Total inquiries"
+                                        value={inquiries.length}
                                         sublabel={`${inquiries.filter(i => !i.isRead).length} unread`}
                                         color="text-blue-500"
                                     />
-                                    <StatCard 
-                                        icon={<MessageSquare className="w-5 h-5" />} 
-                                        label="Support tickets" 
-                                        value={tickets.length} 
+                                    <StatCard
+                                        icon={<MessageSquare className="w-5 h-5" />}
+                                        label="Support tickets"
+                                        value={tickets.length}
                                         sublabel={`${tickets.filter(t => t.status === 'open').length} open`}
                                         color="text-[#E61E32]"
                                     />
-                                    <StatCard 
-                                        icon={<Users className="w-5 h-5" />} 
-                                        label="Intern support" 
-                                        value={internTickets.length} 
+                                    <StatCard
+                                        icon={<Users className="w-5 h-5" />}
+                                        label="Intern support"
+                                        value={internTickets.length}
                                         sublabel={`${internTickets.filter(t => t.status === 'pending').length} pending`}
                                         color="text-orange-500"
                                     />
-                                    <StatCard 
-                                        icon={<Users className="w-5 h-5" />} 
-                                        label="Active employees" 
-                                        value={employees.length} 
+                                    <StatCard
+                                        icon={<Users className="w-5 h-5" />}
+                                        label="Active employees"
+                                        value={employees.length}
                                         sublabel="Across all roles"
                                         color="text-green-500"
                                     />
-                                    <StatCard 
-                                        icon={<Briefcase className="w-5 h-5" />} 
-                                        label="Registered clients" 
-                                        value={clients.length} 
+                                    <StatCard
+                                        icon={<Briefcase className="w-5 h-5" />}
+                                        label="Registered clients"
+                                        value={clients.length}
                                         sublabel={`${clients.filter(c => c.meetingTime).length} scheduled`}
                                         color="text-yellow-500"
                                     />
@@ -934,7 +955,7 @@ export default function AdminPortal() {
                                             Upcoming meetings
                                         </h3>
                                         <div className="space-y-4">
-                                            {clients.filter(c => c.meetingTime).sort((a,b) => new Date(a.meetingTime!).getTime() - new Date(b.meetingTime!).getTime()).slice(0, 5).map(client => (
+                                            {clients.filter(c => c.meetingTime).sort((a, b) => new Date(a.meetingTime!).getTime() - new Date(b.meetingTime!).getTime()).slice(0, 5).map(client => (
                                                 <div key={client.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
                                                     <div>
                                                         <p className="text-sm font-semibold">{client.companyName}</p>
@@ -960,7 +981,7 @@ export default function AdminPortal() {
                                         <p className="text-white/20 text-center py-10">Loading inquiries...</p>
                                     ) : filteredInquiries.length > 0 ? (
                                         filteredInquiries.map((inv) => (
-                                            <div 
+                                            <div
                                                 key={inv.id}
                                                 onClick={() => {
                                                     setSelectedInquiry(inv);
@@ -1031,7 +1052,7 @@ export default function AdminPortal() {
                                         <p className="text-white/20 text-center py-10">Loading tickets...</p>
                                     ) : filteredTickets.length > 0 ? (
                                         filteredTickets.map((t) => (
-                                            <div 
+                                            <div
                                                 key={t.id}
                                                 onClick={() => setSelectedTicket(t)}
                                                 className={`p-5 border transition-all cursor-pointer ${selectedTicket?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
@@ -1067,7 +1088,7 @@ export default function AdminPortal() {
                                                     <h3 className="text-xl font-bold">{selectedTicket.subject}</h3>
                                                     <div className="flex gap-2">
                                                         {selectedTicket.status === 'pending' && (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'resolved')}
                                                                 className="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500 hover:text-white transition-all"
                                                             >
@@ -1118,7 +1139,7 @@ export default function AdminPortal() {
                                         <p className="text-white/20 text-center py-10">Loading tickets...</p>
                                     ) : internTickets.length > 0 ? (
                                         internTickets.map((t) => (
-                                            <div 
+                                            <div
                                                 key={t.id}
                                                 onClick={() => setSelectedInternTicket(t)}
                                                 className={`p-5 border transition-all cursor-pointer ${selectedInternTicket?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
@@ -1171,7 +1192,7 @@ export default function AdminPortal() {
                                                         {selectedInternTicket.problemPage}
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div className="space-y-1">
                                                     <h4 className="text-[10px] font-bold uppercase tracking-wider text-white/20">Issue Description</h4>
                                                     <div className="bg-white/[0.02] border border-white/5 p-6">
@@ -1212,21 +1233,21 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="text"
                                                             value={newEmployee.name}
-                                                            onChange={(e) => setNewEmployee({...newEmployee, name: e.target.value})}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, name: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="email"
                                                             value={newEmployee.email}
-                                                            onChange={(e) => setNewEmployee({...newEmployee, email: e.target.value})}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, email: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
@@ -1234,26 +1255,36 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="text"
                                                             value={newEmployee.role}
-                                                            onChange={(e) => setNewEmployee({...newEmployee, role: e.target.value})}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, role: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
-                                                        <input 
-                                                            type="url"
-                                                            value={newEmployee.offerLetterLink}
-                                                            onChange={(e) => setNewEmployee({...newEmployee, offerLetterLink: e.target.value})}
-                                                            placeholder="https://..."
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
+                                                        <input
+                                                            type="text"
+                                                            value={newEmployee.password}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
+                                                            placeholder="Default: redlix_emp_2026"
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                 </div>
-                                                <button 
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                    <input
+                                                        type="url"
+                                                        value={newEmployee.offerLetterLink}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, offerLetterLink: e.target.value })}
+                                                        placeholder="https://..."
+                                                        className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                    />
+                                                </div>
+                                                <button
                                                     disabled={isSubmitting}
                                                     type="submit"
                                                     className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50"
@@ -1272,36 +1303,36 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="text"
                                                             value={newOnboardEmployee.name}
-                                                            onChange={(e) => setNewOnboardEmployee({...newOnboardEmployee, name: e.target.value})}
+                                                            onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, name: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="email"
                                                             value={newOnboardEmployee.email}
-                                                            onChange={(e) => setNewOnboardEmployee({...newOnboardEmployee, email: e.target.value})}
+                                                            onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, email: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
-                                                    <input 
+                                                    <input
                                                         required
                                                         type="text"
                                                         value={newOnboardEmployee.role}
-                                                        onChange={(e) => setNewOnboardEmployee({...newOnboardEmployee, role: e.target.value})}
+                                                        onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, role: e.target.value })}
                                                         className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                     />
                                                 </div>
-                                                <button 
+                                                <button
                                                     disabled={isSubmitting}
                                                     type="submit"
                                                     className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50"
@@ -1313,10 +1344,10 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
                                             {loading ? (
-                                            <p className="text-white/20 text-center py-10">Loading employees...</p>
+                                                <p className="text-white/20 text-center py-10">Loading employees...</p>
                                             ) : filteredEmployees.length > 0 ? (
                                                 filteredEmployees.map((emp) => (
-                                                    <div 
+                                                    <div
                                                         key={emp.id}
                                                         onClick={() => {
                                                             setSelectedEmployee(emp);
@@ -1334,17 +1365,16 @@ export default function AdminPortal() {
                                                                     Joined {new Date(emp.joinedAt).toLocaleDateString()}
                                                                 </span>
                                                                 <div className="mt-2 flex gap-2">
-                                                                    <button 
+                                                                    <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             sendOfferLetter(emp.id);
                                                                         }}
                                                                         disabled={sendEmailStatus?.id === emp.id && sendEmailStatus.status === 'sending'}
-                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${
-                                                                            sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success' 
-                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500' 
+                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success'
+                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500'
                                                                             : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'sending' ? (
                                                                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -1353,17 +1383,16 @@ export default function AdminPortal() {
                                                                         )}
                                                                         {sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success' ? "Sent" : "Offer"}
                                                                     </button>
-                                                                    <button 
+                                                                    <button
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
                                                                             sendOnboardingEmail(emp.id);
                                                                         }}
                                                                         disabled={sendEmailStatus?.id === emp.id && sendEmailStatus.status === 'sending'}
-                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${
-                                                                            sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success' 
-                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500' 
+                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success'
+                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500'
                                                                             : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'sending' ? (
                                                                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -1401,14 +1430,14 @@ export default function AdminPortal() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    <button 
+                                                    <button
                                                         onClick={() => setIsEditingEmployee(!isEditingEmployee)}
                                                         className={`p-2 transition-colors ${isEditingEmployee ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
                                                         title="Edit Employee"
                                                     >
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => handleDeleteEmployee(selectedEmployee.id)}
                                                         className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
                                                         title="Delete Employee"
@@ -1423,21 +1452,21 @@ export default function AdminPortal() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
-                                                            <input 
+                                                            <input
                                                                 required
                                                                 type="text"
                                                                 value={selectedEmployee.name}
-                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, name: e.target.value})}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, name: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
-                                                            <input 
+                                                            <input
                                                                 required
                                                                 type="email"
                                                                 value={selectedEmployee.email}
-                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, email: e.target.value})}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, email: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
@@ -1445,43 +1474,54 @@ export default function AdminPortal() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
-                                                            <input 
+                                                            <input
                                                                 required
                                                                 type="text"
                                                                 value={selectedEmployee.role}
-                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, role: e.target.value})}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, role: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Joined Date</label>
-                                                            <input 
-                                                                type="date"
-                                                                value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
-                                                                onChange={(e) => setSelectedEmployee({...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString()})}
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedEmployee.password || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, password: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
-                                                        <input 
-                                                            type="url"
-                                                            value={selectedEmployee.offerLetterLink || ""}
-                                                            onChange={(e) => setSelectedEmployee({...selectedEmployee, offerLetterLink: e.target.value})}
-                                                            placeholder="https://..."
-                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
-                                                        />
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Joined Date</label>
+                                                            <input
+                                                                type="date"
+                                                                value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString() })}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                            <input
+                                                                type="url"
+                                                                value={selectedEmployee.offerLetterLink || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, offerLetterLink: e.target.value })}
+                                                                placeholder="https://..."
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <div className="flex gap-4">
-                                                        <button 
+                                                        <button
                                                             type="submit"
                                                             disabled={isSubmitting}
                                                             className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50"
                                                         >
                                                             {isSubmitting ? "Updating..." : "Save Changes"}
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => setIsEditingEmployee(false)}
                                                             className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10"
@@ -1501,9 +1541,9 @@ export default function AdminPortal() {
                                                         <div className="p-4 bg-white/[0.02] border border-white/5">
                                                             <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
                                                             {selectedEmployee.offerLetterLink ? (
-                                                                <a 
-                                                                    href={selectedEmployee.offerLetterLink} 
-                                                                    target="_blank" 
+                                                                <a
+                                                                    href={selectedEmployee.offerLetterLink}
+                                                                    target="_blank"
                                                                     className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors"
                                                                 >
                                                                     <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
@@ -1516,7 +1556,7 @@ export default function AdminPortal() {
                                                     </div>
 
                                                     <div className="pt-6 space-y-3">
-                                                        <button 
+                                                        <button
                                                             onClick={() => sendOfferLetter(selectedEmployee.id)}
                                                             disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
                                                             className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
@@ -1528,7 +1568,7 @@ export default function AdminPortal() {
                                                             )}
                                                             Send Official Offer Email
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={() => sendOnboardingEmail(selectedEmployee.id)}
                                                             disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
                                                             className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/80 font-bold py-4 text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
@@ -1556,7 +1596,7 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
                                             <p className="text-sm uppercase tracking-widest font-medium text-center">
-                                                Select an employee to<br/>view profile and history
+                                                Select an employee to<br />view profile and history
                                             </p>
                                         </div>
                                     )}
@@ -1578,20 +1618,20 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Company Name</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="text"
                                                             value={newClient.companyName}
-                                                            onChange={(e) => setNewClient({...newClient, companyName: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, companyName: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">App / Website Name</label>
-                                                        <input 
+                                                        <input
                                                             type="text"
                                                             value={newClient.appName}
-                                                            onChange={(e) => setNewClient({...newClient, appName: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, appName: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
@@ -1599,21 +1639,21 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Client Contact Name</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="text"
                                                             value={newClient.clientName}
-                                                            onChange={(e) => setNewClient({...newClient, clientName: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, clientName: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
-                                                        <input 
+                                                        <input
                                                             required
                                                             type="email"
                                                             value={newClient.email}
-                                                            onChange={(e) => setNewClient({...newClient, email: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
@@ -1621,18 +1661,18 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
-                                                        <input 
+                                                        <input
                                                             type="tel"
                                                             value={newClient.phone}
-                                                            onChange={(e) => setNewClient({...newClient, phone: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Template</label>
-                                                        <select 
+                                                        <select
                                                             value={newClient.meetingTemplate}
-                                                            onChange={(e) => setNewClient({...newClient, meetingTemplate: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, meetingTemplate: e.target.value })}
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         >
                                                             <option value="Discovery Call" className="bg-[#0f0f0f]">Discovery Call</option>
@@ -1646,20 +1686,20 @@ export default function AdminPortal() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Developer Name (For Dev Meet)</label>
-                                                        <input 
+                                                        <input
                                                             type="text"
                                                             value={newClient.developerName}
-                                                            onChange={(e) => setNewClient({...newClient, developerName: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, developerName: e.target.value })}
                                                             placeholder="Lead Engineer Name"
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Link (Custom)</label>
-                                                        <input 
+                                                        <input
                                                             type="url"
                                                             value={newClient.meetingLink}
-                                                            onChange={(e) => setNewClient({...newClient, meetingLink: e.target.value})}
+                                                            onChange={(e) => setNewClient({ ...newClient, meetingLink: e.target.value })}
                                                             placeholder="https://meet.google.com/..."
                                                             className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                         />
@@ -1667,14 +1707,14 @@ export default function AdminPortal() {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Preferred Meeting Time</label>
-                                                    <input 
+                                                    <input
                                                         type="datetime-local"
                                                         value={newClient.meetingTime}
-                                                        onChange={(e) => setNewClient({...newClient, meetingTime: e.target.value})}
+                                                        onChange={(e) => setNewClient({ ...newClient, meetingTime: e.target.value })}
                                                         className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                     />
                                                 </div>
-                                                <button 
+                                                <button
                                                     disabled={isSubmitting}
                                                     type="submit"
                                                     className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
@@ -1689,7 +1729,7 @@ export default function AdminPortal() {
                                                 <p className="text-white/20 text-center py-10">Loading clients...</p>
                                             ) : filteredClients.length > 0 ? (
                                                 filteredClients.map((client) => (
-                                                    <div 
+                                                    <div
                                                         key={client.id}
                                                         onClick={() => setSelectedClient(client)}
                                                         className={`p-5 border transition-all cursor-pointer ${selectedClient?.id === client.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
@@ -1709,7 +1749,7 @@ export default function AdminPortal() {
                                                                         Scheduled
                                                                     </div>
                                                                 )}
-                                                                <button 
+                                                                <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         setSelectedClient(client);
@@ -1748,14 +1788,14 @@ export default function AdminPortal() {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-4">
-                                                        <button 
+                                                        <button
                                                             onClick={() => setIsEditingClient(!isEditingClient)}
                                                             className={`p-2 transition-colors ${isEditingClient ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
                                                             title="Edit Client"
                                                         >
                                                             <Edit2 className="w-5 h-5" />
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={() => handleDeleteClient(selectedClient.id)}
                                                             className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
                                                             title="Delete Client"
@@ -1771,9 +1811,9 @@ export default function AdminPortal() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Template</label>
-                                                            <select 
+                                                            <select
                                                                 value={selectedClient.meetingTemplate || ""}
-                                                                onChange={(e) => setSelectedClient({...selectedClient, meetingTemplate: e.target.value})}
+                                                                onChange={(e) => setSelectedClient({ ...selectedClient, meetingTemplate: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             >
                                                                 <option value="Discovery Call">Discovery Call</option>
@@ -1785,10 +1825,10 @@ export default function AdminPortal() {
                                                         </div>
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Time</label>
-                                                            <input 
+                                                            <input
                                                                 type="datetime-local"
                                                                 value={selectedClient.meetingTime ? new Date(selectedClient.meetingTime).toISOString().slice(0, 16) : ""}
-                                                                onChange={(e) => setSelectedClient({...selectedClient, meetingTime: e.target.value})}
+                                                                onChange={(e) => setSelectedClient({ ...selectedClient, meetingTime: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
@@ -1796,33 +1836,33 @@ export default function AdminPortal() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Developer Assigned</label>
-                                                            <input 
+                                                            <input
                                                                 type="text"
                                                                 value={selectedClient.developerName || ""}
-                                                                onChange={(e) => setSelectedClient({...selectedClient, developerName: e.target.value})}
+                                                                onChange={(e) => setSelectedClient({ ...selectedClient, developerName: e.target.value })}
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Link</label>
-                                                            <input 
+                                                            <input
                                                                 type="url"
                                                                 value={selectedClient.meetingLink || ""}
-                                                                onChange={(e) => setSelectedClient({...selectedClient, meetingLink: e.target.value})}
+                                                                onChange={(e) => setSelectedClient({ ...selectedClient, meetingLink: e.target.value })}
                                                                 placeholder="https://..."
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-4">
-                                                        <button 
+                                                        <button
                                                             type="submit"
                                                             disabled={isSubmitting}
                                                             className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50"
                                                         >
                                                             {isSubmitting ? "Updating..." : "Save Changes"}
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             type="button"
                                                             onClick={() => setIsEditingClient(false)}
                                                             className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10"
@@ -1833,64 +1873,64 @@ export default function AdminPortal() {
                                                 </form>
                                             ) : (
                                                 <>
-                                                <div className="grid grid-cols-1 gap-6">
-                                                    <div className="p-6 bg-white/[0.02] border border-white/5 space-y-6">
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InfoBlock label="Client Name" value={selectedClient.clientName} />
-                                                            <InfoBlock label="Email Address" value={selectedClient.email} />
+                                                    <div className="grid grid-cols-1 gap-6">
+                                                        <div className="p-6 bg-white/[0.02] border border-white/5 space-y-6">
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <InfoBlock label="Client Name" value={selectedClient.clientName} />
+                                                                <InfoBlock label="Email Address" value={selectedClient.email} />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <InfoBlock label="Phone Number" value={selectedClient.phone || "N/A"} />
+                                                                <InfoBlock label="Registered On" value={new Date(selectedClient.createdAt).toLocaleDateString()} />
+                                                            </div>
                                                         </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InfoBlock label="Phone Number" value={selectedClient.phone || "N/A"} />
-                                                            <InfoBlock label="Registered On" value={new Date(selectedClient.createdAt).toLocaleDateString()} />
-                                                        </div>
-                                                    </div>
 
-                                                    <div className="p-6 bg-[#E61E32]/5 border border-[#E61E32]/10 space-y-4">
-                                                        <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest flex items-center gap-2">
-                                                            <Calendar className="w-3 h-3" />
-                                                            Meeting & Schedule
-                                                        </h4>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InfoBlock label="Template Type" value={selectedClient.meetingTemplate || "Standard Call"} />
-                                                            <InfoBlock 
-                                                                label="Scheduled Time" 
-                                                                value={selectedClient.meetingTime ? new Date(selectedClient.meetingTime).toLocaleString() : "Not Scheduled"} 
-                                                            />
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <InfoBlock label="Developer Assigned" value={selectedClient.developerName || "N/A"} />
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Meeting Link</p>
-                                                                {selectedClient.meetingLink ? (
-                                                                    <a href={selectedClient.meetingLink} target="_blank" className="text-sm text-[#E61E32] font-medium hover:underline truncate block max-w-[200px]">
-                                                                        {selectedClient.meetingLink}
-                                                                    </a>
-                                                                ) : (
-                                                                    <p className="text-sm text-white/40 italic">No Link Provided</p>
-                                                                )}
+                                                        <div className="p-6 bg-[#E61E32]/5 border border-[#E61E32]/10 space-y-4">
+                                                            <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest flex items-center gap-2">
+                                                                <Calendar className="w-3 h-3" />
+                                                                Meeting & Schedule
+                                                            </h4>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <InfoBlock label="Template Type" value={selectedClient.meetingTemplate || "Standard Call"} />
+                                                                <InfoBlock
+                                                                    label="Scheduled Time"
+                                                                    value={selectedClient.meetingTime ? new Date(selectedClient.meetingTime).toLocaleString() : "Not Scheduled"}
+                                                                />
+                                                            </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <InfoBlock label="Developer Assigned" value={selectedClient.developerName || "N/A"} />
+                                                                <div className="space-y-1">
+                                                                    <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Meeting Link</p>
+                                                                    {selectedClient.meetingLink ? (
+                                                                        <a href={selectedClient.meetingLink} target="_blank" className="text-sm text-[#E61E32] font-medium hover:underline truncate block max-w-[200px]">
+                                                                            {selectedClient.meetingLink}
+                                                                        </a>
+                                                                    ) : (
+                                                                        <p className="text-sm text-white/40 italic">No Link Provided</p>
+                                                                    )}
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div className="pt-6 flex gap-4">
-                                                    <button 
-                                                        onClick={() => sendMeetingEmail(selectedClient.id)}
-                                                        disabled={(sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending') || !selectedClient.meetingTime}
-                                                        className="flex-grow flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
-                                                    >
-                                                        {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending' ? (
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                                        ) : (
-                                                            <Mail className="w-4 h-4" />
-                                                        )}
-                                                        {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'success' ? "Details Sent" : "Send Meeting Details"}
-                                                    </button>
-                                                    <button className="flex-grow flex items-center justify-center gap-2 bg-white/5 text-white/60 font-bold py-4 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10">
-                                                        <Globe className="w-4 h-4" />
-                                                        Open Dashboard
-                                                    </button>
-                                                </div>
+                                                    <div className="pt-6 flex gap-4">
+                                                        <button
+                                                            onClick={() => sendMeetingEmail(selectedClient.id)}
+                                                            disabled={(sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending') || !selectedClient.meetingTime}
+                                                            className="flex-grow flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
+                                                        >
+                                                            {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending' ? (
+                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <Mail className="w-4 h-4" />
+                                                            )}
+                                                            {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'success' ? "Details Sent" : "Send Meeting Details"}
+                                                        </button>
+                                                        <button className="flex-grow flex items-center justify-center gap-2 bg-white/5 text-white/60 font-bold py-4 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10">
+                                                            <Globe className="w-4 h-4" />
+                                                            Open Dashboard
+                                                        </button>
+                                                    </div>
                                                 </>
                                             )}
                                             {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'error' && (
@@ -1903,7 +1943,7 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
                                             <p className="text-sm uppercase tracking-widest font-medium text-center">
-                                                Select a client to<br/>view full details and projects
+                                                Select a client to<br />view full details and projects
                                             </p>
                                         </div>
                                     )}
@@ -1927,7 +1967,7 @@ export default function AdminPortal() {
                                         {/* Client Dropdown */}
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Registered Client *</label>
-                                            <select 
+                                            <select
                                                 required
                                                 value={paymentClientId}
                                                 onChange={(e) => setPaymentClientId(e.target.value === "" ? "" : Number(e.target.value))}
@@ -1977,7 +2017,7 @@ export default function AdminPortal() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Due *</label>
-                                                <input 
+                                                <input
                                                     required
                                                     type="text"
                                                     placeholder="e.g. $1,500 or ₹75,000"
@@ -1988,7 +2028,7 @@ export default function AdminPortal() {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Due Date *</label>
-                                                <input 
+                                                <input
                                                     required
                                                     type="date"
                                                     value={paymentDueDate}
@@ -2002,7 +2042,7 @@ export default function AdminPortal() {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Upload Invoice PDF (Optional)</label>
                                             <div className="relative border border-dashed border-white/10 hover:border-white/20 transition-colors p-6 text-center cursor-pointer bg-black/20 flex flex-col items-center justify-center space-y-2">
-                                                <input 
+                                                <input
                                                     type="file"
                                                     accept=".pdf"
                                                     onChange={handleFileChange}
@@ -2012,8 +2052,8 @@ export default function AdminPortal() {
                                                 {paymentInvoiceFile ? (
                                                     <div className="space-y-1 text-center">
                                                         <p className="text-xs font-semibold text-green-500">{paymentInvoiceFile.name}</p>
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={(e) => { e.stopPropagation(); setPaymentInvoiceFile(null); }}
                                                             className="text-[10px] text-white/40 hover:text-red-500 font-bold uppercase"
                                                         >
@@ -2030,7 +2070,7 @@ export default function AdminPortal() {
                                         </div>
 
                                         {/* Submit Button */}
-                                        <button 
+                                        <button
                                             disabled={paymentSendStatus === 'sending' || !paymentClientId || !paymentAmount || !paymentDueDate}
                                             type="submit"
                                             className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/50 text-white font-bold py-4 text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed"
@@ -2087,7 +2127,7 @@ export default function AdminPortal() {
                                             const company = client ? client.companyName : "[Client Company Name]";
                                             const email = client ? client.email : "client@company.com";
                                             const displayAmount = paymentAmount || "[Due Amount]";
-                                            const displayDate = paymentDueDate 
+                                            const displayDate = paymentDueDate
                                                 ? new Date(paymentDueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
                                                 : "[Payment Due Date]";
 
@@ -2167,7 +2207,7 @@ export default function AdminPortal() {
                                                             <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>Billing Lead</p>
                                                             <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#111' }}>Shiva Krishna Manthena</p>
                                                             <p style={{ margin: '2px 0 20px 0', color: '#4b5563' }}>Redlix Studio | Accounts Department</p>
-                                                            
+
                                                             <div style={{ fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
                                                                 <p style={{ margin: '0' }}>© 2026 Redlix Studio</p>
                                                                 <p style={{ margin: '0' }}>Software & IT infrastructure solutions</p>
@@ -2185,10 +2225,10 @@ export default function AdminPortal() {
 
                         {activeTab === "payment-received-sender" && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full overflow-y-auto pr-2 pb-6">
-                                <Script 
-                                    src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" 
-                                    type="module" 
-                                    strategy="lazyOnload" 
+                                <Script
+                                    src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js"
+                                    type="module"
+                                    strategy="lazyOnload"
                                 />
                                 {/* Form Container */}
                                 <div className="bg-white/5 border border-white/10 p-8 space-y-6">
@@ -2201,11 +2241,11 @@ export default function AdminPortal() {
                                             <p className="text-xs text-white/40 mt-1">Select a client and enter received payment details.</p>
                                         </div>
                                         <div className="w-16 h-16 shrink-0 flex items-center justify-center bg-white/[0.02] border border-white/5 rounded-full overflow-hidden">
-                                            <dotlottie-wc 
-                                                src="https://lottie.host/f13997bb-c272-480a-88bc-7207fef2de93/GBzchfk01z.lottie" 
-                                                autoplay 
-                                                loop 
-                                                style={{ width: "80px", height: "80px" }} 
+                                            <dotlottie-wc
+                                                src="https://lottie.host/f13997bb-c272-480a-88bc-7207fef2de93/GBzchfk01z.lottie"
+                                                autoplay
+                                                loop
+                                                style={{ width: "80px", height: "80px" }}
                                             />
                                         </div>
                                     </div>
@@ -2214,7 +2254,7 @@ export default function AdminPortal() {
                                         {/* Client Dropdown */}
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Registered Client *</label>
-                                            <select 
+                                            <select
                                                 required
                                                 value={receivedClientId}
                                                 onChange={(e) => setReceivedClientId(e.target.value === "" ? "" : Number(e.target.value))}
@@ -2264,7 +2304,7 @@ export default function AdminPortal() {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Received *</label>
-                                                <input 
+                                                <input
                                                     required
                                                     type="text"
                                                     placeholder="e.g. $1,500 or ₹75,000"
@@ -2275,7 +2315,7 @@ export default function AdminPortal() {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Payment Date *</label>
-                                                <input 
+                                                <input
                                                     required
                                                     type="date"
                                                     value={receivedDate}
@@ -2288,7 +2328,7 @@ export default function AdminPortal() {
                                         {/* Transaction ID */}
                                         <div className="space-y-1.5">
                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Transaction ID (Optional)</label>
-                                            <input 
+                                            <input
                                                 type="text"
                                                 placeholder="e.g. TXN123456789 or UTR / UPI Ref No."
                                                 value={receivedTransactionId}
@@ -2302,7 +2342,7 @@ export default function AdminPortal() {
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Upload Receipt / Invoice PDF (Optional)</label>
                                             <div className="relative border border-dashed border-white/10 hover:border-white/20 transition-colors p-6 text-center cursor-pointer bg-black/20 flex flex-col items-center justify-center space-y-2">
-                                                <input 
+                                                <input
                                                     type="file"
                                                     accept=".pdf"
                                                     onChange={handleReceiptFileChange}
@@ -2312,8 +2352,8 @@ export default function AdminPortal() {
                                                 {receivedReceiptFile ? (
                                                     <div className="space-y-1 text-center">
                                                         <p className="text-xs font-semibold text-green-500">{receivedReceiptFile.name}</p>
-                                                        <button 
-                                                            type="button" 
+                                                        <button
+                                                            type="button"
                                                             onClick={(e) => { e.stopPropagation(); setReceivedReceiptFile(null); }}
                                                             className="text-[10px] text-white/40 hover:text-red-500 font-bold uppercase"
                                                         >
@@ -2330,7 +2370,7 @@ export default function AdminPortal() {
                                         </div>
 
                                         {/* Submit Button */}
-                                        <button 
+                                        <button
                                             disabled={receivedSendStatus === 'sending' || !receivedClientId || !receivedAmount || !receivedDate}
                                             type="submit"
                                             className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#10B981]/90 disabled:bg-[#10B981]/50 text-white font-bold py-4 text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed"
@@ -2387,7 +2427,7 @@ export default function AdminPortal() {
                                             const company = client ? client.companyName : "[Client Company Name]";
                                             const email = client ? client.email : "client@company.com";
                                             const displayAmount = receivedAmount || "[Received Amount]";
-                                            const displayDate = receivedDate 
+                                            const displayDate = receivedDate
                                                 ? new Date(receivedDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
                                                 : "[Payment Date]";
 
@@ -2472,7 +2512,7 @@ export default function AdminPortal() {
                                                             <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>Billing Lead</p>
                                                             <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#111' }}>Shiva Krishna Manthena</p>
                                                             <p style={{ margin: '2px 0 20px 0', color: '#4b5563' }}>Redlix Studio | Accounts Department</p>
-                                                            
+
                                                             <div style={{ fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
                                                                 <p style={{ margin: '0' }}>© 2026 Redlix Studio</p>
                                                                 <p style={{ margin: '0' }}>Software & IT infrastructure solutions</p>

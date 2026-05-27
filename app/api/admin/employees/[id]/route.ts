@@ -16,7 +16,7 @@ export async function PATCH(
         }
 
         const body = await req.json();
-        const { name, email, role, offerLetterLink, joinedAt } = body;
+        const { name, email, role, password, offerLetterLink, joinedAt } = body;
 
         // If email is changing, make sure it is unique
         if (email) {
@@ -35,6 +35,7 @@ export async function PATCH(
         if (name !== undefined) updateData.name = name;
         if (email !== undefined) updateData.email = email;
         if (role !== undefined) updateData.role = role;
+        if (password !== undefined) updateData.password = password;
         if (offerLetterLink !== undefined) updateData.offerLetterLink = offerLetterLink;
         if (joinedAt !== undefined) updateData.joinedAt = new Date(joinedAt);
 
