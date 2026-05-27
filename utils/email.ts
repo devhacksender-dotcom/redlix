@@ -630,3 +630,75 @@ export async function sendResetPasswordEmail({ to, name, resetLink }: SendResetP
 }
 
 
+interface SendHandRaiseNotificationParams {
+    employeeName: string;
+    employeeEmail: string;
+    adminEmail: string;
+    raisedAt: string;
+}
+
+export async function sendHandRaiseNotification({ employeeName, employeeEmail, adminEmail, raisedAt }: SendHandRaiseNotificationParams) {
+    const mailOptions = {
+        from: `"Redlix Employee Portal" <${process.env.SMTP_EMAIL}>`,
+        to: adminEmail,
+        subject: `🚨 Employee Needs Help — ${employeeName} raised their hand`,
+        html: `
+            <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
+                <!-- Header -->
+                <div style="background-color: #E61E32; padding: 24px 32px;">
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 30px; filter: brightness(0) invert(1);" />
+                </div>
+
+                <div style="padding: 40px 32px;">
+                    <h1 style="color: #E61E32; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 6px 0;">
+                        🖐 Hand Raised — Action Required
+                    </h1>
+                    <div style="width: 40px; height: 3px; background-color: #E61E32; margin-bottom: 28px;"></div>
+
+                    <p style="font-size: 15px; line-height: 1.6; margin-bottom: 20px; color: #444;">
+                        An employee on the <strong>Redlix Employee Portal</strong> has raised their hand and requires your immediate attention.
+                    </p>
+
+                    <div style="background-color: #f8f8f8; border: 1px solid #eee; padding: 24px; margin-bottom: 28px;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px 0; font-size: 13px; color: #888; width: 150px;">Employee Name</td>
+                                <td style="padding: 10px 0; font-size: 14px; font-weight: 700; color: #111;">${employeeName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; font-size: 13px; color: #888;">Employee Email</td>
+                                <td style="padding: 10px 0; font-size: 14px; color: #E61E32; font-weight: 600;">${employeeEmail}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px 0; font-size: 13px; color: #888;">Time of Request</td>
+                                <td style="padding: 10px 0; font-size: 14px; font-weight: 600; color: #111;">${new Date(raisedAt).toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'short' })}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <p style="font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 0;">
+                        Please log into the <strong>Admin Dashboard</strong> and contact <strong>${employeeName}</strong> directly to resolve their issue.
+                    </p>
+                </div>
+
+                <!-- Footer -->
+                <div style="background-color: #fafafa; padding: 24px 32px; border-top: 1px solid #eee;">
+                    <p style="margin: 0; font-size: 12px; color: #bbb; line-height: 1.8;">
+                        © 2026 Redlix Studio &middot; This is an automated notification from the Employee Portal.<br/>
+                        Do not reply to this email directly.
+                    </p>
+                </div>
+            </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Hand raise notification sent to admin (${adminEmail}) for employee: ${employeeName}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending hand raise notification:", error);
+        return { success: false, error };
+    }
+}
+

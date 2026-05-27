@@ -20,7 +20,9 @@ import {
     Clock,
     CreditCard,
     ChevronDown,
-    ListTodo
+    ListTodo,
+    Hand,
+    AlertTriangle
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -69,6 +71,7 @@ export default function EmployeePortal() {
         mobile?: string;
         altEmail?: string;
         address?: string;
+        joinedAt?: string;
     } | null>(null);
     const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "intern-support" | "attendance" | "settings">("overview");
 
@@ -98,17 +101,116 @@ export default function EmployeePortal() {
     const [isPunching, setIsPunching] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
 
+    // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
+    const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
+        const report: {
+            dateStr: string;
+            punchIn: string;
+            punchOut: string;
+            status: "Present" | "Absent" | "Pending";
+            statusReason: string;
+            workMinutes: number;
+            isActive: boolean;
+            rawDate: Date;
+        }[] = [];
+        
+        const today = new Date();
+        const start = joinedAtStr ? new Date(joinedAtStr) : new Date();
+        if (!joinedAtStr) {
+            start.setDate(today.getDate() - 30);
+        } else {
+            const limitDate = new Date();
+            limitDate.setDate(today.getDate() - 30);
+            if (start.getTime() < limitDate.getTime()) {
+                start.setTime(limitDate.getTime());
+            }
+        }
+        
+        const curr = new Date(start);
+        curr.setHours(0, 0, 0, 0);
+        
+        const end = new Date(today);
+        end.setHours(23, 59, 59, 999);
+        
+        while (curr.getTime() <= end.getTime()) {
+            const dateStrKey = curr.toLocaleDateString();
+            const dateObj = new Date(curr);
+            
+            const logsForDay = history.filter(h => {
+                const d = new Date(h.punchIn);
+                return d.toLocaleDateString() === dateStrKey;
+            }).sort((a, b) => new Date(a.punchIn).getTime() - new Date(b.punchIn).getTime());
+            
+            if (logsForDay.length > 0) {
+                const firstLog = logsForDay[0];
+                const lastLog = logsForDay[logsForDay.length - 1];
+                
+                const pIn = new Date(firstLog.punchIn);
+                const pOut = lastLog.punchOut ? new Date(lastLog.punchOut) : null;
+                
+                const hour = pIn.getHours();
+                const minute = pIn.getMinutes();
+                const isLate = hour > 10 || (hour === 10 && minute > 0);
+                
+                const punchInTimeStr = pIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const punchOutTimeStr = pOut 
+                    ? pOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                    : (lastLog.punchOut === null ? "Active" : "-");
+                
+                const dayWorkMinutes = logsForDay.reduce((sum, r) => sum + r.workMinutes, 0);
+                
+                report.push({
+                    dateStr: dateStrKey,
+                    punchIn: punchInTimeStr,
+                    punchOut: punchOutTimeStr,
+                    status: isLate ? "Absent" : "Present",
+                    statusReason: isLate ? "Late Check-in (after 10:00 AM)" : "Present on time",
+                    workMinutes: dayWorkMinutes,
+                    isActive: lastLog.punchOut === null,
+                    rawDate: dateObj
+                });
+            } else {
+                const isToday = dateObj.toLocaleDateString() === today.toLocaleDateString();
+                const isBefore10AM = today.getHours() < 10;
+                
+                let status: "Present" | "Absent" | "Pending" = "Absent";
+                let statusReason = "No Check-in recorded";
+                
+                if (isToday) {
+                    if (isBefore10AM) {
+                        status = "Pending";
+                        statusReason = "Pending Check-in (cutoff 10:00 AM)";
+                    } else {
+                        status = "Absent";
+                        statusReason = "Missed 10:00 AM cutoff";
+                    }
+                }
+                
+                report.push({
+                    dateStr: dateStrKey,
+                    punchIn: "-",
+                    punchOut: "-",
+                    status,
+                    statusReason,
+                    workMinutes: 0,
+                    isActive: false,
+                    rawDate: dateObj
+                });
+            }
+            
+            curr.setDate(curr.getDate() + 1);
+        }
+        
+        return report.sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime());
+    };
+
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
 
     // Stats states
-    const [inquiries, setInquiries] = useState<Inquiry[]>([]);
-    const [employeesCount, setEmployeesCount] = useState(0);
-    const [tickets, setTickets] = useState<SupportTicket[]>([]);
     const [internTickets, setInternTickets] = useState<InternSupport[]>([]);
-    const [clients, setClients] = useState<Client[]>([]);
     
     // Intern tickets states
     const [loading, setLoading] = useState(true);
@@ -261,49 +363,15 @@ export default function EmployeePortal() {
         setLoading(true);
         try {
             await Promise.all([
-                fetchInquiriesCount(),
-                fetchEmployeesCount(),
-                fetchTicketsCount(),
-                fetchInternTickets(),
-                fetchClientsCount()
+                fetchEmployeeTasks(),
+                fetchAttendanceInfo(),
+                fetchInternTickets()
             ]);
         } catch (error) {
             console.error("Failed to fetch overview data:", error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const fetchInquiriesCount = async () => {
-        try {
-            const res = await fetch("/api/admin/inquiries");
-            const data = await res.json();
-            if (data.success) setInquiries(data.data);
-        } catch (err) { console.error(err); }
-    };
-
-    const fetchEmployeesCount = async () => {
-        try {
-            const res = await fetch("/api/admin/employees");
-            const data = await res.json();
-            if (data.success) setEmployeesCount(data.data.length);
-        } catch (err) { console.error(err); }
-    };
-
-    const fetchTicketsCount = async () => {
-        try {
-            const res = await fetch("/api/admin/support");
-            const data = await res.json();
-            if (data.success) setTickets(data.data);
-        } catch (err) { console.error(err); }
-    };
-
-    const fetchClientsCount = async () => {
-        try {
-            const res = await fetch("/api/admin/clients");
-            const data = await res.json();
-            if (data.success) setClients(data.data);
-        } catch (err) { console.error(err); }
     };
 
     const fetchInternTickets = async () => {
@@ -386,6 +454,34 @@ export default function EmployeePortal() {
         router.push("/employee/login");
     };
 
+    // Hand raise state
+    const [isRaisingHand, setIsRaisingHand] = useState(false);
+    const [handRaiseSuccess, setHandRaiseSuccess] = useState(false);
+
+    const handleRaiseHand = async () => {
+        if (isRaisingHand || handRaiseSuccess) return;
+        setIsRaisingHand(true);
+        try {
+            const res = await fetch("/api/employee/raise-hand", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ employeeName: employeeInfo?.name, employeeEmail: employeeInfo?.email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setHandRaiseSuccess(true);
+                setTimeout(() => setHandRaiseSuccess(false), 5000);
+            } else {
+                alert(data.message || "Failed to notify admin");
+            }
+        } catch (error) {
+            console.error("Hand raise error:", error);
+            alert("Connection error. Please try again.");
+        } finally {
+            setIsRaisingHand(false);
+        }
+    };
+
     const filteredInternTickets = internTickets.filter(t =>
         t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.college.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -396,8 +492,9 @@ export default function EmployeePortal() {
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
             {/* Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
-                <div className="px-4 space-y-4">
+            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
+                {/* Logo */}
+                <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-2">
                         <img
                             src="https://ik.imagekit.io/dypkhqxip/logo.png"
@@ -411,21 +508,12 @@ export default function EmployeePortal() {
                             Employee
                         </span>
                     </div>
-                    <div className="flex flex-col gap-0.5">
-                        <div className="text-[13px] font-bold text-white tracking-tight truncate max-w-[200px]" title={employeeInfo?.name}>
-                            {employeeInfo?.name || "Loading..."}
-                        </div>
-                        <div className="text-[10px] text-white/40 uppercase font-semibold tracking-wider truncate max-w-[200px]" title={employeeInfo?.role}>
-                            {employeeInfo?.role || "Team Member"}
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-white/30">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                        <span>Online</span>
-                    </div>
                 </div>
 
-                <nav className="flex-grow space-y-1">
+                {/* Separator between logo and nav */}
+                <div className="h-[1px] bg-white/5 mx-0" />
+
+                <nav className="flex-grow space-y-1 px-3 pt-4">
                     <button
                         onClick={() => setActiveTab("overview")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
@@ -447,7 +535,7 @@ export default function EmployeePortal() {
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
                         <Users className="w-4 h-4" />
-                        Intern support
+                        Intern Support
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -467,52 +555,94 @@ export default function EmployeePortal() {
                     </button>
                 </nav>
 
-                <div className="h-[1px] bg-white/5" />
-
-                <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10 rounded-none"
-                >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                </button>
+                {/* Profile card at bottom */}
+                <div className="px-4 pb-4 space-y-3">
+                    <div className="h-[1px] bg-white/5" />
+                    <div className="bg-white/[0.03] border border-white/8 p-3 space-y-2">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-[#E61E32]/15 border border-[#E61E32]/25 flex items-center justify-center shrink-0">
+                                <User className="w-4 h-4 text-[#E61E32]" />
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-[12px] font-bold text-white tracking-tight truncate" title={employeeInfo?.name}>
+                                    {employeeInfo?.name || "Loading..."}
+                                </div>
+                                <div className="text-[9px] text-white/40 uppercase font-semibold tracking-wider truncate" title={employeeInfo?.role}>
+                                    {employeeInfo?.role || "Team Member"}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-white/30">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span>Online</span>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10 rounded-none"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
+                </div>
             </aside>
 
             {/* Main Content */}
-            <div className="flex-grow p-8 overflow-y-auto h-full">
-                <div className="max-w-7xl mx-auto space-y-8 h-full flex flex-col">
-                    {/* Header */}
-                    <div className="flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
-                        <div>
-                            <h2 className="text-xl font-semibold text-white tracking-tight">
-                                {activeTab === "overview" ? "Dashboard overview" :
-                                    activeTab === "tasks" ? "Assigned Tasks" :
-                                        activeTab === "intern-support" ? "Intern support system" :
-                                            activeTab === "attendance" ? "Time Log & Attendance" : "Employee Profile Settings"}
-                            </h2>
-                            <p className="text-xs text-white/30 mt-0.5">
-                                {activeTab === "overview" ? "real-time system metrics and activity" :
-                                    activeTab === "tasks" ? "view your tasks and update their progress status" :
-                                        activeTab === "intern-support" ? "manage intern technical and portal issues" :
-                                            activeTab === "attendance" ? "punch in/out to log your daily work hours" : "update your personal, contact, payroll and delivery information"}
-                            </p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            {activeTab === "intern-support" && (
-                                <div className="relative w-72">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search support..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-sm focus:outline-none focus:border-white/30"
-                                    />
-                                </div>
-                            )}
-                        </div>
+            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+                {/* Red Top Bar */}
+                <div className="shrink-0 bg-[#E61E32] flex items-center justify-between px-6 py-3">
+                    <div className="flex items-center gap-3">
+                        <AlertTriangle className="w-4 h-4 text-white/80" />
+                        <span className="text-white text-[13px] font-semibold tracking-wide">
+                            {activeTab === "overview" ? "Dashboard Overview" :
+                                activeTab === "tasks" ? "Assigned Tasks" :
+                                    activeTab === "intern-support" ? "Intern Support System" :
+                                        activeTab === "attendance" ? "Time Log & Attendance" : "Profile & Settings"}
+                        </span>
+                        <span className="text-white/50 text-[11px] hidden sm:inline">
+                            — {activeTab === "overview" ? "your stats and activity" :
+                                activeTab === "tasks" ? "view and update task progress" :
+                                    activeTab === "intern-support" ? "manage intern technical issues" :
+                                        activeTab === "attendance" ? "punch in/out to log work hours" : "update personal, payroll and address info"}
+                        </span>
                     </div>
+                    <div className="flex items-center gap-3">
+                        {activeTab === "intern-support" && (
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
+                                <input
+                                    type="text"
+                                    placeholder="Search support..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-64 bg-white/20 border border-white/30 text-white placeholder-white/50 px-10 py-1.5 text-sm focus:outline-none focus:bg-white/30 rounded-none"
+                                />
+                            </div>
+                        )}
+                        {handRaiseSuccess ? (
+                            <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                Admin Notified!
+                            </div>
+                        ) : (
+                            <button
+                                onClick={handleRaiseHand}
+                                disabled={isRaisingHand}
+                                className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer disabled:opacity-60"
+                            >
+                                {isRaisingHand ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                    <Hand className="w-3.5 h-3.5" />
+                                )}
+                                Raise Hand
+                            </button>
+                        )}
+                    </div>
+                </div>
 
+                <div className="flex-1 p-8 overflow-y-auto">
+                    <div className="space-y-8 h-full flex flex-col">
                     {/* Conditional Rendering of Tabs */}
                     <div className="flex-grow overflow-hidden">
                         {activeTab === "overview" && (
@@ -521,7 +651,7 @@ export default function EmployeePortal() {
                                 <div className="bg-white/[0.01] border border-white/5 p-6 flex items-center justify-between">
                                     <div>
                                         <h3 className="text-lg font-bold">Welcome back, {employeeInfo?.name}!</h3>
-                                        <p className="text-xs text-white/40 mt-1">Here is the latest overview of the studio operations.</p>
+                                        <p className="text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
                                     </div>
                                     <div className="px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider">
                                         {employeeInfo?.role}
@@ -531,81 +661,96 @@ export default function EmployeePortal() {
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                     <StatCard
-                                        icon={<Inbox className="w-5 h-5" />}
-                                        label="Total inquiries"
-                                        value={inquiries.length}
-                                        sublabel={`${inquiries.filter(i => !i.isRead).length} unread`}
+                                        icon={<ListTodo className="w-5 h-5" />}
+                                        label="Total Tasks"
+                                        value={employeeTasks.length}
+                                        sublabel={`${employeeTasks.filter(t => t.status === 'completed').length} completed`}
                                         color="text-blue-500"
                                     />
                                     <StatCard
-                                        icon={<MessageSquare className="w-5 h-5" />}
-                                        label="Support tickets"
-                                        value={tickets.length}
-                                        sublabel={`${tickets.filter(t => t.status === 'open').length} open`}
-                                        color="text-[#E61E32]"
+                                        icon={<Clock className="w-5 h-5" />}
+                                        label="Pending Tasks"
+                                        value={employeeTasks.filter(t => t.status === 'pending').length}
+                                        sublabel="Awaiting action"
+                                        color="text-yellow-500"
                                     />
                                     <StatCard
-                                        icon={<Users className="w-5 h-5" />}
-                                        label="Intern support"
-                                        value={internTickets.length}
-                                        sublabel={`${internTickets.filter(t => t.status === 'pending').length} pending`}
+                                        icon={<Loader2 className="w-5 h-5 animate-spin" />}
+                                        label="In Progress"
+                                        value={employeeTasks.filter(t => t.status === 'in_progress').length}
+                                        sublabel="Currently working"
                                         color="text-orange-500"
                                     />
                                     <StatCard
-                                        icon={<Users className="w-5 h-5" />}
-                                        label="Active team"
-                                        value={employeesCount}
-                                        sublabel="Across all roles"
+                                        icon={<CheckCircle2 className="w-5 h-5" />}
+                                        label="Completed"
+                                        value={employeeTasks.filter(t => t.status === 'completed').length}
+                                        sublabel="All closed tasks"
                                         color="text-green-500"
                                     />
                                     <StatCard
                                         icon={<Briefcase className="w-5 h-5" />}
-                                        label="Registered clients"
-                                        value={clients.length}
-                                        sublabel={`${clients.filter(c => c.meetingTime).length} scheduled`}
-                                        color="text-yellow-500"
+                                        label="Hours Worked"
+                                        value={Number((attendanceHistory.reduce((sum, r) => sum + r.workMinutes, 0) / 60).toFixed(1))}
+                                        sublabel={`${attendanceHistory.length} clock logs`}
+                                        color="text-[#E61E32]"
                                     />
                                 </div>
 
                                 {/* Main Overview Sections */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Recent Activity */}
+                                    {/* Recent Tasks */}
                                     <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4">
                                         <h3 className="text-[11px] font-medium text-white/30 flex items-center gap-2">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            Recent inquiries
+                                            <ListTodo className="w-3.5 h-3.5" />
+                                            Your Active Tasks
                                         </h3>
                                         <div className="space-y-4">
-                                            {inquiries.slice(0, 5).map(inq => (
-                                                <div key={inq.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
+                                            {employeeTasks.filter(t => t.status !== 'completed').slice(0, 5).map(task => (
+                                                <div key={task.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
                                                     <div>
-                                                        <p className="text-sm font-semibold">{inq.name}</p>
+                                                        <p className="text-sm font-semibold">{task.title}</p>
+                                                        {task.deadline && (
+                                                            <p className="text-[10px] text-white/30">Due {new Date(task.deadline).toLocaleDateString()}</p>
+                                                        )}
                                                     </div>
-                                                    <span className="text-[10px] text-[#E61E32] font-medium">Active</span>
+                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${task.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                        {task.status.replace("_", " ")}
+                                                    </span>
                                                 </div>
                                             ))}
+                                            {employeeTasks.filter(t => t.status !== 'completed').length === 0 && (
+                                                <p className="text-xs text-white/20 py-4 text-center">No active tasks.</p>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Upcoming Meetings */}
+                                    {/* Recent Attendance Logs */}
                                     <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4">
                                         <h3 className="text-[11px] font-medium text-white/30 flex items-center gap-2">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            Upcoming meetings
+                                            <Clock className="w-3.5 h-3.5" />
+                                            Recent Attendance Logs (Cutoff: 10:00 AM)
                                         </h3>
                                         <div className="space-y-4">
-                                            {clients.filter(c => c.meetingTime).sort((a, b) => new Date(a.meetingTime!).getTime() - new Date(b.meetingTime!).getTime()).slice(0, 5).map(client => (
-                                                <div key={client.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
+                                            {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).slice(0, 5).map(att => (
+                                                <div key={att.dateStr} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
                                                     <div>
-                                                        <p className="text-sm font-semibold">{client.companyName}</p>
-                                                        <p className="text-[10px] text-white/30">{client.meetingTemplate}</p>
+                                                        <p className="text-sm font-semibold">{att.dateStr}</p>
+                                                        <p className="text-[10px] text-white/30">
+                                                            Check In: {att.punchIn} | Check Out: {att.punchOut}
+                                                        </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[10px] text-green-500 font-medium">{new Date(client.meetingTime!).toLocaleDateString()}</p>
-                                                        <p className="text-[10px] text-white/20">{new Date(client.meetingTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                            {att.status}
+                                                        </span>
+                                                        <p className="text-[9px] text-white/30 mt-0.5">{att.statusReason}</p>
                                                     </div>
                                                 </div>
                                             ))}
+                                            {attendanceHistory.length === 0 && (
+                                                <p className="text-xs text-white/20 py-4 text-center">No attendance logs logged yet.</p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -760,42 +905,52 @@ export default function EmployeePortal() {
                                 {/* Attendance History Table */}
                                 <div className="bg-white/5 border border-white/5 p-8 flex flex-col overflow-hidden h-full">
                                     <div className="mb-4 shrink-0 flex justify-between items-center">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Recent Attendance Logs</h3>
-                                        {/* Summary badge */}
-                                        <div className="px-2.5 py-1 bg-white/5 border border-white/10 text-white/80 text-[10px] font-bold uppercase tracking-widest">
-                                            Total: {attendanceHistory.reduce((sum, r) => sum + r.workMinutes, 0)} mins logged
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Daily Attendance Logs</h3>
+                                        {/* Summary badges */}
+                                        <div className="flex gap-2">
+                                            <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-widest">
+                                                Present: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
+                                            </div>
+                                            <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold uppercase tracking-widest">
+                                                Absent: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
                                         {attendanceLoading ? (
                                             <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
-                                        ) : attendanceHistory.length > 0 ? (
+                                        ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
                                             <table className="w-full text-left text-xs">
                                                 <thead>
                                                     <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
                                                         <th className="py-2.5">Date</th>
                                                         <th className="py-2.5">Punch In</th>
                                                         <th className="py-2.5">Punch Out</th>
+                                                        <th className="py-2.5">Status</th>
                                                         <th className="py-2.5 text-right">Work Time</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {attendanceHistory.map((att) => {
-                                                        const pIn = new Date(att.punchIn);
-                                                        const pOut = att.punchOut ? new Date(att.punchOut) : null;
+                                                    {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
                                                         const hours = Math.floor(att.workMinutes / 60);
                                                         const mins = att.workMinutes % 60;
-                                                        const durationStr = pOut 
-                                                            ? `${hours > 0 ? `${hours}h ` : ''}${mins}m`
-                                                            : "Punched In";
+                                                        const durationStr = att.punchIn !== "-" 
+                                                            ? (att.isActive ? "Active" : `${hours > 0 ? `${hours}h ` : ''}${mins}m`)
+                                                            : "-";
 
                                                         return (
-                                                            <tr key={att.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
-                                                                <td className="py-2.5">{pIn.toLocaleDateString()}</td>
-                                                                <td className="py-2.5">{pIn.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                                                <td className="py-2.5">{pOut ? pOut.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}</td>
-                                                                <td className={`py-2.5 text-right font-semibold ${pOut ? 'text-white/50' : 'text-[#E61E32] animate-pulse'}`}>{durationStr}</td>
+                                                            <tr key={att.dateStr} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                <td className="py-2.5">{att.dateStr}</td>
+                                                                <td className="py-2.5">{att.punchIn}</td>
+                                                                <td className="py-2.5">{att.punchOut}</td>
+                                                                <td className="py-2.5 flex items-center gap-2">
+                                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                                        {att.status}
+                                                                    </span>
+                                                                    <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
+                                                                </td>
+                                                                <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
                                                             </tr>
                                                         );
                                                     })}
@@ -1008,6 +1163,7 @@ export default function EmployeePortal() {
                             </div>
                         )}
                     </div>
+                </div>
                 </div>
             </div>
 
