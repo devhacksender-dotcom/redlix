@@ -27,7 +27,8 @@ import {
     Video,
     Download,
     FileText,
-    Link as LinkIcon
+    Link as LinkIcon,
+    Menu
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -104,6 +105,7 @@ export default function EmployeePortal() {
         joinedAt?: string;
     } | null>(null);
     const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves">("overview");
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Task states
     interface EmployeeTask {
@@ -717,8 +719,8 @@ export default function EmployeePortal() {
 
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
+            {/* Sidebar (Desktop only) */}
+            <aside className="hidden md:flex w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
                 {/* Logo */}
                 <div className="px-6 pt-6 pb-4">
                     <div className="flex items-center gap-2">
@@ -838,7 +840,7 @@ export default function EmployeePortal() {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
+            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pb-16 md:pb-0">
                 {/* Red Top Bar */}
                 <div className="shrink-0 bg-[#E61E32] flex items-center justify-between px-6 py-1.5">
                     <div className="flex items-center gap-2 text-[12px] font-medium text-white">
@@ -897,25 +899,25 @@ export default function EmployeePortal() {
                     </div>
                 </div>
 
-                <div className="flex-1 p-8 overflow-y-auto">
+                <div className="flex-1 p-4 md:p-8 overflow-y-auto">
                     <div className="space-y-8 h-full flex flex-col">
                     {/* Conditional Rendering of Tabs */}
                     <div className="flex-grow overflow-hidden">
                         {activeTab === "overview" && (
                             <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
                                 {/* Welcome message */}
-                                <div className="bg-white/[0.01] border border-white/5 p-6 flex items-center justify-between rounded-xl">
+                                <div className="bg-white/[0.01] border border-white/5 p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl">
                                     <div>
-                                        <h3 className="text-lg font-bold">Welcome back, {employeeInfo?.name}!</h3>
-                                        <p className="text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
+                                        <h3 className="text-base md:text-lg font-bold">Welcome back, {employeeInfo?.name}!</h3>
+                                        <p className="text-[11px] md:text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
                                     </div>
-                                    <div className="px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
+                                    <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
                                         {employeeInfo?.role}
                                     </div>
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
                                     <StatCard
                                         icon={<ListTodo className="w-5 h-5" />}
                                         label="Total Tasks"
@@ -1014,9 +1016,9 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "tasks" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
                                 {/* Tasks List */}
-                                <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                                <div className={`overflow-y-auto space-y-3 pr-2 scrollbar-thin ${selectedEmployeeTask ? 'hidden lg:block' : 'block'}`}>
                                     {tasksLoading ? (
                                         <p className="text-white/20 text-center py-10 animate-pulse">Loading tasks...</p>
                                     ) : employeeTasks.length > 0 ? (
@@ -1050,9 +1052,16 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Task Details & Progress Action Panel */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto rounded-xl">
+                                <div className={`bg-white/5 border border-white/5 p-5 md:p-8 overflow-y-auto rounded-xl ${selectedEmployeeTask ? 'block' : 'hidden lg:block'}`}>
                                     {selectedEmployeeTask ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
+                                            {/* Mobile Back Button */}
+                                            <button
+                                                onClick={() => setSelectedEmployeeTask(null)}
+                                                className="flex items-center gap-2 text-xs text-[#E61E32] hover:text-[#ff1f34] transition-colors lg:hidden font-medium mb-4"
+                                            >
+                                                &larr; Back to Task List
+                                            </button>
                                             <div className="space-y-4 pb-6 border-b border-white/5">
                                                 <h3 className="text-xl font-bold">{selectedEmployeeTask.title}</h3>
                                                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/30 font-medium">
@@ -1213,41 +1222,43 @@ export default function EmployeePortal() {
                                             {attendanceLoading ? (
                                                 <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
                                             ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
-                                                <table className="w-full text-left text-xs">
-                                                    <thead>
-                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
-                                                            <th className="py-2.5">Date</th>
-                                                            <th className="py-2.5">Punch In</th>
-                                                            <th className="py-2.5">Punch Out</th>
-                                                            <th className="py-2.5">Status</th>
-                                                            <th className="py-2.5 text-right">Work Time</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
-                                                            const hours = Math.floor(att.workMinutes / 60);
-                                                            const mins = att.workMinutes % 60;
-                                                            const durationStr = att.punchIn !== "-" 
-                                                                ? (att.isActive ? "Active" : `${hours > 0 ? `${hours}h ` : ''}${mins}m`)
-                                                                : "-";
+                                                <div className="overflow-x-auto scrollbar-thin">
+                                                    <table className="w-full text-left text-xs min-w-[500px] md:min-w-0">
+                                                        <thead>
+                                                            <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                                <th className="py-2.5">Date</th>
+                                                                <th className="py-2.5">Punch In</th>
+                                                                <th className="py-2.5">Punch Out</th>
+                                                                <th className="py-2.5">Status</th>
+                                                                <th className="py-2.5 text-right">Work Time</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
+                                                                const hours = Math.floor(att.workMinutes / 60);
+                                                                const mins = att.workMinutes % 60;
+                                                                const durationStr = att.punchIn !== "-" 
+                                                                    ? (att.isActive ? "Active" : `${hours > 0 ? `${hours}h ` : ''}${mins}m`)
+                                                                    : "-";
 
-                                                            return (
-                                                                <tr key={att.dateStr} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
-                                                                    <td className="py-2.5">{att.dateStr}</td>
-                                                                    <td className="py-2.5">{att.punchIn}</td>
-                                                                    <td className="py-2.5">{att.punchOut}</td>
-                                                                    <td className="py-2.5 flex items-center gap-2">
-                                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
-                                                                            {att.status}
-                                                                        </span>
-                                                                        <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
-                                                                    </td>
-                                                                    <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
+                                                                return (
+                                                                    <tr key={att.dateStr} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                        <td className="py-2.5">{att.dateStr}</td>
+                                                                        <td className="py-2.5">{att.punchIn}</td>
+                                                                        <td className="py-2.5">{att.punchOut}</td>
+                                                                        <td className="py-2.5 flex items-center gap-2">
+                                                                            <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                                                {att.status}
+                                                                            </span>
+                                                                            <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
+                                                                        </td>
+                                                                        <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             ) : (
                                                 <div className="py-20 text-center border border-dashed border-white/5">
                                                     <p className="text-white/20 text-sm">No attendance records found.</p>
@@ -1379,9 +1390,9 @@ export default function EmployeePortal() {
 
                         {/* ===== MEETINGS TAB ===== */}
                         {activeTab === "meetings" && (
-                            <div className="h-full flex gap-6 animate-in fade-in duration-500 overflow-hidden">
+                            <div className="h-full flex flex-col lg:flex-row gap-6 animate-in fade-in duration-500 overflow-hidden">
                                 {/* Left: meetings list */}
-                                <div className="w-[380px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-1">
+                                <div className={`w-full lg:w-[380px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-1 ${selectedEmpMeeting ? 'hidden lg:flex' : 'flex'}`}>
                                     {meetingsLoading ? (
                                         <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
                                     ) : employeeMeetings.length === 0 ? (
@@ -1423,55 +1434,64 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Right: detail panel */}
-                                {selectedEmpMeeting ? (
-                                    <div className="flex-1 bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6 rounded-xl">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white">{selectedEmpMeeting.title}</h3>
-                                            {selectedEmpMeeting.description && <p className="text-sm text-white/40 mt-1">{selectedEmpMeeting.description}</p>}
-                                        </div>
+                                <div className={`flex-grow bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6 rounded-xl ${selectedEmpMeeting ? 'block' : 'hidden lg:block'}`}>
+                                    {selectedEmpMeeting ? (
+                                        <div className="space-y-6">
+                                            {/* Mobile Back Button */}
+                                            <button
+                                                onClick={() => setSelectedEmpMeeting(null)}
+                                                className="flex items-center gap-2 text-xs text-[#E61E32] hover:text-[#ff1f34] transition-colors lg:hidden font-medium mb-4"
+                                            >
+                                                &larr; Back to Meetings
+                                            </button>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white">{selectedEmpMeeting.title}</h3>
+                                                {selectedEmpMeeting.description && <p className="text-sm text-white/40 mt-1">{selectedEmpMeeting.description}</p>}
+                                            </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
-                                                <p className="text-sm font-semibold text-white">{selectedEmpMeeting.meetingLead}</p>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
+                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
+                                                    <p className="text-sm font-semibold text-white">{selectedEmpMeeting.meetingLead}</p>
+                                                </div>
+                                                <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
+                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider">Date & Time</p>
+                                                    <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
+                                                </div>
                                             </div>
-                                            <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Date & Time</p>
-                                                <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
-                                            </div>
-                                        </div>
- 
-                                        {selectedEmpMeeting.meetingLink && (
-                                            <div className="bg-white/[0.03] border border-white/5 p-4 rounded-lg">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Join Meeting</p>
-                                                <a href={selectedEmpMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline">
-                                                    <LinkIcon className="w-4 h-4" />{selectedEmpMeeting.meetingLink}
-                                                </a>
-                                            </div>
-                                        )}
 
-                                        <div>
-                                            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">All Attendees ({selectedEmpMeeting.attendees.length})</p>
-                                            <div className="space-y-2">
-                                                {selectedEmpMeeting.attendees.map(att => (
-                                                    <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5 rounded-lg">
-                                                        <div className="w-7 h-7 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center">
-                                                            <User className="w-3.5 h-3.5 text-[#E61E32]" />
+                                            {selectedEmpMeeting.meetingLink && (
+                                                <div className="bg-white/[0.03] border border-white/5 p-4 rounded-lg">
+                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Join Meeting</p>
+                                                    <a href={selectedEmpMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline break-all">
+                                                        <LinkIcon className="w-4 h-4 shrink-0" />{selectedEmpMeeting.meetingLink}
+                                                    </a>
+                                                </div>
+                                            )}
+
+                                            <div>
+                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">All Attendees ({selectedEmpMeeting.attendees.length})</p>
+                                                <div className="space-y-2">
+                                                    {selectedEmpMeeting.attendees.map(att => (
+                                                        <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5 rounded-lg">
+                                                            <div className="w-7 h-7 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center">
+                                                                <User className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-medium text-white">{att.employee.name}</p>
+                                                                <p className="text-[10px] text-white/30">{att.employee.role}</p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-white">{att.employee.name}</p>
-                                                            <p className="text-[10px] text-white/30">{att.employee.role}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 flex items-center justify-center text-white/15 text-sm">
-                                        Select a meeting to view details
-                                    </div>
-                                )}
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center text-white/15 text-sm">
+                                            Select a meeting to view details
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -1560,44 +1580,46 @@ export default function EmployeePortal() {
                                         {payrollsLoading ? (
                                             <p className="text-white/20 text-center py-10 animate-pulse">Loading payroll records...</p>
                                         ) : employeePayrolls.length > 0 ? (
-                                            <table className="w-full text-left text-xs">
-                                                <thead>
-                                                    <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
-                                                        <th className="py-3">Payout Month</th>
-                                                        <th className="py-3">Amount</th>
-                                                        <th className="py-3">UPI Address</th>
-                                                        <th className="py-3">Status</th>
-                                                        <th className="py-3 text-right">Transfer Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {employeePayrolls.map((payroll) => (
-                                                        <tr key={payroll.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
-                                                            <td className="py-3 font-semibold text-white">{payroll.month}</td>
-                                                            <td className="py-3 text-white/90 font-semibold">₹{payroll.amount.toLocaleString('en-IN')}</td>
-                                                            <td className="py-3 font-mono text-[11px] text-white/40">{payroll.upiId || employeeInfo?.upiId || "No UPI ID set"}</td>
-                                                            <td className="py-3">
-                                                                <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border rounded-md ${
-                                                                    payroll.status === 'paid'
-                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                        : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
-                                                                }`}>
-                                                                    {payroll.status}
-                                                                </span>
-                                                            </td>
-                                                            <td className="py-3 text-right text-white/40">
-                                                                {payroll.paidAt
-                                                                    ? new Date(payroll.paidAt).toLocaleString('en-IN', {
-                                                                          timeZone: 'Asia/Kolkata',
-                                                                          dateStyle: 'medium',
-                                                                          timeStyle: 'short'
-                                                                      })
-                                                                    : "-"}
-                                                            </td>
+                                            <div className="overflow-x-auto scrollbar-thin">
+                                                <table className="w-full text-left text-xs min-w-[500px] md:min-w-0">
+                                                    <thead>
+                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                            <th className="py-3">Payout Month</th>
+                                                            <th className="py-3">Amount</th>
+                                                            <th className="py-3">UPI Address</th>
+                                                            <th className="py-3">Status</th>
+                                                            <th className="py-3 text-right">Transfer Date</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        {employeePayrolls.map((payroll) => (
+                                                            <tr key={payroll.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                <td className="py-3 font-semibold text-white">{payroll.month}</td>
+                                                                <td className="py-3 text-white/90 font-semibold">₹{payroll.amount.toLocaleString('en-IN')}</td>
+                                                                <td className="py-3 font-mono text-[11px] text-white/40">{payroll.upiId || employeeInfo?.upiId || "No UPI ID set"}</td>
+                                                                <td className="py-3">
+                                                                    <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border rounded-md ${
+                                                                        payroll.status === 'paid'
+                                                                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                                                                            : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
+                                                                    }`}>
+                                                                        {payroll.status}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="py-3 text-right text-white/40">
+                                                                    {payroll.paidAt
+                                                                        ? new Date(payroll.paidAt).toLocaleString('en-IN', {
+                                                                              timeZone: 'Asia/Kolkata',
+                                                                              dateStyle: 'medium',
+                                                                              timeStyle: 'short'
+                                                                          })
+                                                                        : "-"}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         ) : (
                                             <div className="py-10 flex flex-col items-center justify-center border border-dashed border-white/5 rounded-xl">
                                                 <dotlottie-wc
@@ -1756,6 +1778,175 @@ export default function EmployeePortal() {
                 </div>
                 </div>
             </div>
+
+            {/* Bottom Navigation Bar (Mobile) */}
+            <div className="fixed bottom-0 left-0 right-0 h-16 bg-[#0f0f0f]/95 border-t border-white/5 backdrop-blur-md z-40 flex md:hidden items-center justify-around pb-safe shadow-2xl">
+                <button
+                    onClick={() => {
+                        setActiveTab("overview");
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                        activeTab === "overview" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
+                    }`}
+                >
+                    <Globe className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Overview</span>
+                </button>
+                <button
+                    onClick={() => {
+                        setActiveTab("tasks");
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                        activeTab === "tasks" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
+                    }`}
+                >
+                    <ListTodo className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Tasks</span>
+                </button>
+                <button
+                    onClick={() => {
+                        setActiveTab("attendance");
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                        activeTab === "attendance" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
+                    }`}
+                >
+                    <Clock className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Attendance</span>
+                </button>
+                <button
+                    onClick={() => {
+                        setActiveTab("meetings");
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                        activeTab === "meetings" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
+                    }`}
+                >
+                    <Video className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Meetings</span>
+                </button>
+                <button
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                        isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
+                    }`}
+                >
+                    <Menu className="w-5 h-5" />
+                    <span className="text-[10px] font-medium">Menu</span>
+                </button>
+            </div>
+
+            {/* Sliding Mobile Menu Drawer */}
+            {isMobileMenuOpen && (
+                <div className="fixed inset-0 z-55 md:hidden flex flex-col justify-end">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/65 backdrop-blur-sm transition-opacity"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                    
+                    {/* Drawer Content */}
+                    <div className="relative bg-[#0f0f0f] border-t border-white/10 rounded-t-2xl p-6 space-y-6 max-h-[80vh] overflow-y-auto z-10 animate-in slide-in-from-bottom duration-300">
+                        {/* Drawer Handle */}
+                        <div className="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-2 mb-2" />
+                        
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 px-2">Additional Pages</h3>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("documents");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                        activeTab === "documents"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Documents</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("payrolls");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                        activeTab === "payrolls"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <CreditCard className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Payrolls</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("leaves");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                        activeTab === "leaves"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <Calendar className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Leaves</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("settings");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                        activeTab === "settings"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <User className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Profile Settings</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* User Profile Summary */}
+                        <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl flex items-center justify-between">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-9 h-9 rounded-full bg-[#E61E32]/15 border border-[#E61E32]/25 flex items-center justify-center shrink-0">
+                                    <User className="w-4.5 h-4.5 text-[#E61E32]" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold text-white truncate">{employeeInfo?.name}</p>
+                                    <p className="text-[10px] text-white/40 uppercase tracking-wider truncate mt-0.5">{employeeInfo?.role || "Team Member"}</p>
+                                </div>
+                            </div>
+                            <span className="flex items-center gap-1 text-[9px] text-white/30 bg-white/5 px-2 py-1 rounded-md">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                Online
+                            </span>
+                        </div>
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={() => {
+                                setIsMobileMenuOpen(false);
+                                handleLogout();
+                            }}
+                            className="w-full flex items-center justify-center gap-3 py-3.5 bg-[#E61E32] hover:bg-[#E61E32]/95 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-[#E61E32]/10"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* dotlottie player script */}
             <Script
