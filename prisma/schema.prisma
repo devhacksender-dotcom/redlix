@@ -58,6 +58,7 @@ model Employee {
   meetings        MeetingAttendee[]
   payrolls        Payroll[]
   leaves          LeaveRequest[]
+  communityUpdates CommunityUpdate[]
 
   @@map("employees")
 }
@@ -199,4 +200,18 @@ model LeaveRequest {
   updatedAt   DateTime @updatedAt
 
   @@map("leave_requests")
+}
+
+model CommunityUpdate {
+  id          Int      @id @default(autoincrement())
+  employeeId  Int
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  tasksDone   String
+  learnt      String
+  gained      String
+  docLink     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("community_updates")
 }

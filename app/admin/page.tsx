@@ -129,7 +129,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "settings">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "settings">("overview");
 
     // Task management states
     interface Task {
@@ -203,9 +203,19 @@ export default function AdminPortal() {
         punchIn: string;
         punchOut?: string;
         workMinutes: number;
+        employee?: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+        };
     }
     const [selectedEmployeeAttendance, setSelectedEmployeeAttendance] = useState<Attendance[]>([]);
     const [loadingAttendance, setLoadingAttendance] = useState(false);
+
+    // Global attendance states
+    const [globalAttendance, setGlobalAttendance] = useState<Attendance[]>([]);
+    const [globalAttendanceLoading, setGlobalAttendanceLoading] = useState(false);
 
     // Payment Due Sender Form State
     const [paymentClientId, setPaymentClientId] = useState<number | "">("");
@@ -237,7 +247,9 @@ export default function AdminPortal() {
     const [isEditingClient, setIsEditingClient] = useState(false);
     const [isEditingEmployee, setIsEditingEmployee] = useState(false);
     const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
+    const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [attendanceSubView, setAttendanceSubView] = useState<"logs" | "today">("logs");
 
     // Employee Form State
     const [showAddForm, setShowAddForm] = useState(false);
@@ -350,6 +362,9 @@ export default function AdminPortal() {
             fetchEmployees();
         } else if (activeTab === "documents") {
             fetchDocuments();
+        } else if (activeTab === "attendance") {
+            fetchGlobalAttendance();
+            fetchEmployees();
         } else if (activeTab === "payrolls") {
             fetchPayrolls();
             fetchEmployees(); // needed to allocate payrolls
@@ -361,8 +376,11 @@ export default function AdminPortal() {
     }, [activeTab]);
 
     useEffect(() => {
-        if (activeTab === "payment-due-sender" || activeTab === "payment-received-sender") {
+        if (activeTab === "payment-due-sender" || activeTab === "payment-received-sender" || activeTab === "payrolls") {
             setIsPaymentsOpen(true);
+        }
+        if (activeTab === "inquiries" || activeTab === "support" || activeTab === "intern-support") {
+            setIsSupportOpen(true);
         }
     }, [activeTab]);
 
@@ -378,6 +396,7 @@ export default function AdminPortal() {
                 fetchTasks(),
                 fetchMeetings(),
                 fetchDocuments(),
+                fetchGlobalAttendance(),
                 fetchPayrolls(),
                 fetchLeaves()
             ]);
@@ -435,6 +454,19 @@ export default function AdminPortal() {
                 if (selectedMeeting?.id === id) setSelectedMeeting(null);
             }
         } catch (err) { console.error(err); }
+    };
+
+    const fetchGlobalAttendance = async () => {
+        setGlobalAttendanceLoading(true);
+        try {
+            const res = await fetch("/api/admin/attendance");
+            const data = await res.json();
+            if (data.success) setGlobalAttendance(data.data);
+        } catch (error) {
+            console.error("Failed to fetch global attendance:", error);
+        } finally {
+            setGlobalAttendanceLoading(false);
+        }
     };
 
     const fetchDocuments = async () => {
@@ -1252,29 +1284,55 @@ export default function AdminPortal() {
                         Overview
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("inquiries")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <Inbox className="w-4 h-4" />
-                        Inquiries
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("support")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <MessageSquare className="w-4 h-4" />
-                        Support tickets
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("intern-support")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <Users className="w-4 h-4" />
-                        Intern support
-                    </button>
+                    <div className="space-y-1">
+                        <button
+                            onClick={() => setIsSupportOpen(!isSupportOpen)}
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'inquiries' || activeTab === 'support' || activeTab === 'intern-support')
+                                ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
+                                : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
+                                }`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <MessageSquare className="w-4 h-4" />
+                                <span>Support</span>
+                            </div>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSupportOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isSupportOpen && (
+                            <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
+                                <button
+                                    onClick={() => setActiveTab("inquiries")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                    Inquiries
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("intern-support")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                    Intern Support
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("support")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'support'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                    Support Tickets
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("employees")}
@@ -1282,6 +1340,14 @@ export default function AdminPortal() {
                     >
                         <Users className="w-4 h-4" />
                         Employees
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("attendance")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Clock className="w-4 h-4" />
+                        Attendance
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -1317,14 +1383,6 @@ export default function AdminPortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
-                        onClick={() => setActiveTab("payrolls")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <CreditCard className="w-4 h-4" />
-                        Payrolls
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
                         onClick={() => setActiveTab("leaves")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -1335,7 +1393,7 @@ export default function AdminPortal() {
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
-                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender')
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender' || activeTab === 'payrolls')
                                 ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
                                 : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
                                 }`}
@@ -1368,6 +1426,16 @@ export default function AdminPortal() {
                                     <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Payment Received Sender
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab("payrolls")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                    Payrolls
+                                </button>
                             </div>
                         )}
                     </div>
@@ -1394,7 +1462,7 @@ export default function AdminPortal() {
 
             {/* Main Content */}
             <div className="flex-grow p-8 overflow-y-auto h-full">
-                <div className="max-w-7xl mx-auto space-y-8 h-full flex flex-col">
+                <div className={`${activeTab === 'attendance' ? 'max-w-none' : 'max-w-7xl'} mx-auto space-y-8 h-full flex flex-col w-full`}>
                     {/* Header */}
                     <div className="flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
                         <div>
@@ -1405,32 +1473,34 @@ export default function AdminPortal() {
                                     {activeTab === "overview" ? "Overview" :
                                         activeTab === "inquiries" ? "Inquiries" :
                                             activeTab === "employees" ? "Employees" :
-                                                activeTab === "tasks" ? "Tasks" :
-                                                    activeTab === "support" ? "Support" :
-                                                        activeTab === "intern-support" ? "Intern Support" :
-                                                            activeTab === "clients" ? "Clients" :
-                                                                activeTab === "meetings" ? "Meetings" :
-                                                                    activeTab === "documents" ? "Documents" :
-                                                                        activeTab === "payrolls" ? "Payrolls" :
-                                                                            activeTab === "leaves" ? "Leaves" :
-                                                                                activeTab === "settings" ? "Settings" :
-                                                                                    activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
+                                                activeTab === "attendance" ? "Attendance" :
+                                                    activeTab === "tasks" ? "Tasks" :
+                                                        activeTab === "support" ? "Support" :
+                                                            activeTab === "intern-support" ? "Intern Support" :
+                                                                activeTab === "clients" ? "Clients" :
+                                                                    activeTab === "meetings" ? "Meetings" :
+                                                                        activeTab === "documents" ? "Documents" :
+                                                                            activeTab === "payrolls" ? "Payrolls" :
+                                                                                activeTab === "leaves" ? "Leaves" :
+                                                                                    activeTab === "settings" ? "Settings" :
+                                                                                        activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
                                 </span>
                             </div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
                                 {activeTab === "overview" ? "Dashboard overview" :
                                     activeTab === "inquiries" ? "Inquiry management" :
                                         activeTab === "employees" ? "Employee portal" :
-                                            activeTab === "tasks" ? "Task management" :
-                                                activeTab === "support" ? "Support system" :
-                                                    activeTab === "intern-support" ? "Intern support system" :
-                                                        activeTab === "clients" ? "Client management" :
-                                                            activeTab === "meetings" ? "Meeting management" :
-                                                                activeTab === "documents" ? "Document vault" :
-                                                                    activeTab === "payrolls" ? "Payroll allocation" :
-                                                                        activeTab === "leaves" ? "Leave Requests" :
-                                                                            activeTab === "settings" ? "System Settings" :
-                                                                                activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                            activeTab === "attendance" ? "Employee attendance logs" :
+                                                activeTab === "tasks" ? "Task management" :
+                                                    activeTab === "support" ? "Support system" :
+                                                        activeTab === "intern-support" ? "Intern support system" :
+                                                            activeTab === "clients" ? "Client management" :
+                                                                activeTab === "meetings" ? "Meeting management" :
+                                                                    activeTab === "documents" ? "Document vault" :
+                                                                        activeTab === "payrolls" ? "Payroll allocation" :
+                                                                            activeTab === "leaves" ? "Leave Requests" :
+                                                                                activeTab === "settings" ? "System Settings" :
+                                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -1438,14 +1508,15 @@ export default function AdminPortal() {
                                         activeTab === "support" ? "manage and resolve technical issues" :
                                             activeTab === "intern-support" ? "manage intern technical and portal issues" :
                                                 activeTab === "employees" ? "manage organization structure" :
-                                                    activeTab === "tasks" ? "assign and track tasks for team members" :
-                                                        activeTab === "clients" ? "monitor client projects and meetings" :
-                                                            activeTab === "meetings" ? "schedule and manage internal employee meetings" :
-                                                                activeTab === "documents" ? "upload and manage company and client documents" :
-                                                                    activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
-                                                                        activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
-                                                                            activeTab === "settings" ? "manage system controls and master settings" :
-                                                                                activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                    activeTab === "attendance" ? "monitor employee check-in and check-out logs" :
+                                                        activeTab === "tasks" ? "assign and track tasks for team members" :
+                                                            activeTab === "clients" ? "monitor client projects and meetings" :
+                                                                activeTab === "meetings" ? "schedule and manage internal employee meetings" :
+                                                                    activeTab === "documents" ? "upload and manage company and client documents" :
+                                                                        activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
+                                                                            activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
+                                                                                activeTab === "settings" ? "manage system controls and master settings" :
+                                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -1516,10 +1587,10 @@ export default function AdminPortal() {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                                 <input
                                     type="text"
-                                    placeholder={`Search ${activeTab}...`}
+                                    placeholder={activeTab === "documents" ? "Search documents..." : activeTab === "attendance" ? "Search attendance..." : activeTab === "settings" ? "Search settings..." : "Search..."}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-sm focus:outline-none focus:border-white/30"
+                                    className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-xs focus:outline-none focus:border-[#E61E32] rounded-none text-white placeholder-white/20"
                                 />
                             </div>
                         </div>
@@ -1532,39 +1603,39 @@ export default function AdminPortal() {
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                                     <StatCard
-                                        icon={<Inbox className="w-5 h-5" />}
-                                        label="Total inquiries"
-                                        value={inquiries.length}
-                                        sublabel={`${inquiries.filter(i => !i.isRead).length} unread`}
+                                        icon={<Users className="w-5 h-5" />}
+                                        label="Total Employees"
+                                        value={employees.length}
+                                        sublabel="Registered profiles"
                                         color="text-blue-500"
                                     />
                                     <StatCard
-                                        icon={<MessageSquare className="w-5 h-5" />}
-                                        label="Support tickets"
-                                        value={tickets.length}
-                                        sublabel={`${tickets.filter(t => t.status === 'open').length} open`}
-                                        color="text-[#E61E32]"
-                                    />
-                                    <StatCard
-                                        icon={<Users className="w-5 h-5" />}
-                                        label="Intern support"
-                                        value={internTickets.length}
-                                        sublabel={`${internTickets.filter(t => t.status === 'pending').length} pending`}
-                                        color="text-orange-500"
-                                    />
-                                    <StatCard
-                                        icon={<Users className="w-5 h-5" />}
-                                        label="Active employees"
-                                        value={employees.length}
-                                        sublabel="Across all roles"
+                                        icon={<Clock className="w-5 h-5" />}
+                                        label="Active Check-ins"
+                                        value={globalAttendance.filter(log => !log.punchOut).length}
+                                        sublabel="Currently in office"
                                         color="text-green-500"
                                     />
                                     <StatCard
-                                        icon={<Briefcase className="w-5 h-5" />}
-                                        label="Registered clients"
-                                        value={clients.length}
-                                        sublabel={`${clients.filter(c => c.meetingTime).length} scheduled`}
+                                        icon={<ListTodo className="w-5 h-5" />}
+                                        label="Pending Tasks"
+                                        value={tasks.filter(t => t.status === "pending" || t.status === "in_progress").length}
+                                        sublabel="Awaiting action"
                                         color="text-yellow-500"
+                                    />
+                                    <StatCard
+                                        icon={<Calendar className="w-5 h-5" />}
+                                        label="Pending Leaves"
+                                        value={leaves.filter(l => l.status === "pending").length}
+                                        sublabel="Awaiting approval"
+                                        color="text-orange-500"
+                                    />
+                                    <StatCard
+                                        icon={<MessageSquare className="w-5 h-5" />}
+                                        label="Support Tickets"
+                                        value={tickets.length}
+                                        sublabel={`${tickets.filter(t => t.status === 'pending').length} open tickets`}
+                                        color="text-[#E61E32]"
                                     />
                                 </div>
 
@@ -2652,6 +2723,233 @@ export default function AdminPortal() {
                                             </p>
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeTab === "attendance" && (
+                            <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full animate-in fade-in duration-500">
+                                {/* Sub Tabs toggle */}
+                                <div className="flex border-b border-white/10 mb-6 shrink-0">
+                                    <button
+                                        onClick={() => setAttendanceSubView("logs")}
+                                        className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${attendanceSubView === 'logs' ? 'border-[#E61E32] text-white' : 'border-transparent text-white/40 hover:text-white'}`}
+                                    >
+                                        Logs Timeline
+                                    </button>
+                                    <button
+                                        onClick={() => setAttendanceSubView("today")}
+                                        className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${attendanceSubView === 'today' ? 'border-[#E61E32] text-white' : 'border-transparent text-white/40 hover:text-white'}`}
+                                    >
+                                        Today's Status
+                                    </button>
+                                </div>
+
+                                <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
+                                    {globalAttendanceLoading ? (
+                                        <div className="flex items-center justify-center py-24">
+                                            <Loader2 className="w-8 h-8 animate-spin text-[#E61E32]" />
+                                        </div>
+                                    ) : attendanceSubView === "logs" ? (() => {
+                                        const filtered = globalAttendance.filter(log => {
+                                            const nameMatch = log.employee?.name.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const emailMatch = log.employee?.email.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const roleMatch = log.employee?.role.toLowerCase().includes(searchQuery.toLowerCase());
+                                            return nameMatch || emailMatch || roleMatch;
+                                        });
+
+                                        return filtered.length > 0 ? (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left text-xs min-w-[700px]">
+                                                    <thead>
+                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                            <th className="py-3">Employee</th>
+                                                            <th className="py-3">Role</th>
+                                                            <th className="py-3">Status</th>
+                                                            <th className="py-3">Punch-In Time (IST)</th>
+                                                            <th className="py-3">Punch-Out Time (IST)</th>
+                                                            <th className="py-3 text-right">Duration</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {filtered.map((log) => {
+                                                            const isActive = !log.punchOut;
+                                                            const duration = log.workMinutes > 0 
+                                                                ? `${Math.floor(log.workMinutes / 60)}h ${log.workMinutes % 60}m` 
+                                                                : log.punchOut 
+                                                                ? "< 1 min" 
+                                                                : "Active Session";
+                                                            
+                                                            return (
+                                                                <tr key={log.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
+                                                                    <td className="py-3.5">
+                                                                        <p className="font-semibold text-white">{log.employee?.name || `Employee #${log.employeeId}`}</p>
+                                                                        <p className="text-[10px] text-white/30">{log.employee?.email}</p>
+                                                                    </td>
+                                                                    <td className="py-3.5 text-white/50">{log.employee?.role || "-"}</td>
+                                                                    <td className="py-3.5">
+                                                                        {isActive ? (
+                                                                            <span className="text-green-400 uppercase text-[9px] tracking-wider font-extrabold border border-green-500/20 bg-green-500/5 px-2.5 py-0.5 rounded-none animate-pulse">
+                                                                                Active
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-white/40 uppercase text-[9px] tracking-wider font-semibold border border-white/10 bg-white/5 px-2.5 py-0.5 rounded-none">
+                                                                                Inactive
+                                                                            </span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="py-3.5 text-white/80 font-mono text-[11px]">
+                                                                        {new Date(log.punchIn).toLocaleString("en-IN", {
+                                                                            timeZone: "Asia/Kolkata",
+                                                                            dateStyle: "medium",
+                                                                            timeStyle: "short"
+                                                                        })}
+                                                                    </td>
+                                                                    <td className="py-3.5 font-mono text-[11px]">
+                                                                        {log.punchOut ? (
+                                                                            <span className="text-white/85">
+                                                                                {new Date(log.punchOut).toLocaleString("en-IN", {
+                                                                                    timeZone: "Asia/Kolkata",
+                                                                                    dateStyle: "medium",
+                                                                                    timeStyle: "short"
+                                                                                })}
+                                                                            </span>
+                                                                        ) : (
+                                                                            <span className="text-yellow-400/80 uppercase text-[9px] tracking-wider font-extrabold border border-yellow-400/20 bg-yellow-400/5 px-2 py-0.5">Punch In</span>
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="py-3.5 text-right font-semibold text-white/60">
+                                                                        {isActive ? (
+                                                                            <span className="text-green-400 font-extrabold tracking-wide uppercase text-[9px] animate-pulse">In Office</span>
+                                                                        ) : (
+                                                                            <span className="text-white/85">{duration}</span>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div className="py-16 text-center border border-dashed border-white/5">
+                                                <p className="text-white/20 text-xs">No attendance logs found matching filters.</p>
+                                            </div>
+                                        );
+                                    })() : (() => {
+                                        const now = new Date();
+                                        const istTodayStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+
+                                        const todayLogs = globalAttendance.filter(log => {
+                                            const logDayStr = new Date(log.punchIn).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+                                            return logDayStr === istTodayStr;
+                                        });
+
+                                        const presentEmployeeIds = new Set(todayLogs.map(log => log.employeeId));
+
+                                        const presentEmployeesList = employees.filter(emp => presentEmployeeIds.has(emp.id)).map(emp => {
+                                            const empLogs = todayLogs.filter(log => log.employeeId === emp.id);
+                                            const isCurrentlyActive = empLogs.some(log => !log.punchOut);
+                                            const latestLog = empLogs[0];
+                                            return {
+                                                ...emp,
+                                                isCurrentlyActive,
+                                                latestLog
+                                            };
+                                        });
+
+                                        const absentEmployeesList = employees.filter(emp => !presentEmployeeIds.has(emp.id));
+
+                                        const filteredPresent = presentEmployeesList.filter(emp => {
+                                            const nameMatch = emp.name.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const emailMatch = emp.email.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const roleMatch = emp.role.toLowerCase().includes(searchQuery.toLowerCase());
+                                            return nameMatch || emailMatch || roleMatch;
+                                        });
+
+                                        const filteredAbsent = absentEmployeesList.filter(emp => {
+                                            const nameMatch = emp.name.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const emailMatch = emp.email.toLowerCase().includes(searchQuery.toLowerCase());
+                                            const roleMatch = emp.role.toLowerCase().includes(searchQuery.toLowerCase());
+                                            return nameMatch || emailMatch || roleMatch;
+                                        });
+
+                                        return (
+                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-6 animate-in fade-in duration-300">
+                                                {/* Present Today Column */}
+                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-none">
+                                                    <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                                            Present Today
+                                                        </span>
+                                                        <span className="bg-green-500/10 text-green-500 px-2 py-0.5 text-[10px] font-mono">{filteredPresent.length}</span>
+                                                    </h3>
+                                                    <div className="space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin">
+                                                        {filteredPresent.length > 0 ? (
+                                                            filteredPresent.map(emp => (
+                                                                <div key={emp.id} className="p-4 bg-white/5 border border-white/5 flex justify-between items-center hover:border-white/10 transition-colors">
+                                                                    <div>
+                                                                        <p className="font-semibold text-xs text-white">{emp.name}</p>
+                                                                        <p className="text-[10px] text-white/30">{emp.email} • {emp.role}</p>
+                                                                    </div>
+                                                                    <div className="text-right">
+                                                                        {emp.isCurrentlyActive ? (
+                                                                            <span className="text-[8px] font-extrabold uppercase bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-none animate-pulse">Active</span>
+                                                                        ) : (
+                                                                            <span className="text-[8px] font-semibold uppercase bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">Checked Out</span>
+                                                                        )}
+                                                                        {emp.latestLog && (
+                                                                            <p className="text-[9px] text-white/30 mt-1.5 font-mono">
+                                                                                Punched In: {new Date(emp.latestLog.punchIn).toLocaleTimeString("en-IN", {
+                                                                                    timeZone: "Asia/Kolkata",
+                                                                                    hour: '2-digit',
+                                                                                    minute: '2-digit',
+                                                                                    hour12: true
+                                                                                })}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="py-10 text-center border border-dashed border-white/5">
+                                                                <p className="text-white/20 text-xs">No employees present matching filters today.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Absent Today Column */}
+                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-none">
+                                                    <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
+                                                        <span className="flex items-center gap-2">
+                                                            <span className="w-2.5 h-2.5 bg-[#E61E32] rounded-full" />
+                                                            Absent Today
+                                                        </span>
+                                                        <span className="bg-[#E61E32]/10 text-[#E61E32] px-2 py-0.5 text-[10px] font-mono">{filteredAbsent.length}</span>
+                                                    </h3>
+                                                    <div className="space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin">
+                                                        {filteredAbsent.length > 0 ? (
+                                                            filteredAbsent.map(emp => (
+                                                                <div key={emp.id} className="p-4 bg-white/5 border border-white/5 flex justify-between items-center hover:border-white/10 transition-colors">
+                                                                    <div>
+                                                                        <p className="font-semibold text-xs text-white">{emp.name}</p>
+                                                                        <p className="text-[10px] text-white/30">{emp.email} • {emp.role}</p>
+                                                                    </div>
+                                                                    <span className="text-[8px] font-bold uppercase bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] px-2 py-0.5 rounded-none">Absent</span>
+                                                                </div>
+                                                            ))
+                                                        ) : (
+                                                            <div className="py-10 text-center border border-dashed border-white/5">
+                                                                <p className="text-white/20 text-xs">No absent employees matching filters today.</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
                         )}

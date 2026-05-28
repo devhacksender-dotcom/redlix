@@ -16,7 +16,9 @@ import {
     Users,
     AlertCircle,
     CheckCircle2,
-    Briefcase
+    Briefcase,
+    FileText,
+    Download
 } from "lucide-react";
 import Script from "next/script";
 
@@ -48,14 +50,26 @@ interface Task {
     employee?: Employee;
 }
 
+interface Document {
+    id: number;
+    title: string;
+    description?: string | null;
+    category: string;
+    fileUrl: string;
+    fileName: string;
+    uploadedBy: string;
+    createdAt: string;
+}
+
 export default function DepartmentDashboard() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "attendance" | "tasks">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "attendance" | "tasks" | "documents">("overview");
 
     // Data States
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [attendanceLogs, setAttendanceLogs] = useState<AttendanceRecord[]>([]);
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
 
     // Filter and Search States
@@ -75,6 +89,18 @@ export default function DepartmentDashboard() {
     // Task Edit Form States
     const [selectedTask, setSelectedTask] = useState<Task | null>(null);
     const [isEditingTask, setIsEditingTask] = useState(false);
+
+    // Document States
+    const [documentsLoading, setDocumentsLoading] = useState(false);
+    const [showAddDocForm, setShowAddDocForm] = useState(false);
+    const [newDoc, setNewDoc] = useState({
+        title: "",
+        category: "company",
+        fileName: "",
+        fileUrl: "",
+        description: ""
+    });
+    const [docIsSubmitting, setDocIsSubmitting] = useState(false);
 
     // Fetch handlers
     const fetchEmployees = async () => {
@@ -113,12 +139,26 @@ export default function DepartmentDashboard() {
             await Promise.all([
                 fetchEmployees(),
                 fetchAttendance(),
-                fetchTasks()
+                fetchTasks(),
+                fetchDocuments()
             ]);
         } catch (err) {
             console.error("Failed to fetch dashboard data:", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchDocuments = async () => {
+        setDocumentsLoading(true);
+        try {
+            const res = await fetch("/api/department/documents");
+            const data = await res.json();
+            if (data.success) setDocuments(data.data);
+        } catch (error) {
+            console.error("Failed to fetch documents:", error);
+        } finally {
+            setDocumentsLoading(false);
         }
     };
 
@@ -133,6 +173,8 @@ export default function DepartmentDashboard() {
         } else if (activeTab === "tasks") {
             fetchTasks();
             fetchEmployees();
+        } else if (activeTab === "documents") {
+            fetchDocuments();
         }
     }, [activeTab]);
 
@@ -229,6 +271,55 @@ export default function DepartmentDashboard() {
         }
     };
 
+    const handleAddDocument = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newDoc.title || !newDoc.fileUrl || !newDoc.fileName) {
+            alert("Title, file URL and file name are required");
+            return;
+        }
+
+        setDocIsSubmitting(true);
+        try {
+            const res = await fetch("/api/department/documents", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newDoc)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDocuments(prev => [data.data, ...prev]);
+                setShowAddDocForm(false);
+                setNewDoc({ title: "", category: "company", fileName: "", fileUrl: "", description: "" });
+                alert("Document added successfully!");
+            } else {
+                alert(data.message || "Failed to add document");
+            }
+        } catch (error) {
+            console.error("Failed to add document:", error);
+        } finally {
+            setDocIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteDocument = async (id: number) => {
+        if (!confirm("Are you sure you want to delete this document?")) return;
+
+        try {
+            const res = await fetch(`/api/department/documents/${id}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (data.success) {
+                setDocuments(prev => prev.filter(d => d.id !== id));
+                alert("Document deleted successfully!");
+            } else {
+                alert(data.message || "Failed to delete document");
+            }
+        } catch (error) {
+            console.error("Failed to delete document:", error);
+        }
+    };
+
     // IST Formatter Helper
     const formatIST = (dateStr: string | null | undefined) => {
         if (!dateStr) return "-";
@@ -276,6 +367,14 @@ export default function DepartmentDashboard() {
                             <ListTodo className="w-4 h-4" />
                             Task Assignment
                         </button>
+                        <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                        <button
+                            onClick={() => { setActiveTab("documents"); setSearchQuery(""); }}
+                            className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        >
+                            <FileText className="w-4 h-4" />
+                            Document Vault
+                        </button>
                     </nav>
 
                     <div className="h-[1px] bg-white/5" />
@@ -298,14 +397,14 @@ export default function DepartmentDashboard() {
                                     <span>Department</span>
                                     <span className="text-white/10 font-normal">/</span>
                                     <span className="text-[#E61E32]">
-                                        {activeTab === "overview" ? "Overview" : activeTab === "attendance" ? "Attendance" : "Tasks"}
+                                        {activeTab === "overview" ? "Overview" : activeTab === "attendance" ? "Attendance" : activeTab === "tasks" ? "Tasks" : "Documents"}
                                     </span>
                                 </div>
                                 <h2 className="text-xl font-semibold text-white tracking-tight">
-                                    {activeTab === "overview" ? "Department Overview" : activeTab === "attendance" ? "Employee Attendance logs" : "Task Board"}
+                                    {activeTab === "overview" ? "Department Overview" : activeTab === "attendance" ? "Employee Attendance logs" : activeTab === "tasks" ? "Task Board" : "Document Vault"}
                                 </h2>
                                 <p className="text-xs text-white/30 mt-0.5">
-                                    {activeTab === "overview" ? "Real-time metrics and active team counts" : activeTab === "attendance" ? "Verify daily check-in and check-out logs (in IST)" : "Assign, update, and manage employee checklists"}
+                                    {activeTab === "overview" ? "Real-time metrics and active team counts" : activeTab === "attendance" ? "Verify daily check-in and check-out logs (in IST)" : activeTab === "tasks" ? "Assign, update, and manage employee checklists" : "Upload and manage company and client documents"}
                                 </p>
                             </div>
 
@@ -319,12 +418,21 @@ export default function DepartmentDashboard() {
                                     </button>
                                 )}
 
+                                {activeTab === "documents" && (
+                                    <button
+                                        onClick={() => setShowAddDocForm(true)}
+                                        className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#ff1f34] text-white px-4 py-2.5 text-xs font-black uppercase tracking-wider transition-colors rounded-none"
+                                    >
+                                        <Plus className="w-4 h-4" /> Add Document
+                                    </button>
+                                )}
+
                                 {activeTab !== "overview" && (
                                     <div className="relative w-72">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                                         <input
                                             type="text"
-                                            placeholder={`Search by employee/role...`}
+                                            placeholder={activeTab === "documents" ? "Search documents..." : "Search by employee/role..."}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-xs focus:outline-none focus:border-[#E61E32] rounded-none text-white placeholder-white/20"
@@ -723,6 +831,178 @@ export default function DepartmentDashboard() {
                                                     ) : (
                                                         <div className="py-16 text-center border border-dashed border-white/5">
                                                             <p className="text-white/20 text-xs">No tasks found matching filters.</p>
+                                                        </div>
+                                                    );
+                                                })()}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ===== DOCUMENTS TAB ===== */}
+                                    {activeTab === "documents" && (
+                                        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-hidden">
+                                            {/* Form Panel: Add Document Modal */}
+                                            {showAddDocForm && (
+                                                <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-6 animate-in fade-in duration-200">
+                                                    <div className="w-full max-w-md bg-[#0a0a0a] border border-white/10 p-8 space-y-6">
+                                                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                                                            <h3 className="text-sm font-bold uppercase tracking-widest text-white">Add New Document</h3>
+                                                            <button onClick={() => setShowAddDocForm(false)} className="text-white/40 hover:text-white"><X className="w-5 h-5" /></button>
+                                                        </div>
+
+                                                        <form onSubmit={handleAddDocument} className="space-y-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Document Title *</label>
+                                                                <input
+                                                                    required
+                                                                    type="text"
+                                                                    placeholder="e.g. Q2 Performance Report"
+                                                                    value={newDoc.title}
+                                                                    onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
+                                                                    className="w-full bg-[#111] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                                />
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Category</label>
+                                                                <select
+                                                                    value={newDoc.category}
+                                                                    onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value })}
+                                                                    className="w-full bg-[#111] border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                                >
+                                                                    <option value="company" className="bg-[#111]">Company Document</option>
+                                                                    <option value="client" className="bg-[#111]">Client Document</option>
+                                                                    <option value="requirement" className="bg-[#111]">Requirement Document</option>
+                                                                    <option value="legal" className="bg-[#111]">Legal / Compliance</option>
+                                                                    <option value="other" className="bg-[#111]">Other</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">File Name *</label>
+                                                                <input
+                                                                    required
+                                                                    type="text"
+                                                                    placeholder="e.g. Q2_Performance.pdf"
+                                                                    value={newDoc.fileName}
+                                                                    onChange={(e) => setNewDoc({ ...newDoc, fileName: e.target.value })}
+                                                                    className="w-full bg-[#111] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                                />
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">File URL *</label>
+                                                                <input
+                                                                    required
+                                                                    type="text"
+                                                                    placeholder="e.g. https://drive.google.com/..."
+                                                                    value={newDoc.fileUrl}
+                                                                    onChange={(e) => setNewDoc({ ...newDoc, fileUrl: e.target.value })}
+                                                                    className="w-full bg-[#111] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] rounded-none"
+                                                                />
+                                                            </div>
+
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
+                                                                <textarea
+                                                                    rows={3}
+                                                                    placeholder="Specify details about this document..."
+                                                                    value={newDoc.description}
+                                                                    onChange={(e) => setNewDoc({ ...newDoc, description: e.target.value })}
+                                                                    className="w-full bg-[#111] border border-white/10 px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] rounded-none resize-none font-sans"
+                                                                />
+                                                            </div>
+
+                                                            <button
+                                                                type="submit"
+                                                                disabled={docIsSubmitting}
+                                                                className="w-full bg-[#E61E32] hover:bg-[#ff1f34] text-white py-3 text-xs font-black uppercase tracking-widest transition-colors duration-200 disabled:opacity-50"
+                                                            >
+                                                                {docIsSubmitting ? "Adding..." : "Add Document"}
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Scrollable Documents Grid */}
+                                            <div className="flex-grow overflow-y-auto pr-1 scrollbar-thin">
+                                                {documentsLoading ? (
+                                                    <div className="flex items-center justify-center py-24">
+                                                        <Loader2 className="w-8 h-8 animate-spin text-[#E61E32]" />
+                                                    </div>
+                                                ) : (() => {
+                                                    const filtered = documents.filter(doc => {
+                                                        const matchesQuery = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                            doc.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                            doc.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                            (doc.description && doc.description.toLowerCase().includes(searchQuery.toLowerCase()));
+                                                        return matchesQuery;
+                                                    });
+
+                                                    return filtered.length > 0 ? (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+                                                            {filtered.map((doc) => {
+                                                                const categoryColors: Record<string, string> = {
+                                                                    company: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+                                                                    client: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                                                                    requirement: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+                                                                    legal: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+                                                                    other: 'text-white/40 bg-white/5 border-white/10'
+                                                                };
+                                                                return (
+                                                                    <div key={doc.id} className="bg-white/5 border border-white/5 p-6 flex flex-col justify-between space-y-4 hover:border-white/10 transition-colors group">
+                                                                        <div className="space-y-3">
+                                                                            <div className="flex justify-between items-start gap-4">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <FileText className="w-5 h-5 text-[#E61E32] shrink-0" />
+                                                                                    <div>
+                                                                                        <h4 className="text-sm font-bold text-white line-clamp-1">{doc.title}</h4>
+                                                                                        <p className="text-[10px] text-white/30">{doc.fileName}</p>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteDocument(doc.id)}
+                                                                                    className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-[#E61E32]/10 text-white/30 hover:text-[#E61E32] transition-all"
+                                                                                    title="Delete Document"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+
+                                                                            <div className="h-[1px] bg-white/5" />
+
+                                                                            {doc.description && (
+                                                                                <p className="text-xs text-white/50 leading-relaxed break-words line-clamp-3">
+                                                                                    {doc.description}
+                                                                                </p>
+                                                                            )}
+
+                                                                            <div className="flex items-center justify-between text-[10px] text-white/30 pt-1">
+                                                                                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border ${categoryColors[doc.category] || categoryColors.other}`}>
+                                                                                    {doc.category}
+                                                                                </span>
+                                                                                <span>{new Date(doc.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium' })}</span>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="pt-2 border-t border-white/5">
+                                                                            <a
+                                                                                href={doc.fileUrl}
+                                                                                target="_blank"
+                                                                                rel="noopener noreferrer"
+                                                                                className="flex items-center gap-2 w-full py-2 bg-white/5 hover:bg-[#E61E32]/10 border border-white/10 hover:border-[#E61E32]/20 text-white/60 hover:text-[#E61E32] text-xs font-medium transition-all justify-center"
+                                                                            >
+                                                                                <Download className="w-3.5 h-3.5" /> View / Download
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="py-16 text-center border border-dashed border-white/5">
+                                                            <p className="text-white/20 text-xs">No documents found matching filters.</p>
                                                         </div>
                                                     );
                                                 })()}
