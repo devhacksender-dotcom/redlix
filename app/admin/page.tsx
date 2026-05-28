@@ -88,6 +88,7 @@ interface Employee {
     mobile?: string;
     altEmail?: string;
     address?: string;
+    isDeptAdmin?: boolean;
 }
 
 interface SupportTicket {
@@ -241,8 +242,8 @@ export default function AdminPortal() {
     // Employee Form State
     const [showAddForm, setShowAddForm] = useState(false);
     const [showOnboardForm, setShowOnboardForm] = useState(false);
-    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", password: "", offerLetterLink: "" });
-    const [newOnboardEmployee, setNewOnboardEmployee] = useState({ name: "", email: "", role: "" });
+    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false });
+    const [newOnboardEmployee, setNewOnboardEmployee] = useState({ name: "", email: "", role: "", isDeptAdmin: false });
 
     // Client Form State
     const [showAddClientForm, setShowAddClientForm] = useState(false);
@@ -832,7 +833,7 @@ export default function AdminPortal() {
             if (data.success) {
                 setEmployees([data.data, ...employees]);
                 setShowAddForm(false);
-                setNewEmployee({ name: "", email: "", role: "", password: "", offerLetterLink: "" });
+                setNewEmployee({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false });
             } else {
                 alert(data.message || "Failed to add employee");
             }
@@ -856,7 +857,7 @@ export default function AdminPortal() {
             if (data.success) {
                 setEmployees([data.data, ...employees]);
                 setShowOnboardForm(false);
-                setNewOnboardEmployee({ name: "", email: "", role: "" });
+                setNewOnboardEmployee({ name: "", email: "", role: "", isDeptAdmin: false });
                 sendOnboardingEmail(data.data.id);
             } else {
                 alert(data.message || "Failed to onboard employee");
@@ -2171,6 +2172,18 @@ export default function AdminPortal() {
                                                         className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                     />
                                                 </div>
+                                                <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="newEmpIsDeptAdmin"
+                                                        checked={newEmployee.isDeptAdmin}
+                                                        onChange={(e) => setNewEmployee({ ...newEmployee, isDeptAdmin: e.target.checked })}
+                                                        className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
+                                                    />
+                                                    <label htmlFor="newEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                        Department Admin Login (Enable for Department Lead access)
+                                                    </label>
+                                                </div>
                                                 <button
                                                     disabled={isSubmitting}
                                                     type="submit"
@@ -2218,6 +2231,18 @@ export default function AdminPortal() {
                                                         onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, role: e.target.value })}
                                                         className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
                                                     />
+                                                </div>
+                                                <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="onboardEmpIsDeptAdmin"
+                                                        checked={newOnboardEmployee.isDeptAdmin}
+                                                        onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, isDeptAdmin: e.target.checked })}
+                                                        className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
+                                                    />
+                                                    <label htmlFor="onboardEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                        Department Admin Login (Enable for Department Lead access)
+                                                    </label>
                                                 </div>
                                                 <button
                                                     disabled={isSubmitting}
@@ -2463,6 +2488,18 @@ export default function AdminPortal() {
                                                             />
                                                         </div>
                                                     </div>
+                                                    <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-4">
+                                                        <input
+                                                            type="checkbox"
+                                                            id="editEmpIsDeptAdmin"
+                                                            checked={selectedEmployee.isDeptAdmin || false}
+                                                            onChange={(e) => setSelectedEmployee({ ...selectedEmployee, isDeptAdmin: e.target.checked })}
+                                                            className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
+                                                        />
+                                                        <label htmlFor="editEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                            Department Admin Login (Enable to grant Department Lead access)
+                                                        </label>
+                                                    </div>
                                                     <div className="flex gap-4">
                                                         <button
                                                             type="submit"
@@ -2491,6 +2528,7 @@ export default function AdminPortal() {
                                                                 <InfoBlock label="Phone Number" value={selectedEmployee.phone || "Not Provided"} />
                                                                 <InfoBlock label="Alternative Email" value={selectedEmployee.altEmail || "Not Provided"} />
                                                                 <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                                <InfoBlock label="Department Admin Access" value={selectedEmployee.isDeptAdmin ? "Yes (Authorized to login to Dept Portal)" : "No"} />
                                                             </div>
 
                                                             <div className="p-4 bg-white/[0.02] border border-white/5">

@@ -103,6 +103,46 @@ export async function middleware(request: NextRequest) {
         );
     }
 
+    // 5. Process requests starting with /department
+    if (pathname.startsWith("/department")) {
+        if (pathname === "/department/login") {
+            return NextResponse.next();
+        }
+
+        const token = request.cookies.get("dept_token")?.value;
+
+        if (!token) {
+            return NextResponse.redirect(new URL("/department/login", request.url));
+        }
+
+        try {
+            await jwtVerify(token, secret);
+            return NextResponse.next();
+        } catch (error) {
+            console.error("Dept Auth Middleware Error:", error);
+            return NextResponse.redirect(new URL("/department/login", request.url));
+        }
+    }
+
+    // 6. Protect department APIs
+    if (pathname.startsWith("/api/department")) {
+        if (pathname === "/api/department/login") {
+            return NextResponse.next();
+        }
+
+        const token = request.cookies.get("dept_token")?.value;
+        if (!token) {
+            return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+        }
+
+        try {
+            await jwtVerify(token, secret);
+            return NextResponse.next();
+        } catch (error) {
+            return NextResponse.json({ success: false, message: "Invalid session" }, { status: 401 });
+        }
+    }
+
     return NextResponse.next();
 }
 
@@ -112,5 +152,7 @@ export const config = {
         "/api/admin/:path*",
         "/employee/:path*",
         "/api/employee/:path*",
+        "/department/:path*",
+        "/api/department/:path*",
     ],
 };
