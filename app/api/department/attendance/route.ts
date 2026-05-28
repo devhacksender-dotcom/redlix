@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { autoPunchOutStaleSessions } from "@/lib/attendanceHelper";
 
 export async function GET() {
     try {
+        // Auto punch-out stale sessions before querying
+        await autoPunchOutStaleSessions();
+
         const attendance = await prisma.attendance.findMany({
             include: {
                 employee: {

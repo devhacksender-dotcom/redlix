@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import prisma from "@/lib/prisma";
+import { autoPunchOutStaleSessions } from "@/lib/attendanceHelper";
 
 export async function GET(request: NextRequest) {
     try {
@@ -18,6 +19,9 @@ export async function GET(request: NextRequest) {
         try {
             const { payload } = await jwtVerify(token, secret);
             const employeeId = payload.employeeId as number;
+
+            // Auto punch-out stale sessions before checking active session
+            await autoPunchOutStaleSessions();
 
             // 1. Check if there is an active session (punchOut is null)
             const activeSession = await prisma.attendance.findFirst({

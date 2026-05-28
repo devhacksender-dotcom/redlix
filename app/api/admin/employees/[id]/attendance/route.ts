@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { autoPunchOutStaleSessions } from "@/lib/attendanceHelper";
 
 export async function GET(
     req: Request,
@@ -14,6 +15,9 @@ export async function GET(
                 { status: 400 }
             );
         }
+
+        // Auto punch-out stale sessions before querying
+        await autoPunchOutStaleSessions();
 
         const attendance = await prisma.attendance.findMany({
             where: { employeeId: id },
