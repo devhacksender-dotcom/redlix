@@ -132,7 +132,7 @@ export default function EmployeeLogin() {
             {/* Icon */}
             <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icons/icon-192.png" alt="Redlix Portal" className="w-full h-full object-cover" />
+              <img src="https://ik.imagekit.io/dypkhqxip/R.png" alt="Redlix Portal" className="w-full h-full object-cover" />
             </div>
 
             {/* Text */}
