@@ -4562,14 +4562,14 @@ export default function AdminPortal() {
                                             <Bell className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h2 className="text-lg font-bold uppercase tracking-tight">Alert Sender</h2>
+                                            <h2 className="text-lg font-bold">Alert Sender</h2>
                                             <p className="text-xs text-white/40 mt-0.5">Send predefined or custom alert emails via SMTP</p>
                                         </div>
                                     </div>
 
                                     {/* Alert Type Selector */}
                                     <div>
-                                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Select Alert Type</p>
+                                        <p className="text-xs font-semibold text-white/40 mb-3">Select alert type</p>
                                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                                             {ALERT_TYPES.map(type => (
                                                 <button
@@ -4583,7 +4583,7 @@ export default function AdminPortal() {
                                                 >
                                                     {alertType === type.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />}
                                                     <div className={`mb-2 ${alertType === type.id ? 'text-[#E61E32]' : 'text-white/40 group-hover:text-white/70'}`}>{type.icon}</div>
-                                                    <p className="text-xs font-bold uppercase tracking-wide leading-tight">{type.label}</p>
+                                                    <p className="text-xs font-semibold leading-tight">{type.label}</p>
                                                     <p className="text-[10px] text-white/30 mt-1 leading-relaxed">{type.desc}</p>
                                                 </button>
                                             ))}
@@ -4597,7 +4597,7 @@ export default function AdminPortal() {
                                             <div className="flex items-center gap-2 pb-3 border-b border-white/10">
                                                 <div className="text-[#E61E32]">{currentType.icon}</div>
                                                 <div>
-                                                    <h3 className="text-sm font-bold uppercase tracking-tight">{currentType.label}</h3>
+                                                    <h3 className="text-sm font-semibold">{currentType.label}</h3>
                                                     <p className="text-[10px] text-white/30 mt-0.5">{currentType.desc}</p>
                                                 </div>
                                             </div>
@@ -4606,9 +4606,9 @@ export default function AdminPortal() {
                                             {(alertType === 'dashboard_access_pending' || alertType === 'profile_pending') && (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Employees *</label>
-                                                        <button type="button" onClick={() => setAlertSelectedEmployeeIds(alertSelectedEmployeeIds.length === employees.length ? [] : employees.map(e => e.id))} className="text-[10px] text-[#E61E32] uppercase font-bold hover:underline">
-                                                            {alertSelectedEmployeeIds.length === employees.length ? 'Deselect All' : 'Select All'}
+                                                        <label className="text-xs font-medium text-white/50">Select employees *</label>
+                                                        <button type="button" onClick={() => setAlertSelectedEmployeeIds(alertSelectedEmployeeIds.length === employees.length ? [] : employees.map(e => e.id))} className="text-xs text-[#E61E32] font-medium hover:underline">
+                                                            {alertSelectedEmployeeIds.length === employees.length ? 'Deselect all' : 'Select all'}
                                                         </button>
                                                     </div>
                                                     <div className="max-h-48 overflow-y-auto space-y-1 border border-white/10 p-2 bg-black">
@@ -4616,7 +4616,7 @@ export default function AdminPortal() {
                                                             <label key={emp.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer rounded-none">
                                                                 <input type="checkbox" checked={alertSelectedEmployeeIds.includes(emp.id)} onChange={() => toggleEmployee(emp.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className="text-xs font-semibold text-white/80 truncate">{emp.name}</p>
+                                                                    <p className="text-xs font-medium text-white/80 truncate">{emp.name}</p>
                                                                     <p className="text-[10px] text-white/30 truncate font-mono">{emp.email}</p>
                                                                 </div>
                                                                 <span className="text-[9px] text-white/20 bg-white/5 px-1.5 py-0.5 shrink-0">{emp.role}</span>
@@ -4624,7 +4624,7 @@ export default function AdminPortal() {
                                                         ))}
                                                     </div>
                                                     {alertSelectedEmployeeIds.length > 0 && (
-                                                        <p className="text-[10px] text-[#E61E32] font-semibold">{alertSelectedEmployeeIds.length} employee(s) selected</p>
+                                                        <p className="text-[10px] text-[#E61E32] font-medium">{alertSelectedEmployeeIds.length} employee(s) selected</p>
                                                     )}
                                                 </div>
                                             )}
@@ -4633,10 +4633,10 @@ export default function AdminPortal() {
                                             {alertType === 'terms_update' && (
                                                 <div className="space-y-2">
                                                     <div className="flex items-center justify-between">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Recipients</label>
+                                                        <label className="text-xs font-medium text-white/50">Recipients</label>
                                                         <label className="flex items-center gap-1.5 cursor-pointer">
                                                             <input type="checkbox" checked={alertSelectAllClients} onChange={e => { setAlertSelectAllClients(e.target.checked); setAlertSelectedClientIds([]); }} className="accent-[#E61E32] w-3.5 h-3.5" />
-                                                            <span className="text-[10px] text-white/50 font-semibold">Send to ALL clients</span>
+                                                            <span className="text-xs text-white/50 font-medium">Send to all clients</span>
                                                         </label>
                                                     </div>
                                                     {!alertSelectAllClients && (
@@ -4645,7 +4645,7 @@ export default function AdminPortal() {
                                                                 <label key={c.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer">
                                                                     <input type="checkbox" checked={alertSelectedClientIds.includes(c.id)} onChange={() => toggleClient(c.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
                                                                     <div className="flex-1 min-w-0">
-                                                                        <p className="text-xs font-semibold text-white/80 truncate">{c.companyName}</p>
+                                                                        <p className="text-xs font-medium text-white/80 truncate">{c.companyName}</p>
                                                                         <p className="text-[10px] text-white/30 truncate font-mono">{c.email}</p>
                                                                     </div>
                                                                 </label>
@@ -4653,7 +4653,7 @@ export default function AdminPortal() {
                                                         </div>
                                                     )}
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Effective Date (Optional)</label>
+                                                        <label className="text-xs font-medium text-white/50 block">Effective date (optional)</label>
                                                         <input type="date" value={alertEffectiveDate} onChange={e => setAlertEffectiveDate(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white" />
                                                     </div>
                                                 </div>
@@ -4662,7 +4662,7 @@ export default function AdminPortal() {
                                             {/* Single client select */}
                                             {(alertType === 'client_info_update' || alertType === 'new_client_welcome') && (
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Client *</label>
+                                                    <label className="text-xs font-medium text-white/50">Select client *</label>
                                                     <select required value={alertSingleClientId} onChange={e => setAlertSingleClientId(e.target.value === '' ? '' : Number(e.target.value))} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white">
                                                         <option value="" className="bg-[#0f0f0f]">Choose a client...</option>
                                                         {clients.map(c => (<option key={c.id} value={c.id} className="bg-[#0f0f0f]">{c.companyName} — {c.clientName}</option>))}
@@ -4672,7 +4672,7 @@ export default function AdminPortal() {
                                                         if (!c) return null;
                                                         return (
                                                             <div className="p-3 bg-white/[0.02] border border-white/5 space-y-1.5 animate-in fade-in duration-200">
-                                                                <p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-widest">Client Details</p>
+                                                                <p className="text-xs text-[#E61E32] font-semibold">Client details</p>
                                                                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                                                                     <div><span className="text-white/30 block">Company</span><span className="text-white/70 font-medium">{c.companyName}</span></div>
                                                                     <div><span className="text-white/30 block">Contact</span><span className="text-white/70 font-medium">{c.clientName}</span></div>
@@ -4688,15 +4688,15 @@ export default function AdminPortal() {
                                             {alertType === 'custom' && (
                                                 <div className="space-y-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Recipients (comma-separated emails) *</label>
+                                                        <label className="text-xs font-medium text-white/50">Recipients (comma-separated emails) *</label>
                                                         <textarea required rows={2} placeholder="user@example.com, another@email.com" value={alertCustomRecipients} onChange={e => setAlertCustomRecipients(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subject *</label>
+                                                        <label className="text-xs font-medium text-white/50">Subject *</label>
                                                         <input required type="text" placeholder="Email subject line" value={alertCustomSubject} onChange={e => setAlertCustomSubject(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white" />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Message Body *</label>
+                                                        <label className="text-xs font-medium text-white/50">Message body *</label>
                                                         <textarea required rows={5} placeholder="Type your alert message here..." value={alertCustomBody} onChange={e => setAlertCustomBody(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
                                                     </div>
                                                 </div>
@@ -4705,7 +4705,7 @@ export default function AdminPortal() {
                                             {/* Optional additional note for all non-custom types */}
                                             {alertType !== 'custom' && (
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Additional Note (Optional)</label>
+                                                    <label className="text-xs font-medium text-white/50">Additional note (optional)</label>
                                                     <textarea rows={3} placeholder="Add a personal note that will appear highlighted in the email..." value={alertCustomMessage} onChange={e => setAlertCustomMessage(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
                                                 </div>
                                             )}
@@ -4719,23 +4719,23 @@ export default function AdminPortal() {
                                                     ((alertType === 'client_info_update' || alertType === 'new_client_welcome') && alertSingleClientId === '') ||
                                                     (alertType === 'custom' && (!alertCustomRecipients || !alertCustomSubject || !alertCustomBody))
                                                 }
-                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/30 disabled:cursor-not-allowed text-white font-bold py-4 text-xs uppercase tracking-widest transition-all"
+                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/30 disabled:cursor-not-allowed text-white font-semibold py-4 text-sm transition-all"
                                             >
                                                 {alertSendStatus === 'sending' ? (
-                                                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending Alert...</>
+                                                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending alert...</>
                                                 ) : (
-                                                    <><Send className="w-4 h-4" /> Send Alert Email</>
+                                                    <><Send className="w-4 h-4" /> Send alert email</>
                                                 )}
                                             </button>
 
                                             {/* Status */}
                                             {alertSendStatus === 'success' && (
-                                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold text-center uppercase tracking-wider">
+                                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center">
                                                     ✓ {alertSendMessage}
                                                 </div>
                                             )}
                                             {alertSendStatus === 'error' && (
-                                                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold text-center flex items-center justify-center gap-2 uppercase tracking-wider">
+                                                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center flex items-center justify-center gap-2">
                                                     <AlertCircle className="w-4 h-4" /> {alertSendMessage}
                                                 </div>
                                             )}
@@ -4749,7 +4749,7 @@ export default function AdminPortal() {
                                                     <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                                                     <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                                                 </div>
-                                                <span className="text-[10px] text-white/30 uppercase tracking-widest font-mono">Live Email Preview</span>
+                                                <span className="text-xs text-white/30 font-mono">Live email preview</span>
                                             </div>
                                             <div className="flex-grow bg-white text-black p-4 overflow-y-auto max-h-[620px] text-left text-[13px] font-sans">
                                                 {/* Email header meta */}
