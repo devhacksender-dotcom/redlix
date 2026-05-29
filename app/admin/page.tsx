@@ -31,7 +31,13 @@ import {
     Download,
     Link as LinkIcon,
     X,
-    Settings
+    Settings,
+    Bell,
+    ShieldAlert,
+    UserCheck,
+    FileSignature,
+    UserPlus,
+    PenLine
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -129,7 +135,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "settings">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings">("overview");
 
     // Task management states
     interface Task {
@@ -274,6 +280,20 @@ export default function AdminPortal() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sendEmailStatus, setSendEmailStatus] = useState<{ id: number, action?: string, status: 'idle' | 'sending' | 'success' | 'error' } | null>(null);
     
+    // Alert Sender states
+    const [alertType, setAlertType] = useState<"dashboard_access_pending" | "profile_pending" | "terms_update" | "client_info_update" | "new_client_welcome" | "custom">("dashboard_access_pending");
+    const [alertSelectedEmployeeIds, setAlertSelectedEmployeeIds] = useState<number[]>([]);
+    const [alertSelectedClientIds, setAlertSelectedClientIds] = useState<number[]>([]);
+    const [alertSingleClientId, setAlertSingleClientId] = useState<number | "">("" );
+    const [alertCustomRecipients, setAlertCustomRecipients] = useState("");
+    const [alertCustomMessage, setAlertCustomMessage] = useState("");
+    const [alertCustomSubject, setAlertCustomSubject] = useState("");
+    const [alertCustomBody, setAlertCustomBody] = useState("");
+    const [alertEffectiveDate, setAlertEffectiveDate] = useState("");
+    const [alertSendStatus, setAlertSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [alertSendMessage, setAlertSendMessage] = useState("");
+    const [alertSelectAllClients, setAlertSelectAllClients] = useState(false);
+
     // Reset DB states
     const [resetInput, setResetInput] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
@@ -370,6 +390,9 @@ export default function AdminPortal() {
             fetchEmployees(); // needed to allocate payrolls
         } else if (activeTab === "leaves") {
             fetchLeaves();
+        } else if (activeTab === "alerts") {
+            fetchEmployees();
+            fetchClients();
         } else {
             fetchClients();
         }
@@ -1439,6 +1462,14 @@ export default function AdminPortal() {
                             </div>
                         )}
                     </div>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        onClick={() => setActiveTab("alerts")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'alerts' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <Bell className="w-4 h-4" />
+                        Alert Sender
+                    </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("settings")}
@@ -4457,6 +4488,325 @@ export default function AdminPortal() {
                                 </div>
                             </div>
                         )}
+
+                        {/* ─────────────── ALERT SENDER ─────────────── */}
+                        {activeTab === "alerts" && (() => {
+                            const ALERT_TYPES = [
+                                { id: "dashboard_access_pending", label: "Dashboard Access Pending", desc: "Notify employees who haven't accessed their portal yet", icon: <ShieldAlert className="w-5 h-5" />, target: "employees" },
+                                { id: "profile_pending", label: "Profile Completion Pending", desc: "Remind employees to fill out their full profile", icon: <UserCheck className="w-5 h-5" />, target: "employees" },
+                                { id: "terms_update", label: "Terms & Conditions Update", desc: "Inform clients that T&C have been updated", icon: <FileSignature className="w-5 h-5" />, target: "clients_multi" },
+                                { id: "client_info_update", label: "Client Info Update Request", desc: "Ask a specific client to update their project info", icon: <Edit2 className="w-5 h-5" />, target: "client_single" },
+                                { id: "new_client_welcome", label: "New Client Welcome", desc: "Send a welcome onboarding email to a new client", icon: <UserPlus className="w-5 h-5" />, target: "client_single" },
+                                { id: "custom", label: "Custom Alert", desc: "Write your own subject & message to any recipient(s)", icon: <PenLine className="w-5 h-5" />, target: "custom" },
+                            ] as const;
+
+                            const currentType = ALERT_TYPES.find(a => a.id === alertType)!;
+
+                            const handleSendAlert = async (e: React.FormEvent) => {
+                                e.preventDefault();
+                                setAlertSendStatus('sending');
+                                setAlertSendMessage('');
+                                try {
+                                    let payload: Record<string, unknown> = { alertType, customMessage: alertCustomMessage || undefined };
+                                    if (alertType === 'dashboard_access_pending' || alertType === 'profile_pending') {
+                                        payload.employeeIds = alertSelectedEmployeeIds;
+                                    } else if (alertType === 'terms_update') {
+                                        payload.clientIds = alertSelectAllClients ? [] : alertSelectedClientIds;
+                                        if (alertEffectiveDate) payload.effectiveDate = alertEffectiveDate;
+                                    } else if (alertType === 'client_info_update' || alertType === 'new_client_welcome') {
+                                        payload.clientId = alertSingleClientId;
+                                    } else if (alertType === 'custom') {
+                                        payload.recipients = alertCustomRecipients.split(',').map(e => e.trim()).filter(Boolean);
+                                        payload.customSubject = alertCustomSubject;
+                                        payload.customBody = alertCustomBody;
+                                    }
+                                    const res = await fetch('/api/admin/alerts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                                    const data = await res.json();
+                                    if (data.success) {
+                                        setAlertSendStatus('success');
+                                        setAlertSendMessage(data.message);
+                                    } else {
+                                        setAlertSendStatus('error');
+                                        setAlertSendMessage(data.message || 'Failed to send alert');
+                                    }
+                                } catch {
+                                    setAlertSendStatus('error');
+                                    setAlertSendMessage('Network error. Please try again.');
+                                }
+                            };
+
+                            const toggleEmployee = (id: number) => setAlertSelectedEmployeeIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+                            const toggleClient = (id: number) => setAlertSelectedClientIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+                            // Live preview subject
+                            const previewSubject = (() => {
+                                if (alertType === 'dashboard_access_pending') return 'Action Required: Your Redlix Dashboard Access is Pending';
+                                if (alertType === 'profile_pending') return 'Reminder: Complete Your Redlix Employee Profile';
+                                if (alertType === 'terms_update') return 'Important: Redlix Studio Terms & Conditions Have Been Updated';
+                                if (alertType === 'client_info_update') {
+                                    const c = clients.find(x => x.id === alertSingleClientId);
+                                    return `Action Required: Please Update Your Client Information — ${c?.companyName || '[Company]'}`;
+                                }
+                                if (alertType === 'new_client_welcome') {
+                                    const c = clients.find(x => x.id === alertSingleClientId);
+                                    return `Welcome to Redlix Studio — ${c?.companyName || '[Company]'} is Officially Onboarded!`;
+                                }
+                                return alertCustomSubject || '[Custom Subject]';
+                            })();
+
+                            return (
+                                <div className="h-full overflow-y-auto pr-2 pb-6 space-y-6">
+                                    {/* Header */}
+                                    <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+                                        <div className="w-10 h-10 bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center text-[#E61E32]">
+                                            <Bell className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-lg font-bold uppercase tracking-tight">Alert Sender</h2>
+                                            <p className="text-xs text-white/40 mt-0.5">Send predefined or custom alert emails via SMTP</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Alert Type Selector */}
+                                    <div>
+                                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3">Select Alert Type</p>
+                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                                            {ALERT_TYPES.map(type => (
+                                                <button
+                                                    key={type.id}
+                                                    onClick={() => { setAlertType(type.id as typeof alertType); setAlertSendStatus('idle'); setAlertSendMessage(''); setAlertSelectedEmployeeIds([]); setAlertSelectedClientIds([]); setAlertSingleClientId(''); setAlertCustomMessage(''); setAlertCustomSubject(''); setAlertCustomBody(''); setAlertEffectiveDate(''); setAlertSelectAllClients(false); }}
+                                                    className={`relative p-4 border text-left transition-all duration-200 group ${
+                                                        alertType === type.id
+                                                            ? 'border-[#E61E32] bg-[#E61E32]/10 text-white'
+                                                            : 'border-white/10 bg-white/[0.02] text-white/50 hover:border-white/20 hover:text-white hover:bg-white/5'
+                                                    }`}
+                                                >
+                                                    {alertType === type.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />}
+                                                    <div className={`mb-2 ${alertType === type.id ? 'text-[#E61E32]' : 'text-white/40 group-hover:text-white/70'}`}>{type.icon}</div>
+                                                    <p className="text-xs font-bold uppercase tracking-wide leading-tight">{type.label}</p>
+                                                    <p className="text-[10px] text-white/30 mt-1 leading-relaxed">{type.desc}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Form + Preview */}
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Form */}
+                                        <form onSubmit={handleSendAlert} className="bg-white/5 border border-white/10 p-6 space-y-5">
+                                            <div className="flex items-center gap-2 pb-3 border-b border-white/10">
+                                                <div className="text-[#E61E32]">{currentType.icon}</div>
+                                                <div>
+                                                    <h3 className="text-sm font-bold uppercase tracking-tight">{currentType.label}</h3>
+                                                    <p className="text-[10px] text-white/30 mt-0.5">{currentType.desc}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Employee multi-select */}
+                                            {(alertType === 'dashboard_access_pending' || alertType === 'profile_pending') && (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Employees *</label>
+                                                        <button type="button" onClick={() => setAlertSelectedEmployeeIds(alertSelectedEmployeeIds.length === employees.length ? [] : employees.map(e => e.id))} className="text-[10px] text-[#E61E32] uppercase font-bold hover:underline">
+                                                            {alertSelectedEmployeeIds.length === employees.length ? 'Deselect All' : 'Select All'}
+                                                        </button>
+                                                    </div>
+                                                    <div className="max-h-48 overflow-y-auto space-y-1 border border-white/10 p-2 bg-black">
+                                                        {employees.map(emp => (
+                                                            <label key={emp.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer rounded-none">
+                                                                <input type="checkbox" checked={alertSelectedEmployeeIds.includes(emp.id)} onChange={() => toggleEmployee(emp.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-xs font-semibold text-white/80 truncate">{emp.name}</p>
+                                                                    <p className="text-[10px] text-white/30 truncate font-mono">{emp.email}</p>
+                                                                </div>
+                                                                <span className="text-[9px] text-white/20 bg-white/5 px-1.5 py-0.5 shrink-0">{emp.role}</span>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                    {alertSelectedEmployeeIds.length > 0 && (
+                                                        <p className="text-[10px] text-[#E61E32] font-semibold">{alertSelectedEmployeeIds.length} employee(s) selected</p>
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Client multi-select for T&C */}
+                                            {alertType === 'terms_update' && (
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Recipients</label>
+                                                        <label className="flex items-center gap-1.5 cursor-pointer">
+                                                            <input type="checkbox" checked={alertSelectAllClients} onChange={e => { setAlertSelectAllClients(e.target.checked); setAlertSelectedClientIds([]); }} className="accent-[#E61E32] w-3.5 h-3.5" />
+                                                            <span className="text-[10px] text-white/50 font-semibold">Send to ALL clients</span>
+                                                        </label>
+                                                    </div>
+                                                    {!alertSelectAllClients && (
+                                                        <div className="max-h-40 overflow-y-auto space-y-1 border border-white/10 p-2 bg-black">
+                                                            {clients.map(c => (
+                                                                <label key={c.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer">
+                                                                    <input type="checkbox" checked={alertSelectedClientIds.includes(c.id)} onChange={() => toggleClient(c.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-xs font-semibold text-white/80 truncate">{c.companyName}</p>
+                                                                        <p className="text-[10px] text-white/30 truncate font-mono">{c.email}</p>
+                                                                    </div>
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Effective Date (Optional)</label>
+                                                        <input type="date" value={alertEffectiveDate} onChange={e => setAlertEffectiveDate(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Single client select */}
+                                            {(alertType === 'client_info_update' || alertType === 'new_client_welcome') && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Client *</label>
+                                                    <select required value={alertSingleClientId} onChange={e => setAlertSingleClientId(e.target.value === '' ? '' : Number(e.target.value))} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white">
+                                                        <option value="" className="bg-[#0f0f0f]">Choose a client...</option>
+                                                        {clients.map(c => (<option key={c.id} value={c.id} className="bg-[#0f0f0f]">{c.companyName} — {c.clientName}</option>))}
+                                                    </select>
+                                                    {alertSingleClientId !== '' && (() => {
+                                                        const c = clients.find(x => x.id === alertSingleClientId);
+                                                        if (!c) return null;
+                                                        return (
+                                                            <div className="p-3 bg-white/[0.02] border border-white/5 space-y-1.5 animate-in fade-in duration-200">
+                                                                <p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-widest">Client Details</p>
+                                                                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                                    <div><span className="text-white/30 block">Company</span><span className="text-white/70 font-medium">{c.companyName}</span></div>
+                                                                    <div><span className="text-white/30 block">Contact</span><span className="text-white/70 font-medium">{c.clientName}</span></div>
+                                                                    <div className="col-span-2"><span className="text-white/30 block">Email</span><span className="text-white/70 font-mono">{c.email}</span></div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            )}
+
+                                            {/* Custom alert fields */}
+                                            {alertType === 'custom' && (
+                                                <div className="space-y-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Recipients (comma-separated emails) *</label>
+                                                        <textarea required rows={2} placeholder="user@example.com, another@email.com" value={alertCustomRecipients} onChange={e => setAlertCustomRecipients(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Subject *</label>
+                                                        <input required type="text" placeholder="Email subject line" value={alertCustomSubject} onChange={e => setAlertCustomSubject(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white" />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Message Body *</label>
+                                                        <textarea required rows={5} placeholder="Type your alert message here..." value={alertCustomBody} onChange={e => setAlertCustomBody(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Optional additional note for all non-custom types */}
+                                            {alertType !== 'custom' && (
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Additional Note (Optional)</label>
+                                                    <textarea rows={3} placeholder="Add a personal note that will appear highlighted in the email..." value={alertCustomMessage} onChange={e => setAlertCustomMessage(e.target.value)} className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white resize-none" />
+                                                </div>
+                                            )}
+
+                                            {/* Send Button */}
+                                            <button
+                                                type="submit"
+                                                disabled={alertSendStatus === 'sending' ||
+                                                    ((alertType === 'dashboard_access_pending' || alertType === 'profile_pending') && alertSelectedEmployeeIds.length === 0) ||
+                                                    (alertType === 'terms_update' && !alertSelectAllClients && alertSelectedClientIds.length === 0) ||
+                                                    ((alertType === 'client_info_update' || alertType === 'new_client_welcome') && alertSingleClientId === '') ||
+                                                    (alertType === 'custom' && (!alertCustomRecipients || !alertCustomSubject || !alertCustomBody))
+                                                }
+                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/30 disabled:cursor-not-allowed text-white font-bold py-4 text-xs uppercase tracking-widest transition-all"
+                                            >
+                                                {alertSendStatus === 'sending' ? (
+                                                    <><Loader2 className="w-4 h-4 animate-spin" /> Sending Alert...</>
+                                                ) : (
+                                                    <><Send className="w-4 h-4" /> Send Alert Email</>
+                                                )}
+                                            </button>
+
+                                            {/* Status */}
+                                            {alertSendStatus === 'success' && (
+                                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-semibold text-center uppercase tracking-wider">
+                                                    ✓ {alertSendMessage}
+                                                </div>
+                                            )}
+                                            {alertSendStatus === 'error' && (
+                                                <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold text-center flex items-center justify-center gap-2 uppercase tracking-wider">
+                                                    <AlertCircle className="w-4 h-4" /> {alertSendMessage}
+                                                </div>
+                                            )}
+                                        </form>
+
+                                        {/* Live Preview */}
+                                        <div className="bg-white/5 border border-white/5 p-5 flex flex-col space-y-4">
+                                            <div className="flex justify-between items-center pb-3 border-b border-white/10">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                                                </div>
+                                                <span className="text-[10px] text-white/30 uppercase tracking-widest font-mono">Live Email Preview</span>
+                                            </div>
+                                            <div className="flex-grow bg-white text-black p-4 overflow-y-auto max-h-[620px] text-left text-[13px] font-sans">
+                                                {/* Email header meta */}
+                                                <div style={{borderBottom:'1px solid #e5e7eb',paddingBottom:'10px',marginBottom:'16px',fontSize:'11px',color:'#6b7280'}}>
+                                                    <div><strong style={{color:'#111'}}>From:</strong> Redlix Admin &lt;{process.env.SMTP_EMAIL || 'admin@redlix.co.in'}&gt;</div>
+                                                    <div style={{marginTop:'3px'}}><strong style={{color:'#111'}}>To:</strong> {alertType === 'custom' ? (alertCustomRecipients || '[Recipients]') : alertType === 'terms_update' ? (alertSelectAllClients ? 'All Clients' : alertSelectedClientIds.length > 0 ? `${alertSelectedClientIds.length} client(s)` : '[Select Clients]') : alertType === 'new_client_welcome' || alertType === 'client_info_update' ? (clients.find(c => c.id === alertSingleClientId)?.email || '[Client Email]') : alertSelectedEmployeeIds.length > 0 ? `${alertSelectedEmployeeIds.length} employee(s)` : '[Select Employees]'}</div>
+                                                    <div style={{marginTop:'3px'}}><strong style={{color:'#111'}}>Subject:</strong> {previewSubject}</div>
+                                                </div>
+                                                {/* Preview body */}
+                                                <div style={{maxWidth:'560px',margin:'0 auto',border:'1px solid #e0e0e0',backgroundColor:'#fff'}}>
+                                                    <div style={{backgroundColor:'#0a0a0a',padding:'18px 28px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                                                        <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix" style={{height:'24px',filter:'brightness(0) invert(1)'}} />
+                                                        <span style={{fontSize:'8px',fontWeight:700,letterSpacing:'0.2em',color:'#E61E32',textTransform:'uppercase'}}>
+                                                            {alertType === 'dashboard_access_pending' ? 'Portal Alert' : alertType === 'profile_pending' ? 'Profile Reminder' : alertType === 'terms_update' ? 'Terms Update' : alertType === 'client_info_update' ? 'Info Update' : alertType === 'new_client_welcome' ? 'Welcome' : 'Admin Alert'}
+                                                        </span>
+                                                    </div>
+                                                    <div style={{padding:'28px'}}>
+                                                        <h2 style={{fontSize:'16px',fontWeight:800,color:'#0a0a0a',margin:'0 0 6px 0'}}>
+                                                            {alertType === 'dashboard_access_pending' && 'Dashboard Access — Pending'}
+                                                            {alertType === 'profile_pending' && 'Profile Incomplete — Action Needed'}
+                                                            {alertType === 'terms_update' && 'Terms & Conditions Updated'}
+                                                            {alertType === 'client_info_update' && 'Client Information Update Request'}
+                                                            {alertType === 'new_client_welcome' && 'Welcome to Redlix Studio!'}
+                                                            {alertType === 'custom' && (alertCustomSubject || '[Your Subject]')}
+                                                        </h2>
+                                                        <div style={{width:'30px',height:'3px',backgroundColor:'#E61E32',marginBottom:'20px'}} />
+                                                        <p style={{fontSize:'13px',lineHeight:1.7,color:'#444',marginBottom:'16px'}}>
+                                                            {alertType === 'dashboard_access_pending' && 'Your Redlix Employee Dashboard access is still pending. Please complete the setup steps to activate your account.'}
+                                                            {alertType === 'profile_pending' && 'Your employee profile on the Redlix Portal is incomplete. Please log in and update your missing details.'}
+                                                            {alertType === 'terms_update' && `Redlix Studio has updated its Terms & Conditions${alertEffectiveDate ? `, effective ${new Date(alertEffectiveDate).toLocaleDateString('en-IN', {day:'numeric',month:'long',year:'numeric'})}` : ''}. Please review the changes.`}
+                                                            {alertType === 'client_info_update' && (() => { const c = clients.find(x => x.id === alertSingleClientId); return c ? `Dear ${c.clientName}, we require you to review and update your project information for ${c.companyName}.` : 'Select a client to see the preview.'; })()}
+                                                            {alertType === 'new_client_welcome' && (() => { const c = clients.find(x => x.id === alertSingleClientId); return c ? `Welcome ${c.clientName}! We are thrilled to have ${c.companyName} as our newest client.` : 'Select a client to see the preview.'; })()}
+                                                            {alertType === 'custom' && (alertCustomBody || 'Your message will appear here...')}
+                                                        </p>
+                                                        {alertCustomMessage && alertType !== 'custom' && (
+                                                            <div style={{borderLeft:'3px solid #E61E32',padding:'10px 14px',backgroundColor:'#fef2f2',marginBottom:'16px',fontSize:'12px',color:'#555'}}>
+                                                                <strong>Note from Admin:</strong> {alertCustomMessage}
+                                                            </div>
+                                                        )}
+                                                        <div style={{marginTop:'24px',paddingTop:'16px',borderTop:'1px solid #eee'}}>
+                                                            <p style={{margin:0,fontSize:'10px',fontWeight:700,color:'#E61E32',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+                                                                {alertType === 'profile_pending' ? 'Redlix HR Team' : alertType === 'terms_update' ? 'Redlix Legal & Compliance' : alertType === 'client_info_update' ? 'Redlix Client Relations' : alertType === 'new_client_welcome' ? 'Redlix Client Success' : 'Redlix Admin Team'}
+                                                            </p>
+                                                            <p style={{margin:'4px 0 0',fontSize:'11px',color:'#666'}}>Redlix Studio</p>
+                                                        </div>
+                                                    </div>
+                                                    <div style={{backgroundColor:'#fafafa',padding:'16px 28px',borderTop:'1px solid #eee'}}>
+                                                        <p style={{margin:0,fontSize:'10px',color:'#999',lineHeight:1.8}}>© 2026 Redlix Studio · www.redlix.co.in<br/>This is an automated notification.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                     </div>
                 </div>
             </div>
