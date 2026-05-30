@@ -32,7 +32,11 @@ import {
     Heart,
     BarChart3,
     ExternalLink,
-    X
+    X,
+    FolderUp,
+    Upload,
+    CheckCheck,
+    Hourglass
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -108,7 +112,7 @@ export default function EmployeePortal() {
         address?: string;
         joinedAt?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves" | "community">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves" | "community" | "declarations">("overview");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Community standup states
@@ -229,6 +233,27 @@ export default function EmployeePortal() {
     const [leaveType, setLeaveType] = useState("sick");
     const [leaveReason, setLeaveReason] = useState("");
     const [leaveIsSubmitting, setLeaveIsSubmitting] = useState(false);
+
+    // Declarations states
+    interface EmployeeDeclaration {
+        id: number;
+        fileName: string;
+        fileType: string;
+        fileSize: number;
+        clientName?: string;
+        notes?: string;
+        status: string;
+        createdAt: string;
+    }
+    const [declarations, setDeclarations] = useState<EmployeeDeclaration[]>([]);
+    const [declarationsLoading, setDeclarationsLoading] = useState(false);
+    const [declarationFiles, setDeclarationFiles] = useState<File[]>([]);
+    const [declarationClientName, setDeclarationClientName] = useState("");
+    const [declarationNotes, setDeclarationNotes] = useState("");
+    const [declarationSubmitting, setDeclarationSubmitting] = useState(false);
+    const [declarationDragOver, setDeclarationDragOver] = useState(false);
+    const [declarationSuccess, setDeclarationSuccess] = useState("");
+    const [declarationError, setDeclarationError] = useState("");
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
     const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
@@ -448,6 +473,8 @@ export default function EmployeePortal() {
             fetchEmployeeLeaves();
         } else if (activeTab === "community") {
             fetchCommunityUpdates();
+        } else if (activeTab === "declarations") {
+            fetchDeclarations();
         }
     }, [activeTab, employeeInfo]);
 
@@ -515,6 +542,94 @@ export default function EmployeePortal() {
             console.error("Failed to fetch employee tasks:", error);
         } finally {
             setTasksLoading(false);
+        }
+    };
+
+    const fetchDeclarations = async () => {
+        setDeclarationsLoading(true);
+        try {
+            const res = await fetch("/api/employee/declarations");
+            const data = await res.json();
+            if (data.success) setDeclarations(data.data);
+        } catch (error) {
+            console.error("Failed to fetch declarations:", error);
+        } finally {
+            setDeclarationsLoading(false);
+        }
+    };
+
+    const handleDeclarationDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setDeclarationDragOver(false);
+        const dropped = Array.from(e.dataTransfer.files);
+        const allowed = dropped.filter(f =>
+            f.type.startsWith("image/") ||
+            f.type === "application/pdf" ||
+            f.type === "application/msword" ||
+            f.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        );
+        if (allowed.length !== dropped.length) {
+            setDeclarationError("Only PDF, image, and Word files are allowed.");
+        }
+        setDeclarationFiles(prev => [...prev, ...allowed]);
+    };
+
+    const handleDeclarationFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        setDeclarationFiles(prev => [...prev, ...files]);
+        e.target.value = "";
+    };
+
+    const handleRemoveDeclarationFile = (index: number) => {
+        setDeclarationFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmitDeclarations = async () => {
+        if (declarationFiles.length === 0) {
+            setDeclarationError("Please select at least one file.");
+            return;
+        }
+        setDeclarationSubmitting(true);
+        setDeclarationError("");
+        setDeclarationSuccess("");
+
+        try {
+            for (const file of declarationFiles) {
+                const fileData = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const res = await fetch("/api/employee/declarations", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        fileName: file.name,
+                        fileType: file.type,
+                        fileData,
+                        fileSize: file.size,
+                        clientName: declarationClientName.trim() || null,
+                        notes: declarationNotes.trim() || null
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.message || "Upload failed");
+                }
+                setDeclarations(prev => [data.data, ...prev]);
+            }
+
+            setDeclarationFiles([]);
+            setDeclarationClientName("");
+            setDeclarationNotes("");
+            setDeclarationSuccess(`${declarationFiles.length} declaration(s) submitted successfully!`);
+            setTimeout(() => setDeclarationSuccess(""), 5000);
+        } catch (err: unknown) {
+            setDeclarationError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+        } finally {
+            setDeclarationSubmitting(false);
         }
     };
 
@@ -899,6 +1014,14 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        onClick={() => setActiveTab("declarations")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <FolderUp className="w-4 h-4" />
+                        Declarations
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("settings")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -954,7 +1077,8 @@ export default function EmployeePortal() {
                                             activeTab === "documents" ? "Documents" :
                                                 activeTab === "payrolls" ? "Payrolls" :
                                                     activeTab === "leaves" ? "Leaves" :
-                                                        activeTab === "community" ? "Community" : "Settings"}
+                                                        activeTab === "community" ? "Community" :
+                                                            activeTab === "declarations" ? "Declarations" : "Settings"}
                         </span>
                         <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
                             — {activeTab === "overview" ? "your stats and activity" :
@@ -964,7 +1088,8 @@ export default function EmployeePortal() {
                                             activeTab === "documents" ? "company and client resource files" :
                                                 activeTab === "payrolls" ? "monthly payments and history" :
                                                     activeTab === "leaves" ? "submit and track leave requests" :
-                                                        activeTab === "community" ? "what you and others did today" : "update personal, payroll and address info"}
+                                                        activeTab === "community" ? "what you and others did today" :
+                                                            activeTab === "declarations" ? "upload & submit client declaration documents" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -2199,6 +2324,201 @@ export default function EmployeePortal() {
                                 )}
                             </div>
                         )}
+
+                        {/* ─── DECLARATIONS TAB ─────────────────────────────────── */}
+                        {activeTab === "declarations" && (
+                            <div className="h-full space-y-6 animate-in fade-in duration-500 overflow-y-auto pr-2">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-white">Client Declarations</h2>
+                                        <p className="text-xs text-white/40 mt-1">Upload client declaration documents — PDFs, images, or Word files. Admin will review them.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg">
+                                        <FolderUp className="w-3.5 h-3.5" />
+                                        <span className="uppercase tracking-wider font-semibold">{declarations.filter(d => d.status === "pending").length} Pending</span>
+                                    </div>
+                                </div>
+
+                                {/* Upload Section */}
+                                <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-5">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                        <Upload className="w-3.5 h-3.5" />
+                                        Drop Documents Here
+                                    </h3>
+
+                                    {/* Drag and Drop Zone */}
+                                    <div
+                                        onDragOver={(e) => { e.preventDefault(); setDeclarationDragOver(true); }}
+                                        onDragLeave={() => setDeclarationDragOver(false)}
+                                        onDrop={handleDeclarationDrop}
+                                        className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer group ${
+                                            declarationDragOver
+                                                ? "border-[#E61E32] bg-[#E61E32]/5 scale-[1.01]"
+                                                : "border-white/10 hover:border-white/25 hover:bg-white/[0.02]"
+                                        }`}
+                                        onClick={() => document.getElementById('decl-file-input')?.click()}
+                                    >
+                                        <input
+                                            id="decl-file-input"
+                                            type="file"
+                                            multiple
+                                            accept="image/*,.pdf,.doc,.docx"
+                                            className="hidden"
+                                            onChange={handleDeclarationFileInput}
+                                        />
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
+                                                declarationDragOver ? "bg-[#E61E32]/20 text-[#E61E32]" : "bg-white/5 text-white/30 group-hover:bg-white/10 group-hover:text-white/60"
+                                            }`}>
+                                                <FolderUp className="w-7 h-7" />
+                                            </div>
+                                            <div>
+                                                <p className={`text-sm font-semibold transition-colors ${
+                                                    declarationDragOver ? "text-[#E61E32]" : "text-white/50 group-hover:text-white/70"
+                                                }`}>
+                                                    {declarationDragOver ? "Release to drop files" : "Drag & drop files here"}
+                                                </p>
+                                                <p className="text-xs text-white/25 mt-1">or click to browse — PDF, Images, Word docs • Max 10MB each</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Selected Files Preview */}
+                                    {declarationFiles.length > 0 && (
+                                        <div className="space-y-2">
+                                            <p className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">{declarationFiles.length} file{declarationFiles.length > 1 ? 's' : ''} selected</p>
+                                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                                                {declarationFiles.map((file, i) => (
+                                                    <div key={i} className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className="w-8 h-8 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
+                                                                <FileText className="w-4 h-4 text-[#E61E32]" />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="text-xs font-semibold text-white truncate">{file.name}</p>
+                                                                <p className="text-[10px] text-white/30">{(file.size / 1024).toFixed(1)} KB • {file.type.split('/')[1]?.toUpperCase()}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleRemoveDeclarationFile(i)}
+                                                            className="text-white/30 hover:text-[#E61E32] transition-colors p-1 rounded-lg hover:bg-[#E61E32]/10 shrink-0"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Metadata Fields */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Client Name <span className="text-white/20">(optional)</span></label>
+                                            <input
+                                                type="text"
+                                                value={declarationClientName}
+                                                onChange={(e) => setDeclarationClientName(e.target.value)}
+                                                placeholder="e.g. Acme Corp"
+                                                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Notes <span className="text-white/20">(optional)</span></label>
+                                            <input
+                                                type="text"
+                                                value={declarationNotes}
+                                                onChange={(e) => setDeclarationNotes(e.target.value)}
+                                                placeholder="Any relevant notes..."
+                                                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Error & Success */}
+                                    {declarationError && (
+                                        <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 rounded-xl p-3">
+                                            <p className="text-xs text-[#E61E32] font-medium">{declarationError}</p>
+                                        </div>
+                                    )}
+                                    {declarationSuccess && (
+                                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3 flex items-center gap-2">
+                                            <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                                            <p className="text-xs text-green-400 font-medium">{declarationSuccess}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Submit Button */}
+                                    <button
+                                        onClick={handleSubmitDeclarations}
+                                        disabled={declarationSubmitting || declarationFiles.length === 0}
+                                        className="w-full py-3.5 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#E61E32]/10"
+                                    >
+                                        {declarationSubmitting ? (
+                                            <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
+                                        ) : (
+                                            <><Send className="w-4 h-4" /> Submit {declarationFiles.length > 0 ? `${declarationFiles.length} Declaration${declarationFiles.length > 1 ? 's' : ''}` : 'Declarations'}</>
+                                        )}
+                                    </button>
+                                </div>
+
+                                {/* Submitted Declarations History */}
+                                <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                        <FileText className="w-3.5 h-3.5" />
+                                        Submitted Declarations
+                                        <span className="ml-auto text-white/20 font-normal normal-case tracking-normal">{declarations.length} total</span>
+                                    </h3>
+
+                                    {declarationsLoading ? (
+                                        <div className="flex items-center justify-center py-12">
+                                            <Loader2 className="w-6 h-6 animate-spin text-white/20" />
+                                        </div>
+                                    ) : declarations.length === 0 ? (
+                                        <div className="text-center py-12 space-y-2">
+                                            <FolderUp className="w-10 h-10 text-white/10 mx-auto" />
+                                            <p className="text-sm text-white/20">No declarations submitted yet.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {declarations.map((decl) => (
+                                                <div key={decl.id} className="flex items-center justify-between gap-4 p-4 bg-white/[0.02] border border-white/8 rounded-xl hover:border-white/15 transition-all">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="w-9 h-9 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
+                                                            <FileText className="w-4 h-4 text-[#E61E32]" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold text-white truncate">{decl.fileName}</p>
+                                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                                {decl.clientName && (
+                                                                    <span className="text-[10px] text-white/40">Client: {decl.clientName}</span>
+                                                                )}
+                                                                {decl.notes && (
+                                                                    <span className="text-[10px] text-white/30 truncate max-w-[160px]">{decl.notes}</span>
+                                                                )}
+                                                                <span className="text-[10px] text-white/20">{(decl.fileSize / 1024).toFixed(1)} KB</span>
+                                                                <span className="text-[10px] text-white/20">{new Date(decl.createdAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="shrink-0">
+                                                        {decl.status === "reviewed" ? (
+                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full">
+                                                                <CheckCheck className="w-3 h-3" /> Reviewed
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1 rounded-full">
+                                                                <Hourglass className="w-3 h-3" /> Pending
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 </div>
@@ -2343,14 +2663,28 @@ export default function EmployeePortal() {
                                         setActiveTab("community");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all col-span-2 ${
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
                                         activeTab === "community"
                                             ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
                                             : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
                                     }`}
                                 >
                                     <MessageSquare className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Community Standup</span>
+                                    <span className="text-xs font-semibold">Community</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("declarations");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                        activeTab === "declarations"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <FolderUp className="w-4 h-4" />
+                                    <span className="text-xs font-semibold">Declarations</span>
                                 </button>
                             </div>
                         </div>

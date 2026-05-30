@@ -37,7 +37,10 @@ import {
     UserCheck,
     FileSignature,
     UserPlus,
-    PenLine
+    PenLine,
+    FolderUp,
+    CheckCheck,
+    Hourglass
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -135,7 +138,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings" | "declarations">("overview");
 
     // Task management states
     interface Task {
@@ -191,6 +194,27 @@ export default function AdminPortal() {
     const [showAddDocForm, setShowAddDocForm] = useState(false);
     const [newDoc, setNewDoc] = useState({ title: "", description: "", category: "company", fileUrl: "", fileName: "" });
     const [documentsLoading, setDocumentsLoading] = useState(false);
+
+    // Admin Declarations states
+    interface AdminDeclaration {
+        id: number;
+        fileName: string;
+        fileType: string;
+        fileSize: number;
+        fileData: string;
+        clientName?: string;
+        notes?: string;
+        status: string;
+        createdAt: string;
+        employee: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+        };
+    }
+    const [adminDeclarations, setAdminDeclarations] = useState<AdminDeclaration[]>([]);
+    const [declarationsLoading, setDeclarationsLoading] = useState(false);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [showAddTaskForm, setShowAddTaskForm] = useState(false);
@@ -382,6 +406,8 @@ export default function AdminPortal() {
             fetchEmployees();
         } else if (activeTab === "documents") {
             fetchDocuments();
+        } else if (activeTab === "declarations") {
+            fetchAdminDeclarations();
         } else if (activeTab === "attendance") {
             fetchGlobalAttendance();
             fetchEmployees();
@@ -502,6 +528,52 @@ export default function AdminPortal() {
             console.error("Failed to fetch documents:", error);
         } finally {
             setDocumentsLoading(false);
+        }
+    };
+
+    const fetchAdminDeclarations = async () => {
+        setDeclarationsLoading(true);
+        try {
+            const res = await fetch("/api/admin/declarations");
+            const data = await res.json();
+            if (data.success) setAdminDeclarations(data.data);
+        } catch (error) {
+            console.error("Failed to fetch declarations:", error);
+        } finally {
+            setDeclarationsLoading(false);
+        }
+    };
+
+    const handleReviewDeclaration = async (id: number, status: "pending" | "reviewed") => {
+        try {
+            const res = await fetch(`/api/admin/declarations/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAdminDeclarations(prev => prev.map(d => d.id === id ? { ...d, status } : d));
+            } else {
+                alert(data.message || "Failed to update status");
+            }
+        } catch (error) {
+            console.error("Review declaration error:", error);
+        }
+    };
+
+    const handleDeleteDeclaration = async (id: number) => {
+        if (!confirm("Delete this declaration?")) return;
+        try {
+            const res = await fetch(`/api/admin/declarations/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setAdminDeclarations(prev => prev.filter(d => d.id !== id));
+            } else {
+                alert(data.message || "Failed to delete declaration");
+            }
+        } catch (error) {
+            console.error("Delete declaration error:", error);
         }
     };
 
@@ -1406,6 +1478,14 @@ export default function AdminPortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        onClick={() => setActiveTab("declarations")}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <FolderUp className="w-4 h-4" />
+                        Declarations
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("leaves")}
                         className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -1511,6 +1591,7 @@ export default function AdminPortal() {
                                                                 activeTab === "clients" ? "Clients" :
                                                                     activeTab === "meetings" ? "Meetings" :
                                                                         activeTab === "documents" ? "Documents" :
+                                                                            activeTab === "declarations" ? "Declarations" :
                                                                             activeTab === "payrolls" ? "Payrolls" :
                                                                                 activeTab === "leaves" ? "Leaves" :
                                                                                     activeTab === "settings" ? "Settings" :
@@ -1544,6 +1625,7 @@ export default function AdminPortal() {
                                                             activeTab === "clients" ? "monitor client projects and meetings" :
                                                                 activeTab === "meetings" ? "schedule and manage internal employee meetings" :
                                                                     activeTab === "documents" ? "upload and manage company and client documents" :
+                                                                        activeTab === "declarations" ? "review employee-submitted client declaration documents" :
                                                                         activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
                                                                             activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
                                                                                 activeTab === "settings" ? "manage system controls and master settings" :
@@ -4121,6 +4203,112 @@ export default function AdminPortal() {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== DECLARATIONS TAB ===== */}
+                        {activeTab === "declarations" && (
+                            <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
+                                <div className="flex items-center justify-between shrink-0">
+                                    <div>
+                                        <h2 className="text-base font-bold text-white">Employee Declarations</h2>
+                                        <p className="text-xs text-white/40 mt-1">Review client declaration documents submitted by employees.</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full">
+                                            <Hourglass className="w-3 h-3" />
+                                            {adminDeclarations.filter(d => d.status === "pending").length} Pending
+                                        </span>
+                                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full">
+                                            <CheckCheck className="w-3 h-3" />
+                                            {adminDeclarations.filter(d => d.status === "reviewed").length} Reviewed
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {declarationsLoading ? (
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                ) : adminDeclarations.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-3">
+                                        <FolderUp className="w-12 h-12 text-white/10" />
+                                        <p className="text-sm text-white/20">No declarations submitted by employees yet.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {adminDeclarations.map(decl => (
+                                            <div key={decl.id} className="bg-white/[0.02] border border-white/8 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-white/15 transition-all group">
+                                                {/* File icon + info */}
+                                                <div className="flex items-start gap-4 flex-1 min-w-0">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
+                                                        <FileText className="w-5 h-5 text-[#E61E32]" />
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-2 flex-wrap">
+                                                            <p className="text-sm font-semibold text-white truncate">{decl.fileName}</p>
+                                                            <span className="text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-full">
+                                                                {decl.fileType.split('/')[1]?.toUpperCase() || decl.fileType}
+                                                            </span>
+                                                            <span className="text-[9px] text-white/30">{(decl.fileSize / 1024).toFixed(1)} KB</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                                                            <span className="flex items-center gap-1 text-[10px] text-white/50">
+                                                                <User className="w-3 h-3" />
+                                                                {decl.employee.name}
+                                                            </span>
+                                                            <span className="text-[10px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded">{decl.employee.role}</span>
+                                                            {decl.clientName && (
+                                                                <span className="text-[10px] text-white/50">Client: <span className="text-white/70 font-medium">{decl.clientName}</span></span>
+                                                            )}
+                                                            {decl.notes && (
+                                                                <span className="text-[10px] text-white/40 italic truncate max-w-[200px]">{decl.notes}</span>
+                                                            )}
+                                                            <span className="text-[10px] text-white/25">{new Date(decl.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    {/* Status Badge + Toggle */}
+                                                    <button
+                                                        onClick={() => handleReviewDeclaration(decl.id, decl.status === "reviewed" ? "pending" : "reviewed")}
+                                                        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
+                                                            decl.status === "reviewed"
+                                                                ? "text-green-400 bg-green-500/10 border-green-500/20 hover:bg-green-500/20"
+                                                                : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20"
+                                                        }`}
+                                                        title={decl.status === "reviewed" ? "Mark as pending" : "Mark as reviewed"}
+                                                    >
+                                                        {decl.status === "reviewed" ? (
+                                                            <><CheckCheck className="w-3 h-3" /> Reviewed</>
+                                                        ) : (
+                                                            <><Hourglass className="w-3 h-3" /> Pending</>
+                                                        )}
+                                                    </button>
+
+                                                    {/* Download */}
+                                                    <a
+                                                        href={decl.fileData}
+                                                        download={decl.fileName}
+                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                                                        title="Download file"
+                                                    >
+                                                        <Download className="w-3 h-3" /> Download
+                                                    </a>
+
+                                                    {/* Delete */}
+                                                    <button
+                                                        onClick={() => handleDeleteDeclaration(decl.id)}
+                                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E61E32]/5 border border-[#E61E32]/10 text-[#E61E32]/50 hover:bg-[#E61E32]/15 hover:text-[#E61E32] hover:border-[#E61E32]/30 transition-all"
+                                                        title="Delete declaration"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>
