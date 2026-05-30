@@ -140,7 +140,6 @@ export default function EmployeePortal() {
     const [isStandupModalOpen, setIsStandupModalOpen] = useState(false);
     const [submittingCommunityUpdate, setSubmittingCommunityUpdate] = useState(false);
     const [likedUpdates, setLikedUpdates] = useState<Record<number, boolean>>({});
-    const [showUpdatesPopup, setShowUpdatesPopup] = useState(false);
 
     // Task states
     interface EmployeeTask {
@@ -446,13 +445,6 @@ export default function EmployeePortal() {
         };
         fetchMe();
     }, [router]);
-
-    useEffect(() => {
-        const hasSeenUpdates = localStorage.getItem("redlix_updates_v2_seen");
-        if (!hasSeenUpdates) {
-            setShowUpdatesPopup(true);
-        }
-    }, []);
 
     useEffect(() => {
         if (!employeeInfo) return;
@@ -2734,112 +2726,6 @@ export default function EmployeePortal() {
             />
 
             {/* PORTAL UPDATES POPUP MODAL */}
-            {showUpdatesPopup && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    {/* Backdrop */}
-                    <div 
-                        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity" 
-                        onClick={() => {
-                            localStorage.setItem("redlix_updates_v2_seen", "true");
-                            setShowUpdatesPopup(false);
-                        }} 
-                    />
-                    
-                    {/* Modal Content */}
-                    <div className="relative bg-[#0a0a0a]/95 border border-white/10 w-full max-w-2xl p-7 rounded-2xl shadow-2xl space-y-6 animate-in zoom-in-95 duration-350 z-10 text-left overflow-hidden">
-                        {/* Red Accent line at top */}
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-[#E61E32]" />
-
-                        <div className="flex justify-between items-start">
-                            <div className="space-y-1">
-                                <span className="inline-flex items-center gap-1 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                                    System Release v2.0
-                                </span>
-                                <h3 className="text-base font-black uppercase tracking-wider text-white mt-1">What's New in Redlix</h3>
-                            </div>
-                            <button 
-                                onClick={() => {
-                                    localStorage.setItem("redlix_updates_v2_seen", "true");
-                                    setShowUpdatesPopup(false);
-                                }} 
-                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-full"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-
-                        {/* List of features */}
-                        <div className="space-y-5 max-h-[50vh] overflow-y-auto pr-1 scrollbar-thin">
-                            {/* Feature 1 */}
-                            <div className="flex gap-4 items-start">
-                                <div className="w-9 h-9 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] shrink-0 mt-0.5">
-                                    <MessageSquare className="w-4 h-4" />
-                                </div>
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Community Standup Board</h4>
-                                    <p className="text-[11px] text-white/50 leading-relaxed font-normal">
-                                        We added a new "Community" page to the employee dashboard. Here, you can share the tasks you completed today, what you learned, and your progress. Teammates can see your updates and interact with them.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Feature 2 */}
-                            <div className="flex gap-4 items-start">
-                                <div className="w-9 h-9 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] shrink-0 mt-0.5">
-                                    <Globe className="w-4 h-4" />
-                                </div>
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Mobile App Layout</h4>
-                                    <p className="text-[11px] text-white/50 leading-relaxed font-normal">
-                                        The employee portal is now fully responsive on mobile screens. You can use the bottom tabs and the slide-up menu to visit different pages easily.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Feature 3 */}
-                            <div className="flex gap-4 items-start">
-                                <div className="w-9 h-9 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] shrink-0 mt-0.5">
-                                    <Clock className="w-4 h-4" />
-                                </div>
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Auto-Punch-Out at 7:30 PM</h4>
-                                    <p className="text-[11px] text-white/50 leading-relaxed font-normal">
-                                        If you forget to punch out, the website will automatically punch you out at 7:30 PM IST daily. This ensures your logged hours are accurate.
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Feature 4 */}
-                            <div className="flex gap-4 items-start">
-                                <div className="w-9 h-9 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] shrink-0 mt-0.5">
-                                    <FileText className="w-4 h-4" />
-                                </div>
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">Document Vault Sync</h4>
-                                    <p className="text-[11px] text-white/50 leading-relaxed font-normal">
-                                        You can now view and download resource files shared by department admins directly in the documents tab.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                            <span className="text-[10px] text-white/30">You won't see this pop up again.</span>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    localStorage.setItem("redlix_updates_v2_seen", "true");
-                                    setShowUpdatesPopup(false);
-                                }}
-                                className="px-6 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-[11px] font-black uppercase tracking-widest transition-all rounded-lg"
-                            >
-                                Let's Go
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </main>
     );
 }
