@@ -2320,12 +2320,12 @@ export default function EmployeePortal() {
                         {/* ─── DECLARATIONS TAB ─────────────────────────────────── */}
                         {activeTab === "declarations" && (
                             <div className="space-y-6 h-auto lg:h-full animate-in fade-in duration-500 overflow-visible lg:overflow-y-auto pr-2">
-                                <div className="flex items-center justify-between">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h2 className="text-lg font-bold text-white">Client Declarations</h2>
                                         <p className="text-xs text-white/40 mt-1">Upload client declaration documents — PDFs, images, or Word files. Admin will review them.</p>
                                     </div>
-                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg">
+                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
                                         <FolderUp className="w-3.5 h-3.5" />
                                         <span className="uppercase tracking-wider font-semibold">{declarations.filter(d => d.status === "pending").length} Pending</span>
                                     </div>

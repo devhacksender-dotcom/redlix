@@ -4211,12 +4211,12 @@ export default function AdminPortal() {
                         {/* ===== DECLARATIONS TAB ===== */}
                         {activeTab === "declarations" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
-                                <div className="flex items-center justify-between shrink-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                                     <div>
                                         <h2 className="text-base font-bold text-white">Employee Declarations</h2>
                                         <p className="text-xs text-white/40 mt-1">Review client declaration documents submitted by employees.</p>
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
                                         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full">
                                             <Hourglass className="w-3 h-3" />
                                             {adminDeclarations.filter(d => d.status === "pending").length} Pending
@@ -4270,7 +4270,7 @@ export default function AdminPortal() {
                                                 </div>
 
                                                 {/* Actions */}
-                                                <div className="flex items-center gap-2 shrink-0">
+                                                <div className="flex items-center gap-2 self-start md:self-auto mt-2 md:mt-0 flex-wrap shrink-0">
                                                     {/* Status Badge + Toggle */}
                                                     <button
                                                         onClick={() => handleReviewDeclaration(decl.id, decl.status === "reviewed" ? "pending" : "reviewed")}
