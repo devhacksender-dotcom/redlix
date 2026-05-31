@@ -1809,72 +1809,35 @@ export default function AdminPortal() {
                                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                         {/* Employees Analytics Card */}
                                         <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Employees</span>
-                                                    <h4 className="text-2xl font-bold font-mono text-white">{employees.length}</h4>
-                                                    <p className="text-[10px] text-white/30">Total active profiles</p>
-                                                </div>
-                                                <div className="w-8 h-8 bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                                                    <Users className="w-4 h-4" />
-                                                </div>
-                                            </div>
-                                            <div className="pt-2">
-                                                <SharpLineChart 
-                                                    data={analyticsData.employees} 
-                                                    labels={analyticsData.labels} 
-                                                    color="#3b82f6" 
-                                                    gradientId="empGrad" 
-                                                />
-                                            </div>
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Employees</span>
+                                            <SharpLineChart 
+                                                data={analyticsData.employees} 
+                                                labels={analyticsData.labels} 
+                                                color="#3b82f6" 
+                                                gradientId="empGrad" 
+                                            />
                                         </div>
 
                                         {/* Amount Generated Analytics Card */}
                                         <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Amount generated</span>
-                                                    <h4 className="text-2xl font-bold font-mono text-white">
-                                                        ₹{(analyticsData.amount[analyticsData.amount.length - 1] || 0).toLocaleString()}
-                                                    </h4>
-                                                    <p className="text-[10px] text-white/30">Current month payouts allocated</p>
-                                                </div>
-                                                <div className="w-8 h-8 bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500">
-                                                    <CreditCard className="w-4 h-4" />
-                                                </div>
-                                            </div>
-                                            <div className="pt-2">
-                                                <SharpLineChart 
-                                                    data={analyticsData.amount} 
-                                                    labels={analyticsData.labels} 
-                                                    color="#10b981" 
-                                                    gradientId="amtGrad" 
-                                                />
-                                            </div>
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Amount generated</span>
+                                            <SharpLineChart 
+                                                data={analyticsData.amount} 
+                                                labels={analyticsData.labels} 
+                                                color="#10b981" 
+                                                gradientId="amtGrad" 
+                                            />
                                         </div>
 
                                         {/* Work Hours Analytics Card */}
                                         <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <div className="flex justify-between items-start">
-                                                <div className="space-y-1">
-                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Work Hours</span>
-                                                    <h4 className="text-2xl font-bold font-mono text-white">
-                                                        {(analyticsData.hours[analyticsData.hours.length - 1] || 0)} hrs
-                                                    </h4>
-                                                    <p className="text-[10px] text-white/30">Current month logged hours</p>
-                                                </div>
-                                                <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
-                                                    <Clock className="w-4 h-4" />
-                                                </div>
-                                            </div>
-                                            <div className="pt-2">
-                                                <SharpLineChart 
-                                                    data={analyticsData.hours} 
-                                                    labels={analyticsData.labels} 
-                                                    color="#ef4444" 
-                                                    gradientId="hrsGrad" 
-                                                />
-                                            </div>
+                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Work Hours</span>
+                                            <SharpLineChart 
+                                                data={analyticsData.hours} 
+                                                labels={analyticsData.labels} 
+                                                color="#ef4444" 
+                                                gradientId="hrsGrad" 
+                                            />
                                         </div>
                                     </div>
                                 </div>
