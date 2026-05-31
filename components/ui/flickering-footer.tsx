@@ -872,6 +872,10 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
         maskCtx.restore();
       }
 
+      // Pre-fetch the entire mask image data exactly once for extreme performance
+      const maskImgData = maskCtx.getImageData(0, 0, width, height);
+      const maskData = maskImgData.data;
+
       // Draw flickering squares with optimized RGBA colors
       for (let i = 0; i < cols; i++) {
         for (let j = 0; j < rows; j++) {
@@ -880,15 +884,22 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
           const squareWidth = squareSize * dpr;
           const squareHeight = squareSize * dpr;
 
-          const maskData = maskCtx.getImageData(
-            x,
-            y,
-            squareWidth,
-            squareHeight,
-          ).data;
-          const hasText = maskData.some(
-            (value, index) => index % 4 === 0 && value > 0,
-          );
+          // Check pixels inside the square bounds directly in the pre-fetched maskData array
+          let hasText = false;
+          const startX = Math.floor(x);
+          const startY = Math.floor(y);
+          const endX = Math.floor(x + squareWidth);
+          const endY = Math.floor(y + squareHeight);
+
+          for (let py = startY; py < endY && !hasText; py++) {
+            for (let px = startX; px < endX; px++) {
+              const idx = (py * width + px) * 4;
+              if (idx >= 0 && idx < maskData.length && maskData[idx + 3] > 50) {
+                hasText = true;
+                break;
+              }
+            }
+          }
 
           const opacity = squares[i * rows + j];
           const finalOpacity = hasText
