@@ -40,7 +40,8 @@ import {
     PenLine,
     FolderUp,
     CheckCheck,
-    Hourglass
+    Hourglass,
+    Eye
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -215,6 +216,7 @@ export default function AdminPortal() {
     }
     const [adminDeclarations, setAdminDeclarations] = useState<AdminDeclaration[]>([]);
     const [declarationsLoading, setDeclarationsLoading] = useState(false);
+    const [previewFile, setPreviewFile] = useState<{ name: string; type: string; data: string } | null>(null);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [showAddTaskForm, setShowAddTaskForm] = useState(false);
@@ -4336,6 +4338,15 @@ export default function AdminPortal() {
                                                         )}
                                                     </button>
 
+                                                    {/* Preview */}
+                                                    <button
+                                                        onClick={() => setPreviewFile({ name: decl.fileName, type: decl.fileType, data: decl.fileData })}
+                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                                                        title="Preview document"
+                                                    >
+                                                        <Eye className="w-3 h-3" /> Preview
+                                                    </button>
+
                                                     {/* Download */}
                                                     <a
                                                         href={decl.fileData}
@@ -5046,6 +5057,57 @@ export default function AdminPortal() {
                     </div>
                 </div>
             </div>
+            {/* Document Preview Modal */}
+            {previewFile && (
+                <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#0f0f0f] border border-white/10 w-full max-w-4xl h-[85vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                            <div className="min-w-0">
+                                <h3 className="font-bold text-sm text-white truncate max-w-md sm:max-w-lg" title={previewFile.name}>{previewFile.name}</h3>
+                                <p className="text-[10px] text-white/30 mt-0.5">{previewFile.type}</p>
+                            </div>
+                            <button
+                                onClick={() => setPreviewFile(null)}
+                                className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                        
+                        {/* Content Area */}
+                        <div className="flex-1 bg-[#070707] p-4 sm:p-6 flex items-center justify-center overflow-hidden">
+                            {previewFile.type.startsWith("image/") ? (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <img 
+                                        src={previewFile.data} 
+                                        alt={previewFile.name} 
+                                        className="max-w-full max-h-full object-contain rounded-lg"
+                                    />
+                                </div>
+                            ) : previewFile.type.includes("pdf") ? (
+                                <iframe 
+                                    src={previewFile.data} 
+                                    className="w-full h-full rounded-lg border border-white/5 bg-white"
+                                    title={previewFile.name}
+                                />
+                            ) : (
+                                <div className="text-center space-y-4">
+                                    <FileText className="w-16 h-16 text-[#E61E32] mx-auto opacity-40 animate-pulse" />
+                                    <p className="text-sm text-white/40">Preview not available for this file type.</p>
+                                    <a
+                                        href={previewFile.data}
+                                        download={previewFile.name}
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors"
+                                    >
+                                        <Download className="w-3.5 h-3.5" /> Download File
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }
