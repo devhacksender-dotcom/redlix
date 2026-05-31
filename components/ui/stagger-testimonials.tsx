@@ -78,14 +78,16 @@ interface TestimonialCardProps {
   position: number;
   testimonial: typeof testimonials[0];
   handleMove: (steps: number) => void;
-  cardSize: number;
+  cardWidth: number;
+  cardHeight: number;
 }
 
 const TestimonialCard: React.FC<TestimonialCardProps> = ({ 
   position, 
   testimonial, 
   handleMove, 
-  cardSize 
+  cardWidth,
+  cardHeight
 }) => {
   const isCenter = position === 0;
 
@@ -99,15 +101,15 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
           : "z-0 text-zinc-500 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
       )}
       style={{
-        width: cardSize,
-        height: cardSize,
+        width: cardWidth,
+        height: cardHeight,
         backgroundColor: testimonial.bgColor,
         borderColor: testimonial.borderColor,
         clipPath: `polygon(50px 0%, calc(100% - 50px) 0%, 100% 50px, 100% 100%, calc(100% - 50px) 100%, 50px 100%, 0 100%, 0 0)`,
         transform: `
           translate(-50%, -50%) 
-          translateX(${(cardSize / 1.45) * position}px)
-          translateY(${isCenter ? -35 : position % 2 ? 10 : -10}px)
+          translateX(${(cardWidth / 1.45) * position}px)
+          translateY(${isCenter ? -45 : position % 2 ? 10 : -10}px)
           rotate(${isCenter ? 0 : position % 2 ? 2 : -2}deg)
         `,
         boxShadow: isCenter ? "0px 10px 0px 0px #ef4444" : "0px 0px 0px 0px transparent"
@@ -145,7 +147,8 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
 };
 
 export const StaggerTestimonials: React.FC = () => {
-  const [cardSize, setCardSize] = useState(345);
+  const [cardWidth, setCardWidth] = useState(350);
+  const [cardHeight, setCardHeight] = useState(400);
   const [testimonialsList, setTestimonialsList] = useState(testimonials);
 
   const handleMove = (steps: number) => {
@@ -169,7 +172,8 @@ export const StaggerTestimonials: React.FC = () => {
   useEffect(() => {
     const updateSize = () => {
       const { matches } = window.matchMedia("(min-width: 640px)");
-      setCardSize(matches ? 425 : 335);
+      setCardWidth(matches ? 350 : 280);
+      setCardHeight(matches ? 400 : 330);
     };
 
     updateSize();
@@ -180,7 +184,7 @@ export const StaggerTestimonials: React.FC = () => {
   return (
     <div
       className="relative w-full overflow-hidden bg-zinc-50/50"
-      style={{ height: 600 }}
+      style={{ height: 500 }}
     >
       {testimonialsList.map((testimonial, index) => {
         const position = testimonialsList.length % 2
@@ -192,7 +196,8 @@ export const StaggerTestimonials: React.FC = () => {
             testimonial={testimonial}
             handleMove={handleMove}
             position={position}
-            cardSize={cardSize}
+            cardWidth={cardWidth}
+            cardHeight={cardHeight}
           />
         );
       })}
