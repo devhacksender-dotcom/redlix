@@ -61,6 +61,27 @@ interface Document {
     createdAt: string;
 }
 
+const renderTextWithLinks = (text: string) => {
+    if (!text) return "";
+    const parts = text.split(/(https?:\/\/[^\s]+)/gi);
+    return parts.map((part, index) => {
+        if (part.match(/^https?:\/\//i)) {
+            return (
+                <a
+                    key={index}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline break-all font-medium"
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
 export default function DepartmentDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<"overview" | "attendance" | "tasks" | "documents">("overview");
@@ -778,12 +799,12 @@ export default function DepartmentDashboard() {
                                                             {filtered.map((task) => (
                                                                 <div key={task.id} className="bg-white/5 border border-white/5 p-6 flex flex-col justify-between space-y-4 hover:border-white/10 transition-colors">
                                                                     <div className="space-y-3">
-                                                                        <div className="flex justify-between items-start gap-4">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                                                             <div>
                                                                                 <h4 className="text-sm font-bold text-white line-clamp-1">{task.title}</h4>
                                                                                 <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-1">Assignee: {task.employee?.name} ({task.employee?.role})</p>
                                                                             </div>
-                                                                            <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
+                                                                            <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border self-start sm:self-auto shrink-0 ${
                                                                                 task.status === 'completed'
                                                                                     ? 'bg-green-500/10 text-green-400 border-green-500/20'
                                                                                     : task.status === 'in_progress'
@@ -798,7 +819,7 @@ export default function DepartmentDashboard() {
 
                                                                         {task.description && (
                                                                             <p className="text-xs text-white/50 leading-relaxed break-words line-clamp-3">
-                                                                                {task.description}
+                                                                                {renderTextWithLinks(task.description)}
                                                                             </p>
                                                                         )}
 

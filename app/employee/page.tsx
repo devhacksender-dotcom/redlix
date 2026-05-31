@@ -97,6 +97,27 @@ interface InternSupport {
     createdAt: string;
 }
 
+const renderTextWithLinks = (text: string) => {
+    if (!text) return "";
+    const parts = text.split(/(https?:\/\/[^\s]+)/gi);
+    return parts.map((part, index) => {
+        if (part.match(/^https?:\/\//i)) {
+            return (
+                <a
+                    key={index}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline break-all font-medium"
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
 export default function EmployeePortal() {
     const router = useRouter();
     const [employeeInfo, setEmployeeInfo] = useState<{
@@ -1247,15 +1268,15 @@ export default function EmployeePortal() {
                                                 onClick={() => setSelectedEmployeeTask(t)}
                                                 className={`p-5 border transition-all cursor-pointer rounded-xl ${selectedEmployeeTask?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
                                             >
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-bold text-white flex items-center gap-2">
+                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                                                    <h3 className="font-bold text-white flex items-center gap-2 flex-wrap min-w-0">
                                                         {t.title}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md shrink-0 ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
                                                             {t.status.replace("_", " ")}
                                                         </span>
                                                     </h3>
                                                     {t.deadline && (
-                                                        <span className="text-[9px] text-white/20 uppercase tracking-tighter">
+                                                        <span className="text-[9px] text-white/20 uppercase tracking-wider shrink-0">
                                                             Due {new Date(t.deadline).toLocaleDateString()}
                                                         </span>
                                                     )}
@@ -1299,7 +1320,7 @@ export default function EmployeePortal() {
                                             <div className="space-y-3">
                                                 <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Task Description</h4>
                                                 <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
-                                                    {selectedEmployeeTask.description || "No description provided."}
+                                                    {renderTextWithLinks(selectedEmployeeTask.description || "No description provided.")}
                                                 </p>
                                             </div>
 

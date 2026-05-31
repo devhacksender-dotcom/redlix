@@ -2135,19 +2135,21 @@ export default function AdminPortal() {
                                                             }}
                                                             className={`p-5 border transition-all cursor-pointer ${selectedTask?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
                                                         >
-                                                            <div className="flex justify-between items-start mb-2">
-                                                                <h3 className="font-bold text-white truncate max-w-[200px]" title={t.title}>{t.title}</h3>
-                                                                <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                                                                    {t.status.replace("_", " ")}
-                                                                </span>
+                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                                                                <h3 className="font-bold text-white flex items-center gap-2 flex-wrap min-w-0" title={t.title}>
+                                                                    {t.title}
+                                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md shrink-0 ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                                        {t.status.replace("_", " ")}
+                                                                    </span>
+                                                                </h3>
                                                             </div>
-                                                            <div className="flex justify-between items-end">
+                                                            <div className="flex flex-col sm:flex-row sm:items-start md:items-end justify-between gap-2 mt-1">
                                                                 <div>
                                                                     <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Assigned: {t.employee?.name || "Unknown"}</p>
                                                                     <p className="text-xs text-white/40 truncate max-w-[250px]" title={t.description || ""}>{t.description || "No description."}</p>
                                                                 </div>
                                                                 {t.deadline && (
-                                                                    <span className="text-[9px] text-white/20 uppercase tracking-tighter shrink-0">
+                                                                    <span className="text-[9px] text-white/20 uppercase tracking-wider shrink-0">
                                                                         Due {new Date(t.deadline).toLocaleDateString()}
                                                                     </span>
                                                                 )}
@@ -5002,12 +5004,33 @@ export default function AdminPortal() {
     );
 }
 
+const renderTextWithLinks = (text: string) => {
+    if (!text) return "";
+    const parts = text.split(/(https?:\/\/[^\s]+)/gi);
+    return parts.map((part, index) => {
+        if (part.match(/^https?:\/\//i)) {
+            return (
+                <a
+                    key={index}
+                    href={part}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:text-blue-300 underline break-all font-medium"
+                >
+                    {part}
+                </a>
+            );
+        }
+        return part;
+    });
+};
+
 function InfoBlock({ label, value }: { label: string, value?: string }) {
     if (!value) return null;
     return (
         <div className="space-y-0.5">
             <p className="text-[11px] font-medium text-white/20">{label}</p>
-            <p className="text-sm text-white/80">{value}</p>
+            <p className="text-sm text-white/80 whitespace-pre-wrap">{renderTextWithLinks(value)}</p>
         </div>
     );
 }
