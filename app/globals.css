@@ -118,3 +118,16 @@ body {
   width: max-content;
   animation: marquee 45s linear infinite reverse;
 }
+
+@keyframes waves {
+  0% {
+    transform: translateY(-170px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.waves {
+  animation: waves 5s linear infinite;
+}
