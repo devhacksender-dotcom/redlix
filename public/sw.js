@@ -41,7 +41,45 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!url.pathname.startsWith('/employee') && !url.pathname.startsWith('/api/employee')) return;
 
-  // For API calls: network-only (don't cache API responses)
+  // For Employee GET API calls: Network-first caching with graceful offline fallbacks
+  const targetEmployeeAPIs = [
+    '/api/employee/declarations',
+    '/api/employee/attendance',
+    '/api/employee/me'
+  ];
+
+  if (targetEmployeeAPIs.includes(url.pathname)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse.status === 200) {
+            const cloned = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          
+          // If no cache, return appropriate schema matching the expected API structure
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: 'You are offline.', 
+              isOfflineFallback: true,
+              data: [], 
+              history: [], 
+              activeSession: null 
+            }), 
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        })
+    );
+    return;
+  }
+
+  // For other API calls: network-only (don't cache API responses)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(fetch(event.request).catch(() => new Response(JSON.stringify({ success: false, message: 'You are offline.' }), { headers: { 'Content-Type': 'application/json' } })));
     return;

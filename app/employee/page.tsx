@@ -1335,33 +1335,33 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "attendance" && (
-                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-6">
+                            <div className="space-y-6 h-auto lg:h-full flex flex-col overflow-visible lg:overflow-y-auto pr-2 pb-6">
                                 {/* Attendance Statistics */}
                                 {(() => {
                                     const stats = getAttendanceStats(getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt));
                                     return (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 shrink-0">
-                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 shrink-0">
+                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
                                                 <p className="text-[10px] font-normal text-white/30">Present Days</p>
                                                 <h4 className="text-xl font-bold text-green-400">{stats.presentDays}</h4>
                                                 <p className="text-[9px] text-white/20">Checked in on-time</p>
                                             </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
+                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
                                                 <p className="text-[10px] font-normal text-[#E61E32]">Absent Days</p>
                                                 <h4 className="text-xl font-bold text-[#E61E32]">{stats.absentDays}</h4>
                                                 <p className="text-[9px] text-white/20">Missed / Late check-ins</p>
                                             </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
+                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
                                                 <p className="text-[10px] font-normal text-yellow-500/80">Pending Today</p>
                                                 <h4 className="text-xl font-bold text-yellow-500">{stats.pendingDays}</h4>
                                                 <p className="text-[9px] text-white/20">Before 10:00 AM today</p>
                                             </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
+                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
                                                 <p className="text-[10px] font-normal text-white/30">Total Work Time</p>
                                                 <h4 className="text-xl font-bold text-white/90">{stats.totalHours} hrs</h4>
                                                 <p className="text-[9px] text-white/20">Accrued this period</p>
                                             </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
+                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
                                                 <p className="text-[10px] font-normal text-white/30">Avg Hours / Day</p>
                                                 <h4 className="text-xl font-bold text-white/95">{stats.avgHours} hrs</h4>
                                                 <p className="text-[9px] text-white/20">Per present day</p>
@@ -1371,9 +1371,9 @@ export default function EmployeePortal() {
                                 })()}
 
                                 {/* Main Attendance Content */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 flex-grow min-h-[400px]">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 flex-grow lg:min-h-[400px]">
                                     {/* Punch Actions Card */}
-                                    <div className="bg-white/5 border border-white/5 p-8 flex flex-col items-center justify-center text-center space-y-8 min-h-[350px] rounded-xl">
+                                    <div className="bg-white/5 border border-white/5 p-5 sm:p-8 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 min-h-[300px] sm:min-h-[350px] rounded-xl">
                                         <div className="space-y-2">
                                             <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
                                                 {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -1423,7 +1423,7 @@ export default function EmployeePortal() {
                                     </div>
 
                                     {/* Attendance History Table */}
-                                    <div className="bg-white/5 border border-white/5 p-8 flex flex-col overflow-hidden h-full rounded-xl">
+                                    <div className="bg-white/5 border border-white/5 p-4 sm:p-8 flex flex-col lg:overflow-hidden h-auto lg:h-full rounded-xl">
                                         <div className="mb-4 shrink-0 flex justify-between items-center">
                                             <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Daily Attendance Logs</h3>
                                             {/* Summary badges */}
@@ -1437,7 +1437,7 @@ export default function EmployeePortal() {
                                             </div>
                                         </div>
 
-                                        <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
+                                        <div className="overflow-visible lg:overflow-y-auto pr-1 flex-grow scrollbar-thin">
                                             {attendanceLoading ? (
                                                 <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
                                             ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
@@ -2319,7 +2319,7 @@ export default function EmployeePortal() {
 
                         {/* ─── DECLARATIONS TAB ─────────────────────────────────── */}
                         {activeTab === "declarations" && (
-                            <div className="h-full space-y-6 animate-in fade-in duration-500 overflow-y-auto pr-2">
+                            <div className="space-y-6 h-auto lg:h-full animate-in fade-in duration-500 overflow-visible lg:overflow-y-auto pr-2">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-lg font-bold text-white">Client Declarations</h2>
@@ -2343,7 +2343,7 @@ export default function EmployeePortal() {
                                         onDragOver={(e) => { e.preventDefault(); setDeclarationDragOver(true); }}
                                         onDragLeave={() => setDeclarationDragOver(false)}
                                         onDrop={handleDeclarationDrop}
-                                        className={`relative border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer group ${
+                                        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center transition-all duration-200 cursor-pointer group ${
                                             declarationDragOver
                                                 ? "border-[#E61E32] bg-[#E61E32]/5 scale-[1.01]"
                                                 : "border-white/10 hover:border-white/25 hover:bg-white/[0.02]"
@@ -2474,26 +2474,26 @@ export default function EmployeePortal() {
                                     ) : (
                                         <div className="space-y-3">
                                             {declarations.map((decl) => (
-                                                <div key={decl.id} className="flex items-center justify-between gap-4 p-4 bg-white/[0.02] border border-white/8 rounded-xl hover:border-white/15 transition-all">
-                                                    <div className="flex items-center gap-3 min-w-0">
+                                                <div key={decl.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 bg-white/[0.02] border border-white/8 rounded-xl hover:border-white/15 transition-all">
+                                                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
                                                         <div className="w-9 h-9 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
                                                             <FileText className="w-4 h-4 text-[#E61E32]" />
                                                         </div>
-                                                        <div className="min-w-0">
+                                                        <div className="min-w-0 flex-grow">
                                                             <p className="text-sm font-semibold text-white truncate">{decl.fileName}</p>
-                                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                            <div className="flex items-center gap-2 mt-1 flex-wrap">
                                                                 {decl.clientName && (
                                                                     <span className="text-[10px] text-white/40">Client: {decl.clientName}</span>
                                                                 )}
                                                                 {decl.notes && (
-                                                                    <span className="text-[10px] text-white/30 truncate max-w-[160px]">{decl.notes}</span>
+                                                                    <span className="text-[10px] text-white/30 truncate max-w-[140px] sm:max-w-[200px]" title={decl.notes}>{decl.notes}</span>
                                                                 )}
                                                                 <span className="text-[10px] text-white/20">{(decl.fileSize / 1024).toFixed(1)} KB</span>
                                                                 <span className="text-[10px] text-white/20">{new Date(decl.createdAt).toLocaleDateString()}</span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="shrink-0">
+                                                    <div className="self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
                                                         {decl.status === "reviewed" ? (
                                                             <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-full">
                                                                 <CheckCheck className="w-3 h-3" /> Reviewed
