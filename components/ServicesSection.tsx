@@ -2,76 +2,67 @@ import React from "react";
 import Link from "next/link";
 import { Sparkles, Globe, Smartphone, Cpu } from "lucide-react";
 
-// Prepend custom micro-vector SVGs inside technology pills for a high-end designer finish.
+// Prepend high-fidelity official brand colored SVG logos inside technology pills using third party Simple Icons CDN.
 function getPillIcon(pill: string) {
-    switch (pill) {
-        case "Next.js":
-            return (
-                <svg className="w-3 h-3 text-[#0A3D5C] shrink-0 mr-1.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                    <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm-2 18h-1.5v-9h1.5v9zm6.5 0h-1.25l-3.25-5.25v5.25h-1.5v-9h1.25l3.25 5.25v-5.25h1.5v9z"/>
-                </svg>
-            );
-        case "React":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5 animate-[spin_8s_linear_infinite]" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="6.5" aria-hidden>
-                    <ellipse cx="50" cy="50" rx="15" ry="38" transform="rotate(30 50 50)" />
-                    <ellipse cx="50" cy="50" rx="15" ry="38" transform="rotate(90 50 50)" />
-                    <ellipse cx="50" cy="50" rx="15" ry="38" transform="rotate(150 50 50)" />
-                    <circle cx="50" cy="50" r="6" fill="currentColor" />
-                </svg>
-            );
-        case "PostgreSQL":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                </svg>
-            );
-        case "AWS Cloud":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
-                </svg>
-            );
-        case "Docker":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-            );
-        case "Node.js Systems":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                </svg>
-            );
-        case "AI Agent Integration":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 21l-.813-5.096L3 15l5.187-.813L9 9l.813 5.187L15 15l-5.187.813zM19.071 4.929l-.707 3.536-3.536.707 3.536.707.707 3.536.707-3.536 3.536-.707-3.536-.707-.707-3.536z" />
-                </svg>
-            );
-        case "REST APIs":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-            );
-        case "Stripe Payments":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-            );
-        case "SaaS Systems":
-            return (
-                <svg className="w-3.5 h-3.5 text-[#0A3D5C] shrink-0 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" aria-hidden>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-            );
-        default:
-            return null;
+    const customUrlMap: Record<string, string> = {
+        "Java": "https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Java_programming_language_logo.svg/960px-Java_programming_language_logo.svg.png",
+        "AWS": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/960px-Amazon_Web_Services_Logo.svg.png?_=20170912170050",
+        "CSS3": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/CSS3_logo.svg/1280px-CSS3_logo.svg.png"
+    };
+
+    if (customUrlMap[pill]) {
+        return (
+            <img
+                src={customUrlMap[pill]}
+                alt=""
+                className="w-4 h-4 shrink-0 mr-1.5 object-contain"
+                loading="lazy"
+            />
+        );
     }
+
+    const slugMap: Record<string, string> = {
+        "TypeScript": "typescript",
+        "JavaScript": "javascript",
+        "Python": "python",
+        "Go": "go",
+        "Rust": "rust",
+        "C++": "cplusplus",
+        "C": "c",
+        "PHP": "php",
+        "Ruby": "ruby",
+        "Swift": "swift",
+        "Kotlin": "kotlin",
+        "HTML5": "html5",
+        "Dart": "dart",
+        "Zig": "zig",
+        "React": "react",
+        "Next.js": "nextdotjs",
+        "Node.js": "nodedotjs",
+        "PostgreSQL": "postgresql",
+        "MongoDB": "mongodb",
+        "Redis": "redis",
+        "Docker": "docker",
+        "Kubernetes": "kubernetes",
+        "GraphQL": "graphql",
+        "Prisma": "prisma",
+        "Stripe": "stripe",
+        "Firebase": "firebase",
+        "Git": "git"
+    };
+    const slug = slugMap[pill];
+    if (!slug) return null;
+    return (
+        <img
+            src={`https://cdn.simpleicons.org/${slug}`}
+            alt=""
+            className="w-4 h-4 shrink-0 mr-1.5 object-contain"
+            loading="lazy"
+        />
+    );
 }
+
+
 
 const services = [
     {
@@ -189,50 +180,110 @@ export default function ServicesSection() {
 
                                 {isSaaS ? (
                                     <div className="w-full h-[220px] shrink-0 mt-auto flex flex-col gap-2 pt-1 pb-3 overflow-hidden select-none">
-                                        {/* Row 1 */}
-                                        <div className="flex gap-2 justify-start pl-3 whitespace-nowrap">
-                                            {["Next.js", "React", "SaaS Systems"].map((pill) => (
-                                                <span key={pill} className="inline-flex items-center px-3.5 py-1.5 bg-white/60 backdrop-blur-sm border border-white/80 rounded-full text-[11.5px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(10,61,92,0.04)]">
-                                                    {getPillIcon(pill)}
-                                                    {pill}
-                                                </span>
-                                            ))}
+                                        {/* Row 1 - Infinite Scroll Left */}
+                                        <div className="w-full overflow-hidden relative">
+                                            <div className="animate-marquee flex gap-2 whitespace-nowrap">
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["TypeScript", "JavaScript", "Python", "Go", "Rust", "Swift"].map((pill) => (
+                                                        <span key={`r1-1-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["TypeScript", "JavaScript", "Python", "Go", "Rust", "Swift"].map((pill) => (
+                                                        <span key={`r1-2-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {/* Row 2 */}
-                                        <div className="flex gap-2 justify-center whitespace-nowrap">
-                                            {["PostgreSQL", "REST APIs", "Stripe Payments"].map((pill) => (
-                                                <span key={pill} className="inline-flex items-center px-3.5 py-1.5 bg-white/60 backdrop-blur-sm border border-white/80 rounded-full text-[11.5px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(10,61,92,0.04)]">
-                                                    {getPillIcon(pill)}
-                                                    {pill}
-                                                </span>
-                                            ))}
+                                        {/* Row 2 - Infinite Scroll Right */}
+                                        <div className="w-full overflow-hidden relative">
+                                            <div className="animate-marquee-reverse flex gap-2 whitespace-nowrap">
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["React", "Next.js", "Node.js", "GraphQL", "HTML5", "CSS3"].map((pill) => (
+                                                        <span key={`r2-1-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["React", "Next.js", "Node.js", "GraphQL", "HTML5", "CSS3"].map((pill) => (
+                                                        <span key={`r2-2-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {/* Row 3 */}
-                                        <div className="flex gap-2 justify-end pr-3 whitespace-nowrap">
-                                            {["Custom CRMs", "ERP Portals", "AWS Cloud"].map((pill) => (
-                                                <span key={pill} className="inline-flex items-center px-3.5 py-1.5 bg-white/60 backdrop-blur-sm border border-white/80 rounded-full text-[11.5px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(10,61,92,0.04)]">
-                                                    {getPillIcon(pill)}
-                                                    {pill}
-                                                </span>
-                                            ))}
+                                        {/* Row 3 - Infinite Scroll Left */}
+                                        <div className="w-full overflow-hidden relative">
+                                            <div className="animate-marquee flex gap-2 whitespace-nowrap">
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["PostgreSQL", "MongoDB", "Redis", "Prisma", "Stripe", "Firebase"].map((pill) => (
+                                                        <span key={`r3-1-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["PostgreSQL", "MongoDB", "Redis", "Prisma", "Stripe", "Firebase"].map((pill) => (
+                                                        <span key={`r3-2-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {/* Row 4 */}
-                                        <div className="flex gap-2 justify-center whitespace-nowrap">
-                                            {["Auth0 / Clerk", "Docker", "Node.js Systems"].map((pill) => (
-                                                <span key={pill} className="inline-flex items-center px-3.5 py-1.5 bg-white/60 backdrop-blur-sm border border-white/80 rounded-full text-[11.5px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(10,61,92,0.04)]">
-                                                    {getPillIcon(pill)}
-                                                    {pill}
-                                                </span>
-                                            ))}
+                                        {/* Row 4 - Infinite Scroll Right */}
+                                        <div className="w-full overflow-hidden relative">
+                                            <div className="animate-marquee-reverse flex gap-2 whitespace-nowrap">
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["Kotlin", "Dart", "Java", "C++", "C", "Zig"].map((pill) => (
+                                                        <span key={`r4-1-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["Kotlin", "Dart", "Java", "C++", "C", "Zig"].map((pill) => (
+                                                        <span key={`r4-2-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
-                                        {/* Row 5 */}
-                                        <div className="flex gap-2 justify-start pl-6 whitespace-nowrap">
-                                            {["AI Agent Integration", "Real-time Dashboards"].map((pill) => (
-                                                <span key={pill} className="inline-flex items-center px-3.5 py-1.5 bg-white/60 backdrop-blur-sm border border-white/80 rounded-full text-[11.5px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(10,61,92,0.04)]">
-                                                    {getPillIcon(pill)}
-                                                    {pill}
-                                                </span>
-                                            ))}
+                                        {/* Row 5 - Infinite Scroll Left */}
+                                        <div className="w-full overflow-hidden relative">
+                                            <div className="animate-marquee flex gap-2 whitespace-nowrap">
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["Docker", "Kubernetes", "AWS", "Git", "PHP", "Ruby"].map((pill) => (
+                                                        <span key={`r5-1-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <div className="flex gap-2 shrink-0">
+                                                    {["Docker", "Kubernetes", "AWS", "Git", "PHP", "Ruby"].map((pill) => (
+                                                        <span key={`r5-2-${pill}`} className="inline-flex items-center px-3.5 py-1.5 bg-white border border-zinc-200/80 rounded-full text-[11px] font-semibold text-[#0A3D5C] shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
+                                                            {getPillIcon(pill)}
+                                                            {pill}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
