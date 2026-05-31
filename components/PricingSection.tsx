@@ -158,84 +158,92 @@ export default function PricingSection() {
                         </p>
                     </PricingWrapper>
 
-                    {/* Custom Scope Card (Light & Modern - Animated Waves) */}
-                    <PricingWrapper
-                        contactHref="https://cal.com/redlix.co.in"
-                        type="waves"
-                        buttonText="Schedule Strategy Call"
-                        className="bg-white border border-zinc-200 rounded-[20px] shadow-[0_15px_30px_rgba(0,0,0,0.02)] hover:border-zinc-300 transition-all duration-500 max-h-none h-auto min-h-[660px] sm:min-h-[640px] max-w-none w-full hover:scale-[1.02] ease-in-out cursor-pointer flex flex-col text-zinc-900"
-                    >
-                        <div className="flex items-center justify-between w-full relative z-10">
-                            <span className="bg-zinc-100 border border-zinc-200 text-zinc-600 text-[10.5px] font-bold tracking-wider uppercase px-3 py-1 rounded-full w-fit">
-                                Single Deliverable
-                            </span>
-                            <span className="text-[11px] text-zinc-500 font-medium">Milestone-based payment</span>
-                        </div>
-                        
-                        <Heading className="text-zinc-900 text-[22px] sm:text-[26px] font-bold tracking-tight mt-1 relative z-10">
-                            Custom Product Build
-                        </Heading>
-                        
-                        <Price className="text-zinc-900 text-[32px] sm:text-[40px] font-extrabold tracking-tight mt-1 relative z-10 flex items-baseline">
-                            ₹69,000<span className="text-[13px] text-zinc-500 font-normal ml-2"> onwards</span>
-                        </Price>
-                        
-                        <Paragraph className="text-zinc-500 text-[13.5px] sm:text-[14px] leading-relaxed font-normal relative z-10">
-                            Best for shipping MVPs, complete web apps, complex API endpoints, or database structures from scratch with clear timelines.
-                        </Paragraph>
-                        
-                        <div className="border-t border-zinc-200 my-1 w-full relative z-10" />
+                    {/* Custom Scope Card (Light & Modern - Clean Static Card) */}
+                    <div className="bg-white border border-zinc-200 rounded-[20px] p-5 sm:p-6 flex flex-col justify-between shadow-[0_15px_30px_rgba(0,0,0,0.02)] hover:border-zinc-300 transition-all duration-300 max-h-none h-auto min-h-[660px] sm:min-h-[640px] max-w-none w-full text-zinc-900 select-none">
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="bg-zinc-100 border border-zinc-200 text-zinc-600 text-[10.5px] font-bold tracking-wider uppercase px-3 py-1 rounded-full w-fit">
+                                    Single Deliverable
+                                </span>
+                                <span className="text-[11px] text-zinc-500 font-medium">Milestone-based payment</span>
+                            </div>
+                            
+                            <h3 className="text-zinc-900 text-[22px] sm:text-[26px] font-bold tracking-tight mt-1">
+                                Custom Product Build
+                            </h3>
+                            
+                            <div className="text-zinc-900 text-[32px] sm:text-[40px] font-extrabold mt-1 tracking-tight flex items-baseline">
+                                ₹69,000<span className="text-[13px] text-zinc-500 font-normal ml-2"> onwards</span>
+                            </div>
+                            
+                            <p className="text-zinc-500 text-[13.5px] sm:text-[14px] leading-relaxed font-normal mt-2.5">
+                                Best for shipping MVPs, complete web apps, complex API endpoints, or database structures from scratch with clear timelines.
+                            </p>
+                            
+                            <div className="border-t border-zinc-200 my-4" />
 
-                        {/* Dynamic Work Pipeline Graphic */}
-                        <div className="bg-zinc-50 border border-zinc-200/50 rounded-xl p-2.5 mb-1 flex items-center justify-between text-center select-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)] w-full relative z-10">
-                            <div className="flex flex-col items-center flex-1">
-                                <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">Phase 01</span>
-                                <span className="text-[11px] font-semibold text-zinc-700 mt-0.5">Scope</span>
+                            {/* Dynamic Work Pipeline Graphic */}
+                            <div className="bg-zinc-50 border border-zinc-200/50 rounded-xl p-2.5 mb-4 flex items-center justify-between text-center select-none shadow-[inset_0_1px_2px_rgba(0,0,0,0.01)] w-full">
+                                <div className="flex flex-col items-center flex-1">
+                                    <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">Phase 01</span>
+                                    <span className="text-[11px] font-semibold text-zinc-700 mt-0.5">Scope</span>
+                                </div>
+                                <div className="h-[1px] w-5 sm:w-8 bg-zinc-200 flex-shrink-0" />
+                                <div className="flex flex-col items-center flex-1">
+                                    <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">Phase 02</span>
+                                    <span className="text-[11px] font-semibold text-zinc-700 mt-0.5">Sprint</span>
+                                </div>
+                                <div className="h-[1px] w-5 sm:w-8 bg-zinc-200 flex-shrink-0" />
+                                <div className="flex flex-col items-center flex-1">
+                                    <span className="text-[8px] font-bold text-[#E61E32]/70 uppercase tracking-wider">Phase 03</span>
+                                    <span className="text-[11px] font-bold text-[#E61E32] mt-0.5">Ship</span>
+                                </div>
                             </div>
-                            <div className="h-[1px] w-5 sm:w-8 bg-zinc-200 flex-shrink-0" />
-                            <div className="flex flex-col items-center flex-1">
-                                <span className="text-[8px] font-bold text-zinc-400 uppercase tracking-wider">Phase 02</span>
-                                <span className="text-[11px] font-semibold text-zinc-700 mt-0.5">Sprint</span>
-                            </div>
-                            <div className="h-[1px] w-5 sm:w-8 bg-zinc-200 flex-shrink-0" />
-                            <div className="flex flex-col items-center flex-1">
-                                <span className="text-[8px] font-bold text-[#E61E32]/70 uppercase tracking-wider">Phase 03</span>
-                                <span className="text-[11px] font-bold text-[#E61E32] mt-0.5">Ship</span>
-                            </div>
+                            
+                            {/* Checklist */}
+                            <ul className="flex flex-col gap-2 text-zinc-600 text-[13px] leading-snug w-full">
+                                <li className="flex items-start gap-3">
+                                    <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
+                                    <span>Detailed product specification & database architecture</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
+                                    <span>High-fidelity frontend UI implementation</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
+                                    <span>Custom API development & backend integrations</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
+                                    <span>Explicit milestones with weekly delivery timelines</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
+                                    <span>Direct communication in Slack & WhatsApp</span>
+                                </li>
+                                <li className="flex items-start gap-3">
+                                    <GreenCheckIcon className="mt-0.5" />
+                                    <span className="text-zinc-900 font-medium">30 days of comprehensive support post-launch</span>
+                                </li>
+                            </ul>
                         </div>
-                        
-                        {/* Checklist */}
-                        <ul className="flex flex-col gap-2 text-zinc-600 text-[13px] leading-snug w-full relative z-10">
-                            <li className="flex items-start gap-3">
-                                <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
-                                <span>Detailed product specification & database architecture</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
-                                <span>High-fidelity frontend UI implementation</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
-                                <span>Custom API development & backend integrations</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
-                                <span>Explicit milestones with weekly delivery timelines</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <CheckIcon className="text-zinc-400 shrink-0 mt-0.5" />
-                                <span>Direct communication in Slack & WhatsApp</span>
-                            </li>
-                            <li className="flex items-start gap-3">
-                                <GreenCheckIcon className="mt-0.5" />
-                                <span className="text-zinc-900 font-medium">30 days of comprehensive support post-launch</span>
-                            </li>
-                        </ul>
 
-                        <p className="text-center text-zinc-400 text-[10.5px] font-bold mt-2 tracking-wider uppercase select-none w-full relative z-10">
-                            SPLIT PAYMENT — 50% NOW, 50% UPON COMPLETION
-                        </p>
-                    </PricingWrapper>
+                        <div className="mt-5">
+                            <a
+                                href="https://cal.com/redlix.co.in"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-[#1E2022] hover:bg-[#2C3036] text-white font-bold text-[14px] py-3 rounded-xl flex items-center justify-center gap-2.5 transition-all duration-200 shadow-[0_4px_12px_rgba(30,32,34,0.15)] hover:scale-[1.01]"
+                            >
+                                <MeetIcon />
+                                Schedule Strategy Call
+                            </a>
+                            <p className="text-center text-zinc-400 text-[10.5px] font-bold mt-4 tracking-wider uppercase select-none">
+                                SPLIT PAYMENT — 50% NOW, 50% UPON COMPLETION
+                            </p>
+                        </div>
+                    </div>
 
                 </div>
 
