@@ -37,7 +37,7 @@ export default function RevealSection() {
     }, []);
 
     const text =
-        "With purposeful missions, strategic positioning, and human-centered design, we don't just create pretty visuals; we help your business convert visitors into users and users into super-fans.";
+        "From high-converting web apps and custom mobile products to robust SaaS architectures, custom CRM systems, and real-time dashboards, we engineer high-performance software that solves complex business problems, streamlines operations, and drives massive enterprise growth.";
 
     const words = text.split(" ");
 
