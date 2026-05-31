@@ -151,13 +151,10 @@ export default function CorporateFooter() {
 
                 <div className="w-full h-[1px] bg-zinc-900 my-6" />
 
-                <div className="flex flex-col items-center gap-6 select-none">
+                <div className="flex flex-col items-center select-none">
                     <p className="text-zinc-500 text-center text-sm font-normal">
                         Redlix &copy; {year} All Rights Reserved
                     </p>
-                    <div className="w-full max-w-md flex justify-center opacity-85 hover:opacity-100 transition-opacity duration-300">
-                        <CommitsGrid text="REDLIX" />
-                    </div>
                 </div>
             </div>
         </footer>
