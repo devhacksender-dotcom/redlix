@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import { CommitsGrid } from "@/components/ui/commits-grid";
 
 export default function CorporateFooter() {
     return (
@@ -88,8 +89,13 @@ export default function CorporateFooter() {
                 <div className="w-full h-[1px] bg-zinc-900 mb-8" />
 
                 {/* Bottom Row */}
-                <div className="text-center text-[12px] text-zinc-500 font-medium select-none">
-                    Redlix &copy; 2026 All Rights Reserved
+                <div className="flex flex-col items-center gap-6 mt-2 select-none">
+                    <div className="text-[12px] text-zinc-500 font-medium text-center">
+                        Redlix &copy; 2026 All Rights Reserved
+                    </div>
+                    <div className="w-full max-w-md flex justify-center opacity-85 hover:opacity-100 transition-opacity duration-300">
+                        <CommitsGrid text="REDLIX" />
+                    </div>
                 </div>
 
             </div>

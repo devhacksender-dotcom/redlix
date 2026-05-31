@@ -1,11 +1,8 @@
-import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
+import * as React from "react"
+import { CommitsGrid } from "@/components/ui/commits-grid"
 
-const DemoOne = () => {
-  return (
-    <div className="flex w-full h-screen justify-center items-center">
-      <StaggerTestimonials />
-    </div>
-  );
-};
+const CommitsGridDemo = () => {
+    return <CommitsGrid text="21st" />
+}
 
-export { DemoOne };
+export { CommitsGridDemo }
