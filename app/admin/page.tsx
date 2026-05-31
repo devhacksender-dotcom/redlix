@@ -387,6 +387,52 @@ export default function AdminPortal() {
         }
     };
 
+    const getAnalyticsData = () => {
+        const now = new Date();
+        const months = [];
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            months.push({
+                label: d.toLocaleString("default", { month: "short" }) + " " + d.getFullYear().toString().slice(-2),
+                year: d.getFullYear(),
+                monthVal: d.getMonth(),
+            });
+        }
+        
+        const employeeData = months.map(m => {
+            const endOfMonth = new Date(m.year, m.monthVal + 1, 0, 23, 59, 59, 999);
+            return employees.filter(emp => {
+                const joined = emp.joinedAt ? new Date(emp.joinedAt) : null;
+                if (!joined || isNaN(joined.getTime())) return false;
+                return joined <= endOfMonth;
+            }).length;
+        });
+
+        const amountData = months.map(m => {
+            return payrolls.filter(p => {
+                const pDate = p.createdAt ? new Date(p.createdAt) : null;
+                if (!pDate || isNaN(pDate.getTime())) return false;
+                return pDate.getFullYear() === m.year && pDate.getMonth() === m.monthVal;
+            }).reduce((sum, p) => sum + (p.amount || 0), 0);
+        });
+
+        const hoursData = months.map(m => {
+            const totalMinutes = globalAttendance.filter(a => {
+                const attDate = a.punchIn ? new Date(a.punchIn) : null;
+                if (!attDate || isNaN(attDate.getTime())) return false;
+                return attDate.getFullYear() === m.year && attDate.getMonth() === m.monthVal;
+            }).reduce((sum, a) => sum + (a.workMinutes || 0), 0);
+            return Math.round((totalMinutes / 60) * 10) / 10;
+        });
+
+        return {
+            labels: months.map(m => m.label),
+            employees: employeeData,
+            amount: amountData,
+            hours: hoursData,
+        };
+    };
+
     useEffect(() => {
         if (activeTab === "overview") {
             fetchAllData();
@@ -1346,6 +1392,8 @@ export default function AdminPortal() {
         return matchesSearch && matchesFilter;
     });
 
+    const analyticsData = activeTab === "overview" ? getAnalyticsData() : null;
+
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
             {/* Simple Sidebar */}
@@ -1711,7 +1759,7 @@ export default function AdminPortal() {
 
                     {/* Conditional Rendering of Tabs */}
                     <div className="flex-grow overflow-hidden">
-                        {activeTab === "overview" && (
+                        {activeTab === "overview" && analyticsData && (
                             <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
                                 {/* Stats Grid */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -1752,46 +1800,81 @@ export default function AdminPortal() {
                                     />
                                 </div>
 
-                                {/* Main Overview Sections */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                    {/* Recent Activity */}
-                                    <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4">
-                                        <h3 className="text-[11px] font-medium text-white/30 flex items-center gap-2">
-                                            <Clock className="w-3.5 h-3.5" />
-                                            Recent inquiries
-                                        </h3>
-                                        <div className="space-y-4">
-                                            {inquiries.slice(0, 5).map(inq => (
-                                                <div key={inq.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
-                                                    <div>
-                                                        <p className="text-sm font-semibold">{inq.name}</p>
-                                                        <p className="text-[10px] text-white/30">{inq.company || "Individual"}</p>
-                                                    </div>
-                                                    <span className="text-[10px] text-[#E61E32] font-medium">{new Date(inq.createdAt).toLocaleDateString()}</span>
+                                {/* All Analytics Section */}
+                                <div className="space-y-4">
+                                    <h3 className="text-xs font-bold uppercase tracking-widest text-[#E61E32]">
+                                        all analytics
+                                    </h3>
+                                    
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                        {/* Employees Analytics Card */}
+                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-1">
+                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Employees</span>
+                                                    <h4 className="text-2xl font-bold font-mono text-white">{employees.length}</h4>
+                                                    <p className="text-[10px] text-white/30">Total active profiles</p>
                                                 </div>
-                                            ))}
+                                                <div className="w-8 h-8 bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                                                    <Users className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                            <div className="pt-2">
+                                                <SharpLineChart 
+                                                    data={analyticsData.employees} 
+                                                    labels={analyticsData.labels} 
+                                                    color="#3b82f6" 
+                                                    gradientId="empGrad" 
+                                                />
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Upcoming Meetings */}
-                                    <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4">
-                                        <h3 className="text-[11px] font-medium text-white/30 flex items-center gap-2">
-                                            <Calendar className="w-3.5 h-3.5" />
-                                            Upcoming meetings
-                                        </h3>
-                                        <div className="space-y-4">
-                                            {clients.filter(c => c.meetingTime).sort((a, b) => new Date(a.meetingTime!).getTime() - new Date(b.meetingTime!).getTime()).slice(0, 5).map(client => (
-                                                <div key={client.id} className="flex justify-between items-center p-3 bg-white/5 border border-white/5">
-                                                    <div>
-                                                        <p className="text-sm font-semibold">{client.companyName}</p>
-                                                        <p className="text-[10px] text-white/30">{client.meetingTemplate}</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-[10px] text-green-500 font-medium">{new Date(client.meetingTime!).toLocaleDateString()}</p>
-                                                        <p className="text-[10px] text-white/20">{new Date(client.meetingTime!).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                                    </div>
+                                        {/* Amount Generated Analytics Card */}
+                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-1">
+                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Amount generated</span>
+                                                    <h4 className="text-2xl font-bold font-mono text-white">
+                                                        ₹{(analyticsData.amount[analyticsData.amount.length - 1] || 0).toLocaleString()}
+                                                    </h4>
+                                                    <p className="text-[10px] text-white/30">Current month payouts allocated</p>
                                                 </div>
-                                            ))}
+                                                <div className="w-8 h-8 bg-green-500/10 border border-green-500/20 flex items-center justify-center text-green-500">
+                                                    <CreditCard className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                            <div className="pt-2">
+                                                <SharpLineChart 
+                                                    data={analyticsData.amount} 
+                                                    labels={analyticsData.labels} 
+                                                    color="#10b981" 
+                                                    gradientId="amtGrad" 
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Work Hours Analytics Card */}
+                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <div className="space-y-1">
+                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Work Hours</span>
+                                                    <h4 className="text-2xl font-bold font-mono text-white">
+                                                        {(analyticsData.hours[analyticsData.hours.length - 1] || 0)} hrs
+                                                    </h4>
+                                                    <p className="text-[10px] text-white/30">Current month logged hours</p>
+                                                </div>
+                                                <div className="w-8 h-8 bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+                                                    <Clock className="w-4 h-4" />
+                                                </div>
+                                            </div>
+                                            <div className="pt-2">
+                                                <SharpLineChart 
+                                                    data={analyticsData.hours} 
+                                                    labels={analyticsData.labels} 
+                                                    color="#ef4444" 
+                                                    gradientId="hrsGrad" 
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -5048,6 +5131,137 @@ function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNo
                 <h4 className="text-xl font-semibold mt-0.5">{value}</h4>
                 <p className="text-[10px] text-white/20 mt-0.5">{sublabel}</p>
             </div>
+        </div>
+    );
+}
+
+interface SharpLineChartProps {
+    data: number[];
+    labels: string[];
+    color: string;
+    gradientId: string;
+}
+
+function SharpLineChart({ data, labels, color, gradientId }: SharpLineChartProps) {
+    const width = 500;
+    const height = 180;
+    const paddingLeft = 40;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    const max = Math.max(...data, 1);
+    const min = 0;
+
+    const points = data.map((val, idx) => {
+        const x = paddingLeft + (idx / Math.max(data.length - 1, 1)) * chartWidth;
+        const y = paddingTop + chartHeight - ((val - min) / (max - min)) * chartHeight;
+        return { x, y, val, label: labels[idx] };
+    });
+
+    const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const areaPath = points.length > 0
+        ? `${linePath} L ${points[points.length - 1].x} ${paddingTop + chartHeight} L ${points[0].x} ${paddingTop + chartHeight} Z`
+        : "";
+
+    return (
+        <div className="relative w-full">
+            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={color} stopOpacity="0.15" />
+                        <stop offset="100%" stopColor={color} stopOpacity="0.0" />
+                    </linearGradient>
+                </defs>
+
+                {/* Grid Lines */}
+                {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                    const y = paddingTop + chartHeight * ratio;
+                    const val = max - (max - min) * ratio;
+                    return (
+                        <g key={i}>
+                            <line
+                                x1={paddingLeft}
+                                y1={y}
+                                x2={width - paddingRight}
+                                y2={y}
+                                stroke="rgba(255,255,255,0.05)"
+                                strokeDasharray="3,3"
+                            />
+                            <text
+                                x={paddingLeft - 8}
+                                y={y + 4}
+                                fill="rgba(255,255,255,0.3)"
+                                fontSize="9"
+                                textAnchor="end"
+                                className="font-mono"
+                            >
+                                {val >= 1000 ? `${(val / 1000).toFixed(1)}k` : Math.round(val)}
+                            </text>
+                        </g>
+                    );
+                })}
+
+                {/* X Axis Labels */}
+                {points.map((p, i) => (
+                    <text
+                        key={i}
+                        x={p.x}
+                        y={height - 10}
+                        fill="rgba(255,255,255,0.3)"
+                        fontSize="9"
+                        textAnchor="middle"
+                        className="font-mono"
+                    >
+                        {p.label}
+                    </text>
+                ))}
+
+                {/* Area fill */}
+                {areaPath && (
+                    <path
+                        d={areaPath}
+                        fill={`url(#${gradientId})`}
+                    />
+                )}
+
+                {/* Sharp line */}
+                {linePath && (
+                    <path
+                        d={linePath}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth="2"
+                        strokeLinecap="square"
+                        strokeLinejoin="miter"
+                    />
+                )}
+
+                {/* Dots */}
+                {points.map((p, i) => (
+                    <g key={i} className="group cursor-pointer">
+                        <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="3.5"
+                            fill={color}
+                            stroke="#0a0a0a"
+                            strokeWidth="1.5"
+                        />
+                        <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r="10"
+                            fill="transparent"
+                            className="hover:fill-white/10 transition-colors"
+                        />
+                        <title>{`${p.label}: ${p.val.toLocaleString()}`}</title>
+                    </g>
+                ))}
+            </svg>
         </div>
     );
 }
