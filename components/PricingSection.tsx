@@ -37,6 +37,10 @@ export default function PricingSection() {
         currentYearShort: "26",
         next: "JUNE"
     });
+    const [slotsInfo, setSlotsInfo] = React.useState({
+        status: "available",
+        slots: 3
+    });
 
     React.useEffect(() => {
         const now = new Date();
@@ -52,6 +56,19 @@ export default function PricingSection() {
             currentYearShort: currentYrShort,
             next: nextStr
         });
+
+        // Fetch pricing slots dynamic config
+        fetch("/api/pricing-slots")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    setSlotsInfo({
+                        status: data.data.status || "available",
+                        slots: data.data.slots ?? 3
+                    });
+                }
+            })
+            .catch(err => console.error("Error loading pricing slots:", err));
     }, []);
 
     return (
@@ -152,10 +169,17 @@ export default function PricingSection() {
                             </li>
                         </ul>
 
-                        <p className="text-center text-zinc-400 text-[10.5px] font-bold mt-2 tracking-wider uppercase select-none flex items-center justify-center gap-1.5 w-full relative z-10">
-                            <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                            FULLY BOOKED FOR {monthsInfo.current} — 3 SLOTS FREE FOR {monthsInfo.next}
-                        </p>
+                        {slotsInfo.status === "available" ? (
+                            <p className="text-center text-[#10B981] text-[10.5px] font-bold mt-2 tracking-wider uppercase select-none flex items-center justify-center gap-1.5 w-full relative z-10">
+                                <span className="inline-block w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></span>
+                                {slotsInfo.slots} SLOTS FREE FOR {monthsInfo.next}
+                            </p>
+                        ) : (
+                            <p className="text-center text-zinc-400 text-[10.5px] font-bold mt-2 tracking-wider uppercase select-none flex items-center justify-center gap-1.5 w-full relative z-10">
+                                <span className="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                FULLY BOOKED FOR {monthsInfo.current}
+                            </p>
+                        )}
                     </PricingWrapper>
 
                     {/* Custom Scope Card (Light & Modern - Clean Static Card) */}

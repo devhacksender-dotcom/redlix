@@ -324,6 +324,51 @@ export default function AdminPortal() {
     const [resetInput, setResetInput] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
 
+    // Pricing slots states
+    const [slotsStatus, setSlotsStatus] = useState<"available" | "booked">("available");
+    const [slotsCount, setSlotsCount] = useState<number>(3);
+    const [isSavingSlots, setIsSavingSlots] = useState(false);
+    const [slotsLoading, setSlotsLoading] = useState(false);
+
+    const fetchPricingSlots = async () => {
+        setSlotsLoading(true);
+        try {
+            const res = await fetch("/api/admin/pricing-slots");
+            const data = await res.json();
+            if (data.success && data.data) {
+                setSlotsStatus(data.data.status || "available");
+                setSlotsCount(data.data.slots ?? 3);
+            }
+        } catch (error) {
+            console.error("Error fetching pricing slots:", error);
+        } finally {
+            setSlotsLoading(false);
+        }
+    };
+
+    const handleSaveSlots = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSavingSlots(true);
+        try {
+            const res = await fetch("/api/admin/pricing-slots", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: slotsStatus, slots: slotsCount })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Pricing slot configuration saved successfully!");
+            } else {
+                alert(data.message || "Failed to save pricing slot configuration");
+            }
+        } catch (error) {
+            console.error("Save slots error:", error);
+            alert("A connection error occurred. Please try again.");
+        } finally {
+            setIsSavingSlots(false);
+        }
+    };
+
     // Payroll Management States
     interface AdminPayroll {
         id: number;
@@ -467,6 +512,8 @@ export default function AdminPortal() {
         } else if (activeTab === "alerts") {
             fetchEmployees();
             fetchClients();
+        } else if (activeTab === "settings") {
+            fetchPricingSlots();
         } else {
             fetchClients();
         }
@@ -4688,6 +4735,68 @@ export default function AdminPortal() {
                                             System Administration Controls
                                         </h3>
                                         <p className="text-xs text-white/40 mt-1">Configure global server limits, dashboard settings, and perform system actions.</p>
+                                    </div>
+
+                                    {/* Pricing Cards Slots Configuration */}
+                                    <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
+                                        <div className="flex items-center gap-2 text-white">
+                                            <Settings className="w-5 h-5 shrink-0 text-[#E61E32]" />
+                                            <h4 className="font-extrabold uppercase text-xs tracking-wider">Pricing Card Slots Configuration</h4>
+                                        </div>
+                                        <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
+                                            Control the availability status and number of free slots shown on the public pricing section.
+                                        </p>
+                                        
+                                        {slotsLoading ? (
+                                            <div className="flex items-center gap-2 py-4">
+                                                <Loader2 className="w-4 h-4 animate-spin text-white/20" />
+                                                <span className="text-xs text-white/40">Loading configuration...</span>
+                                            </div>
+                                        ) : (
+                                            <form onSubmit={handleSaveSlots} className="space-y-4 max-w-md pt-2">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Availability Status</label>
+                                                        <select
+                                                            value={slotsStatus}
+                                                            onChange={e => setSlotsStatus(e.target.value as "available" | "booked")}
+                                                            className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E61E32]"
+                                                        >
+                                                            <option value="available" className="bg-[#111]">Slots Available (Green)</option>
+                                                            <option value="booked" className="bg-[#111]">Fully Booked (Red)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Available Slots Count</label>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            placeholder="e.g. 3"
+                                                            value={slotsCount}
+                                                            onChange={e => setSlotsCount(parseInt(e.target.value) || 0)}
+                                                            className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E61E32] disabled:opacity-40 disabled:cursor-not-allowed"
+                                                            disabled={slotsStatus === "booked"}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    type="submit"
+                                                    disabled={isSavingSlots}
+                                                    className="w-full py-3 bg-[#E61E32] hover:bg-[#ff1f34] disabled:bg-white/5 disabled:text-white/20 text-white text-xs font-bold uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                >
+                                                    {isSavingSlots ? (
+                                                        <>
+                                                            <Loader2 className="w-4 h-4 animate-spin" /> Saving Configuration...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <CheckCircle2 className="w-4 h-4" /> Save Configuration
+                                                        </>
+                                                    )}
+                                                </button>
+                                            </form>
+                                        )}
                                     </div>
 
                                     {/* Danger Zone */}

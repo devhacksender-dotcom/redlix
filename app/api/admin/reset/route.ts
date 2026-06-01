@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
             prisma.supportTicket.deleteMany(),
             prisma.internSupport.deleteMany(),
             prisma.client.deleteMany(),
+            prisma.systemSetting.deleteMany(),
         ]);
 
         return NextResponse.json({ success: true, message: "Factory reset complete. All data cleared successfully." });
