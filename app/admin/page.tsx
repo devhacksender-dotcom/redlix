@@ -41,7 +41,8 @@ import {
     FolderUp,
     CheckCheck,
     Hourglass,
-    Eye
+    Eye,
+    Printer
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -139,7 +140,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings" | "declarations">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings" | "declarations" | "receipt-generator">("overview");
 
     // Task management states
     interface Task {
@@ -374,6 +375,130 @@ export default function AdminPortal() {
     const [isSavingSlots, setIsSavingSlots] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
 
+    // Receipt Generator states
+    interface ReceiptItem {
+        id: string;
+        category: string;
+        description: string;
+        quantity: number;
+        rate: number;
+    }
+    const [receiptClientId, setReceiptClientId] = useState<number | "">("");
+    const [receiptCompanyAddress, setReceiptCompanyAddress] = useState(
+        "Redlix Studio\nSoftware & IT Solutions\nHyderabad, Telangana, India\nsupport@redlix.co.in | www.redlix.co.in"
+    );
+    const [receiptBillToCompany, setReceiptBillToCompany] = useState("");
+    const [receiptBillToName, setReceiptBillToName] = useState("");
+    const [receiptBillToEmail, setReceiptBillToEmail] = useState("");
+    const [receiptBillToPhone, setReceiptBillToPhone] = useState("");
+
+    const [receiptInvoiceNumber, setReceiptInvoiceNumber] = useState("");
+    const [receiptInvoiceDate, setReceiptInvoiceDate] = useState("");
+    const [receiptDueDate, setReceiptDueDate] = useState("");
+    const [receiptCurrency, setReceiptCurrency] = useState("$");
+    const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([
+        { id: "1", category: "Web Development", description: "Development of custom web application", quantity: 1, rate: 0 }
+    ]);
+    const [receiptMemo, setReceiptMemo] = useState(
+        "Memo:\nFor Singapore: GST is applied\nFor other countries: Prices are Net\nReverse charge: Customer to account for VAT/GST to their relevant authority"
+    );
+    const [receiptSendStatus, setReceiptSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [receiptErrorMessage, setReceiptErrorMessage] = useState("");
+
+    useEffect(() => {
+        if (receiptClientId !== "") {
+            const client = clients.find(c => c.id === receiptClientId);
+            if (client) {
+                setReceiptBillToCompany(client.companyName || "");
+                setReceiptBillToName(client.clientName || "");
+                setReceiptBillToEmail(client.email || "");
+                setReceiptBillToPhone(client.phone || "");
+            }
+        } else {
+            setReceiptBillToCompany("");
+            setReceiptBillToName("");
+            setReceiptBillToEmail("");
+            setReceiptBillToPhone("");
+        }
+    }, [receiptClientId, clients]);
+
+    useEffect(() => {
+        const today = new Date().toISOString().split("T")[0];
+        setReceiptInvoiceDate(today);
+        setReceiptDueDate(today);
+        
+        const randomNum = Math.floor(10000 + Math.random() * 90000);
+        setReceiptInvoiceNumber(`RED-${new Date().getFullYear()}-${randomNum}`);
+    }, []);
+
+    const handleAddReceiptItem = () => {
+        const newId = (receiptItems.length + 1).toString();
+        setReceiptItems([
+            ...receiptItems,
+            { id: newId, category: "", description: "", quantity: 1, rate: 0 }
+        ]);
+    };
+
+    const handleRemoveReceiptItem = (id: string) => {
+        if (receiptItems.length <= 1) return;
+        setReceiptItems(receiptItems.filter(item => item.id !== id));
+    };
+
+    const handleUpdateReceiptItem = (id: string, field: keyof ReceiptItem, value: any) => {
+        setReceiptItems(
+            receiptItems.map(item => {
+                if (item.id === id) {
+                    return { ...item, [field]: value };
+                }
+                return item;
+            })
+        );
+    };
+
+    const handleSendGeneratedReceiptEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!receiptBillToEmail || !receiptItems.length) {
+            alert("Missing required email field or invoice items");
+            return;
+        }
+
+        if (!receiptClientId) {
+            alert("Email confirmation is only supported for registered database clients. Please select a registered client first, or use the Print/Save PDF button.");
+            return;
+        }
+
+        setReceiptSendStatus('sending');
+        setReceiptErrorMessage("");
+
+        const subtotal = receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0);
+        const displayAmount = `${receiptCurrency}${subtotal.toLocaleString()}`;
+
+        try {
+            const res = await fetch("/api/admin/clients/send-receipt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientId: Number(receiptClientId),
+                    amount: displayAmount,
+                    paymentDate: receiptInvoiceDate,
+                    transactionId: receiptInvoiceNumber,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setReceiptSendStatus('success');
+                setTimeout(() => setReceiptSendStatus('idle'), 4000);
+            } else {
+                setReceiptSendStatus('error');
+                setReceiptErrorMessage(data.message || "Failed to send receipt confirmation email.");
+            }
+        } catch (error) {
+            console.error("Failed to send receipt email:", error);
+            setReceiptSendStatus('error');
+            setReceiptErrorMessage("An error occurred. Please try again.");
+        }
+    };
+
     const fetchPricingSlots = async () => {
         setSlotsLoading(true);
         try {
@@ -571,7 +696,7 @@ export default function AdminPortal() {
     }, [activeTab]);
 
     useEffect(() => {
-        if (activeTab === "payment-due-sender" || activeTab === "payment-received-sender" || activeTab === "payrolls") {
+        if (activeTab === "payment-due-sender" || activeTab === "payment-received-sender" || activeTab === "payrolls" || activeTab === "receipt-generator") {
             setIsPaymentsOpen(true);
         }
         if (activeTab === "inquiries" || activeTab === "support" || activeTab === "intern-support") {
@@ -1497,7 +1622,7 @@ export default function AdminPortal() {
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
             {/* Simple Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
+            <aside className="no-print w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
                 <div className="px-4 space-y-4">
                     <div className="flex items-center gap-2">
                         <img
@@ -1644,7 +1769,7 @@ export default function AdminPortal() {
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
-                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender' || activeTab === 'payrolls')
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender' || activeTab === 'receipt-generator' || activeTab === 'payrolls')
                                 ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
                                 : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
                                 }`}
@@ -1676,6 +1801,16 @@ export default function AdminPortal() {
                                 >
                                     <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Payment Received Sender
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("receipt-generator")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'receipt-generator'
+                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
+                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
+                                        }`}
+                                >
+                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                    Receipt Generator
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payrolls")}
@@ -1723,7 +1858,7 @@ export default function AdminPortal() {
             <div className="flex-grow p-8 overflow-y-auto h-full">
                 <div className={`${activeTab === 'attendance' ? 'max-w-none' : 'max-w-7xl'} mx-auto space-y-8 h-full flex flex-col w-full`}>
                     {/* Header */}
-                    <div className="flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
+                    <div className="no-print flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
                         <div>
                             <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-white/30 mb-1.5">
                                 <span>Admin</span>
@@ -1743,7 +1878,8 @@ export default function AdminPortal() {
                                                                             activeTab === "payrolls" ? "Payrolls" :
                                                                                 activeTab === "leaves" ? "Leaves" :
                                                                                     activeTab === "settings" ? "Settings" :
-                                                                                        activeTab === "payment-due-sender" ? "Due Mail Sender" : "Received Mail Sender"}
+                                                                                        activeTab === "payment-due-sender" ? "Due Mail Sender" :
+                                                                                            activeTab === "receipt-generator" ? "Receipt Generator" : "Received Mail Sender"}
                                 </span>
                             </div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
@@ -1760,7 +1896,8 @@ export default function AdminPortal() {
                                                                         activeTab === "payrolls" ? "Payroll allocation" :
                                                                             activeTab === "leaves" ? "Leave Requests" :
                                                                                 activeTab === "settings" ? "System Settings" :
-                                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" : "Payment Received Sender"}
+                                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" :
+                                                                                        activeTab === "receipt-generator" ? "Payment Receipt Generator" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -1777,7 +1914,8 @@ export default function AdminPortal() {
                                                                         activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
                                                                             activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
                                                                                 activeTab === "settings" ? "manage system controls and master settings" :
-                                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" : "send payment receipts to registered clients"}
+                                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" :
+                                                                                        activeTab === "receipt-generator" ? "generate high-fidelity printable payment receipts" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -5290,7 +5428,6 @@ export default function AdminPortal() {
                                                             <p style={{margin:0,fontSize:'10px',fontWeight:700,color:'#E61E32',textTransform:'uppercase',letterSpacing:'0.1em'}}>
                                                                 {alertType === 'profile_pending' ? 'Redlix HR Team' : alertType === 'terms_update' ? 'Redlix Legal & Compliance' : alertType === 'client_info_update' ? 'Redlix Client Relations' : alertType === 'new_client_welcome' ? 'Redlix Client Success' : 'Redlix Admin Team'}
                                                             </p>
-                                                            <p style={{margin:'4px 0 0',fontSize:'11px',color:'#666'}}>Redlix Studio</p>
                                                         </div>
                                                     </div>
                                                     <div style={{backgroundColor:'#fafafa',padding:'16px 28px',borderTop:'1px solid #eee'}}>
@@ -5303,6 +5440,475 @@ export default function AdminPortal() {
                                 </div>
                             );
                         })()}
+
+                        {activeTab === "receipt-generator" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full overflow-y-auto pr-2 pb-6">
+                                <style dangerouslySetInnerHTML={{ __html: `
+                                    @media print {
+                                        body, html, main {
+                                            background: white !important;
+                                            color: black !important;
+                                            height: auto !important;
+                                            overflow: visible !important;
+                                        }
+                                        aside, .no-print, header, .flex-grow.p-8 > div > div:first-child {
+                                            display: none !important;
+                                        }
+                                        .flex-grow.p-8 {
+                                            padding: 0 !important;
+                                            margin: 0 !important;
+                                            background: white !important;
+                                            height: auto !important;
+                                            overflow: visible !important;
+                                        }
+                                        .printable-receipt {
+                                            position: absolute !important;
+                                            left: 0 !important;
+                                            top: 0 !important;
+                                            width: 100% !important;
+                                            max-width: 100% !important;
+                                            box-shadow: none !important;
+                                            border: none !important;
+                                            margin: 0 !important;
+                                            padding: 15mm !important;
+                                            background: white !important;
+                                            color: black !important;
+                                        }
+                                    }
+                                ` }} />
+
+                                {/* Control Panel (Left column - 5 grid cols) */}
+                                <div className="no-print lg:col-span-5 bg-white/5 border border-white/10 p-6 space-y-6 flex flex-col h-fit">
+                                    <div className="flex items-center gap-2 border-b border-white/10 pb-4">
+                                        <Printer className="w-5 h-5 text-[#E61E32]" />
+                                        <div>
+                                            <h3 className="text-md font-bold uppercase tracking-tight text-white">Receipt Control Form</h3>
+                                            <p className="text-[10px] text-white/40">Select client and configure receipt parameters.</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Client Dropdown selector */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Select Registered Client</label>
+                                        <select
+                                            value={receiptClientId}
+                                            onChange={(e) => setReceiptClientId(e.target.value === "" ? "" : Number(e.target.value))}
+                                            className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                        >
+                                            <option value="" className="bg-[#0f0f0f]">Choose a client...</option>
+                                            {clients.map((c) => (
+                                                <option key={c.id} value={c.id} className="bg-[#0f0f0f]">
+                                                    {c.companyName} ({c.clientName})
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Bill-To Details Fields */}
+                                    <div className="space-y-4 pt-2 border-t border-white/5">
+                                        <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Bill-To Recipient Details</h4>
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Company Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={receiptBillToCompany}
+                                                    onChange={(e) => setReceiptBillToCompany(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                    placeholder="Client company"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Contact Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={receiptBillToName}
+                                                    onChange={(e) => setReceiptBillToName(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                    placeholder="Contact person"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Email Address</label>
+                                                <input
+                                                    type="email"
+                                                    value={receiptBillToEmail}
+                                                    onChange={(e) => setReceiptBillToEmail(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white font-mono"
+                                                    placeholder="client@email.com"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Phone (Optional)</label>
+                                                <input
+                                                    type="text"
+                                                    value={receiptBillToPhone}
+                                                    onChange={(e) => setReceiptBillToPhone(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                    placeholder="Phone number"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Invoice Metadata Fields */}
+                                    <div className="space-y-4 pt-2 border-t border-white/5">
+                                        <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Invoice / Receipt Meta</h4>
+                                        
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Invoice Number</label>
+                                                <input
+                                                    type="text"
+                                                    value={receiptInvoiceNumber}
+                                                    onChange={(e) => setReceiptInvoiceNumber(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white font-mono"
+                                                    placeholder="RED-2026-XXXXX"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Currency Symbol</label>
+                                                <input
+                                                    type="text"
+                                                    value={receiptCurrency}
+                                                    onChange={(e) => setReceiptCurrency(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                    placeholder="e.g. $ or ₹"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Invoice Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={receiptInvoiceDate}
+                                                    onChange={(e) => setReceiptInvoiceDate(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Due Date</label>
+                                                <input
+                                                    type="date"
+                                                    value={receiptDueDate}
+                                                    onChange={(e) => setReceiptDueDate(e.target.value)}
+                                                    className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Dynamic Items Builder */}
+                                    <div className="space-y-4 pt-2 border-t border-white/5">
+                                        <div className="flex justify-between items-center">
+                                            <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Line Items (Charges)</h4>
+                                            <button
+                                                type="button"
+                                                onClick={handleAddReceiptItem}
+                                                className="text-[9px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 hover:bg-green-500/20"
+                                            >
+                                                + Add Line
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1">
+                                            {receiptItems.map((item, index) => (
+                                                <div key={item.id} className="p-3 bg-white/[0.02] border border-white/5 space-y-2.5 relative">
+                                                    {receiptItems.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRemoveReceiptItem(item.id)}
+                                                            className="absolute top-1 right-1 text-[8px] font-bold uppercase text-red-500 hover:text-red-400 px-1"
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                    )}
+                                                    <div className="text-[9px] font-bold text-white/30">Item #{index + 1}</div>
+                                                    
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Category (e.g. Service type) *</label>
+                                                        <input
+                                                            type="text"
+                                                            required
+                                                            placeholder="e.g. Web Development or Hosting"
+                                                            value={item.category}
+                                                            onChange={(e) => handleUpdateReceiptItem(item.id, "category", e.target.value)}
+                                                            className="w-full bg-black border border-white/10 px-2 py-1.5 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-1">
+                                                        <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Description Details</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. Apr 29 - May 28, 2026 support"
+                                                            value={item.description}
+                                                            onChange={(e) => handleUpdateReceiptItem(item.id, "description", e.target.value)}
+                                                            className="w-full bg-black border border-white/10 px-2 py-1.5 text-[11px] focus:outline-none focus:border-white/30 text-white/80"
+                                                        />
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Quantity</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0.0001"
+                                                                step="any"
+                                                                value={item.quantity}
+                                                                onChange={(e) => handleUpdateReceiptItem(item.id, "quantity", Number(e.target.value) || 0)}
+                                                                className="w-full bg-black border border-white/10 px-2 py-1.5 text-xs focus:outline-none focus:border-white/30 text-white"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Rate per unit</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                step="any"
+                                                                value={item.rate}
+                                                                onChange={(e) => handleUpdateReceiptItem(item.id, "rate", Number(e.target.value) || 0)}
+                                                                className="w-full bg-black border border-white/10 px-2 py-1.5 text-xs focus:outline-none focus:border-white/30 text-white font-mono"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Company Address and Memo Config */}
+                                    <div className="grid grid-cols-1 gap-4 pt-2 border-t border-white/5">
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block">Sender Office Address</label>
+                                            <textarea
+                                                rows={3}
+                                                value={receiptCompanyAddress}
+                                                onChange={(e) => setReceiptCompanyAddress(e.target.value)}
+                                                className="w-full bg-black border border-white/10 px-3 py-2 text-[10px] focus:outline-none focus:border-white/30 text-white resize-none"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block">Invoice Memo & Terms</label>
+                                            <textarea
+                                                rows={3}
+                                                value={receiptMemo}
+                                                onChange={(e) => setReceiptMemo(e.target.value)}
+                                                className="w-full bg-black border border-white/10 px-3 py-2 text-[10px] focus:outline-none focus:border-white/30 text-white resize-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="space-y-3 pt-4 border-t border-white/10 flex flex-col w-full">
+                                        <button
+                                            type="button"
+                                            onClick={() => window.print()}
+                                            className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#ff1f34] text-white py-3 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                                        >
+                                            <Printer className="w-4 h-4" />
+                                            Print / Save as PDF
+                                        </button>
+
+                                        {receiptClientId && (
+                                            <button
+                                                type="button"
+                                                onClick={handleSendGeneratedReceiptEmail}
+                                                disabled={receiptSendStatus === 'sending'}
+                                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:bg-green-700/50 text-white py-3 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                            >
+                                                {receiptSendStatus === 'sending' ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                        Sending Receipt...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send className="w-4 h-4" />
+                                                        Send Email Receipt
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+
+                                        {receiptSendStatus === 'success' && (
+                                            <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-semibold text-center uppercase tracking-wider animate-in fade-in duration-150">
+                                                ✓ Payment confirmation email dispatched successfully!
+                                            </div>
+                                        )}
+                                        {receiptSendStatus === 'error' && (
+                                            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-semibold text-center flex flex-col items-center gap-1 uppercase tracking-wider animate-in fade-in duration-150">
+                                                <div className="flex items-center gap-1">
+                                                    <AlertCircle className="w-3.5 h-3.5" />
+                                                    <span>Failed to send email</span>
+                                                </div>
+                                                {receiptErrorMessage && (
+                                                    <p className="text-[9px] text-red-400/80 mt-1 font-mono normal-case">{receiptErrorMessage}</p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Printable / Live preview Sheet (Right column - 7 grid cols) */}
+                                <div className="lg:col-span-7 flex justify-center bg-black/25 p-4 border border-white/5 min-h-[800px] overflow-y-auto">
+                                    {/* Clean A4 Page Mockup */}
+                                    <div className="printable-receipt bg-white text-black p-12 w-full max-w-[210mm] min-h-[297mm] shadow-2xl flex flex-col justify-between font-sans leading-relaxed text-sm antialiased select-none">
+                                        <div className="space-y-12">
+                                            {/* Top Row: Logo & Title Header */}
+                                            <div className="flex justify-between items-start border-b border-gray-100 pb-8">
+                                                <div className="space-y-4">
+                                                    {/* Premium Redlix Branding Logo */}
+                                                    <div className="flex items-center gap-2">
+                                                        <img
+                                                            src="https://ik.imagekit.io/dypkhqxip/logo.png"
+                                                            alt="Redlix Logo"
+                                                            className="h-[28px] w-auto brightness-0"
+                                                        />
+                                                        <span className="text-black text-[20px] font-black tracking-tighter uppercase">
+                                                            Redlix
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    {/* Sender Details */}
+                                                    <div className="text-[11px] text-gray-500 leading-relaxed font-normal whitespace-pre-line text-left">
+                                                        {receiptCompanyAddress}
+                                                    </div>
+                                                </div>
+
+                                                <h1 className="text-3xl font-light tracking-widest text-gray-800 uppercase text-right">
+                                                    Invoice
+                                                </h1>
+                                            </div>
+
+                                            {/* Info Column Section */}
+                                            <div className="grid grid-cols-2 gap-12 text-xs">
+                                                {/* Bill To */}
+                                                <div className="space-y-2 text-left">
+                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bill to:</div>
+                                                    <div className="space-y-1">
+                                                        <div className="font-bold text-gray-900 text-sm">{receiptBillToCompany || "[Client Company Org]"}</div>
+                                                        {receiptBillToName && <div className="text-gray-700">{receiptBillToName}</div>}
+                                                        <div className="text-gray-500 font-mono">{receiptBillToEmail || "client@company.com"}</div>
+                                                        {receiptBillToPhone && <div className="text-gray-500">{receiptBillToPhone}</div>}
+                                                    </div>
+                                                </div>
+
+                                                {/* Meta details */}
+                                                <div className="flex justify-end">
+                                                    <table className="w-fit text-left">
+                                                        <tbody>
+                                                            <tr className="border-b border-gray-50">
+                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Invoice number</td>
+                                                                <td className="py-2 font-mono text-gray-800 font-semibold">{receiptInvoiceNumber || "RED-2026-00000"}</td>
+                                                            </tr>
+                                                            <tr className="border-b border-gray-50">
+                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Invoice date</td>
+                                                                <td className="py-2 text-gray-700">
+                                                                    {receiptInvoiceDate 
+                                                                        ? new Date(receiptInvoiceDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                                        : "[Invoice Date]"
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            <tr className="border-b border-gray-50">
+                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Due date</td>
+                                                                <td className="py-2 text-gray-700">
+                                                                    {receiptDueDate 
+                                                                        ? new Date(receiptDueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
+                                                                        : "[Due Date]"
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Amount due</td>
+                                                                <td className="py-2 font-bold text-gray-900 text-[15px]">
+                                                                    {receiptCurrency}
+                                                                    {receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+
+                                            {/* Line Items Table */}
+                                            <div className="pt-4">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="border-b border-gray-200 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                            <th className="pb-3 font-bold">Description</th>
+                                                            <th className="pb-3 text-right font-bold w-24">Quantity</th>
+                                                            <th className="pb-3 text-right font-bold w-28">Rate</th>
+                                                            <th className="pb-3 text-right font-bold w-28">Amount</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-gray-100 text-xs">
+                                                        {receiptItems.map((item) => (
+                                                            <tr key={item.id} className="align-top">
+                                                                <td className="py-4 pr-4">
+                                                                    <div className="font-bold text-gray-900 text-left">{item.category || "[Category]"}</div>
+                                                                    {item.description && (
+                                                                        <div className="text-gray-500 text-[11px] mt-0.5 font-normal leading-relaxed text-left">{item.description}</div>
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-4 text-right font-mono text-gray-700">
+                                                                    {item.quantity.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                                                                </td>
+                                                                <td className="py-4 text-right font-mono text-gray-700">
+                                                                    {receiptCurrency}{item.rate.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                </td>
+                                                                <td className="py-4 text-right font-mono font-semibold text-gray-900">
+                                                                    {receiptCurrency}{(item.quantity * item.rate).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Subtotal & Totals Summary */}
+                                            <div className="flex justify-end pt-4 border-t border-gray-100">
+                                                <table className="w-64 text-right text-xs">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="py-2 text-gray-500 font-medium">Subtotal</td>
+                                                            <td className="py-2 font-mono font-semibold text-gray-800">
+                                                                {receiptCurrency}
+                                                                {receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                            </td>
+                                                        </tr>
+                                                        <tr className="border-t border-gray-200 text-sm font-bold">
+                                                            <td className="py-3 text-gray-900 font-extrabold uppercase tracking-wide text-right">Amount due</td>
+                                                            <td className="py-3 font-mono font-black text-gray-900 text-[16px]">
+                                                                {receiptCurrency}
+                                                                {receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* Bottom Memo & Footer Details */}
+                                        <div className="pt-12 border-t border-gray-100 flex justify-between items-end text-[10px] text-gray-400">
+                                            <div className="max-w-md font-normal leading-relaxed whitespace-pre-line text-left">
+                                                {receiptMemo}
+                                            </div>
+                                            <div className="font-mono uppercase tracking-widest shrink-0 text-right">
+                                                Page 1 of 1
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
                 </div>
