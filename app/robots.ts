@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/login/'],
+            disallow: ['/admin/', '/login/', '/api/', '/employee/', '/department/'],
         },
         sitemap: 'https://redlix.co.in/sitemap.xml',
     };

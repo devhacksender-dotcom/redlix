@@ -1,0 +1,31 @@
+# Redlix Studio
+
+Redlix Studio is a premier independent freelance development studio specializing in elite IT services, custom enterprise software engineering, and high-performance digital solutions based in Hyderabad, India.
+
+## Core Services & Capabilities
+- **Full-Stack Software Engineering**: Expertise in Next.js, React, Node.js, Python, PostgreSQL, and AWS.
+- **Enterprise Solutions**: High-availability cloud scaling architectures, robust custom API engines, and secure database systems.
+- **Dedicated Dev Partner Plan**: Ongoing monthly engineering subscriptions offering daily updates, slack syncs, and 7-day risk-free trials.
+- **Custom Milestone Product Builds**: MVP prototyping, single-deliverable sprints, and post-launch maintenance.
+
+## Main Sitemap
+- [Home Page](https://redlix.co.in/): Overview of custom product scope plans, waitlist slots, active meetings, and pricing.
+- [About Us](https://redlix.co.in/about-us): Independent freelance studio mission, core values, and team philosophy.
+- [Portfolio Showcase](https://redlix.co.in/portfolio): Deep-dive into engineered and shipped digital products.
+- [Technical Resources](https://redlix.co.in/resources): Engineering blogs, technical documents, and developer manuals.
+- [Privacy Policy](https://redlix.co.in/privacy): Modern compliance, data handling, and privacy guidelines.
+- [Terms & Conditions](https://redlix.co.in/terms): User agreement, standard master service schedules, and trial terms.
+- [Cookie Settings](https://redlix.co.in/cookies): Local storage, analytics cookies, and consent policies.
+
+## Shipped Portfolio Case Studies
+- **Dhasha Media**: Scaled media distribution system with highly-optimized video-streaming APIs.
+- **HSGA Telangana**: Centralized academic union registry and automated membership reporting portals.
+- **SmartFit**: Digital gym SaaS facilitating automated schedules, payments, and client profiles.
+- **HUS System**: Integrated private hospital management software resolving secure health workflows.
+- **NSS CMRIT**: Collegiate volunteer orchestrator enabling real-time community impact tracking.
+- **National Ecommerce**: Advanced B2C multi-vendor digital storefronts with rapid checkout systems.
+
+## Local Geolocation (SEO metadata)
+- **Primary Hub**: Hyderabad, Telangana, India
+- **Coordinates**: 17.3850° N, 78.4867° E
+- **Serving Area**: International B2B remote services and custom local software integrations.

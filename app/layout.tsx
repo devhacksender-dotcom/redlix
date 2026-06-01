@@ -33,11 +33,19 @@ export const metadata: Metadata = {
     "Custom IT Infrastructure",
     "B2B Software Development",
     "Digital Transformation Agency",
-    "Independent Development Studio"
+    "Independent Development Studio",
+    "Freelance Developer Hyderabad",
+    "Next.js Developer India",
+    "Full-stack Engineer Hyderabad",
+    "Software Studio Hyderabad",
+    "Web App Development Hyderabad",
+    "Supabase PostgreSQL Developer Hyderabad"
   ],
   authors: [{ name: "Rishi Rohan Kalapala" }],
   creator: "Rishi Rohan Kalapala",
   publisher: "Redlix Studio",
+  category: "technology",
+  classification: "B2B Software Development & Freelance IT Services",
   formatDetection: {
     email: false,
     address: false,
@@ -81,6 +89,12 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  other: {
+    "geo.region": "IN-TG",
+    "geo.placename": "Hyderabad",
+    "geo.position": "17.385044;78.486671",
+    "ICBM": "17.385044, 78.486671"
+  }
 };
 
 export default function RootLayout({
