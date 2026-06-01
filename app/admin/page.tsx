@@ -327,6 +327,8 @@ export default function AdminPortal() {
     // Pricing slots states
     const [slotsStatus, setSlotsStatus] = useState<"available" | "booked">("available");
     const [slotsCount, setSlotsCount] = useState<number>(3);
+    const [currentMonthOverride, setCurrentMonthOverride] = useState<string>("");
+    const [nextMonthOverride, setNextMonthOverride] = useState<string>("");
     const [isSavingSlots, setIsSavingSlots] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
 
@@ -338,6 +340,8 @@ export default function AdminPortal() {
             if (data.success && data.data) {
                 setSlotsStatus(data.data.status || "available");
                 setSlotsCount(data.data.slots ?? 3);
+                setCurrentMonthOverride(data.data.currentMonth || "");
+                setNextMonthOverride(data.data.nextMonth || "");
             }
         } catch (error) {
             console.error("Error fetching pricing slots:", error);
@@ -353,7 +357,12 @@ export default function AdminPortal() {
             const res = await fetch("/api/admin/pricing-slots", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ status: slotsStatus, slots: slotsCount })
+                body: JSON.stringify({
+                    status: slotsStatus,
+                    slots: slotsCount,
+                    currentMonth: currentMonthOverride,
+                    nextMonth: nextMonthOverride
+                })
             });
             const data = await res.json();
             if (data.success) {
@@ -4776,6 +4785,29 @@ export default function AdminPortal() {
                                                             onChange={e => setSlotsCount(parseInt(e.target.value) || 0)}
                                                             className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E61E32] disabled:opacity-40 disabled:cursor-not-allowed"
                                                             disabled={slotsStatus === "booked"}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Current Month Override (Optional)</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. MAY"
+                                                            value={currentMonthOverride}
+                                                            onChange={e => setCurrentMonthOverride(e.target.value.toUpperCase())}
+                                                            className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E61E32] placeholder-white/20"
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Next Month Override (Optional)</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="e.g. JUNE"
+                                                            value={nextMonthOverride}
+                                                            onChange={e => setNextMonthOverride(e.target.value.toUpperCase())}
+                                                            className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-[#E61E32] placeholder-white/20"
                                                         />
                                                     </div>
                                                 </div>

@@ -26,13 +26,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { status, slots } = body;
+        const { status, slots, currentMonth, nextMonth } = body;
 
         if (!status || typeof slots !== "number") {
             return NextResponse.json({ success: false, message: "Invalid payload parameters" }, { status: 400 });
         }
 
-        const valueString = JSON.stringify({ status, slots });
+        const valueString = JSON.stringify({
+            status,
+            slots,
+            currentMonth: currentMonth || "",
+            nextMonth: nextMonth || ""
+        });
 
         const setting = await prisma.systemSetting.upsert({
             where: { key: "pricing_slots" },
@@ -40,7 +45,7 @@ export async function POST(request: NextRequest) {
             create: { key: "pricing_slots", value: valueString }
         });
 
-        return NextResponse.json({ success: true, data: { status, slots } });
+        return NextResponse.json({ success: true, data: { status, slots, currentMonth, nextMonth } });
     } catch (error) {
         console.error("Admin save pricing slots error:", error);
         return NextResponse.json({ success: false, message: "Failed to save slot configuration" }, { status: 500 });

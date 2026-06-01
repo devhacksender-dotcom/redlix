@@ -66,6 +66,11 @@ export default function PricingSection() {
                         status: data.data.status || "available",
                         slots: data.data.slots ?? 3
                     });
+                    setMonthsInfo(prev => ({
+                        current: data.data.currentMonth || prev.current,
+                        currentYearShort: prev.currentYearShort,
+                        next: data.data.nextMonth || prev.next
+                    }));
                 }
             })
             .catch(err => console.error("Error loading pricing slots:", err));
