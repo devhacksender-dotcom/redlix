@@ -324,6 +324,48 @@ export default function AdminPortal() {
     const [resetInput, setResetInput] = useState("");
     const [resetLoading, setResetLoading] = useState(false);
 
+    // Selective Table Purge States
+    const [selectedPurgeTable, setSelectedPurgeTable] = useState<string>("");
+    const [purgeConfirmInput, setPurgeConfirmInput] = useState<string>("");
+    const [isPurgingTable, setIsPurgingTable] = useState<boolean>(false);
+
+    const handlePurgeTable = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (purgeConfirmInput !== "CONFIRM") {
+            alert("Please type CONFIRM to proceed");
+            return;
+        }
+        if (!selectedPurgeTable) {
+            alert("Please select a table to purge");
+            return;
+        }
+
+        const confirmFinal = window.confirm(`Are you absolutely sure you want to permanently clear all data from "${selectedPurgeTable}"? This action is irreversible.`);
+        if (!confirmFinal) return;
+
+        setIsPurgingTable(true);
+        try {
+            const res = await fetch("/api/admin/reset/table", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ table: selectedPurgeTable })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert(data.message || `Table ${selectedPurgeTable} cleared successfully!`);
+                setPurgeConfirmInput("");
+                setSelectedPurgeTable("");
+            } else {
+                alert(data.message || `Failed to clear data from ${selectedPurgeTable}`);
+            }
+        } catch (error) {
+            console.error("Purge table error:", error);
+            alert("A connection error occurred. Please try again.");
+        } finally {
+            setIsPurgingTable(false);
+        }
+    };
+
     // Pricing slots states
     const [slotsStatus, setSlotsStatus] = useState<"available" | "booked">("available");
     const [slotsCount, setSlotsCount] = useState<number>(3);
@@ -4829,6 +4871,73 @@ export default function AdminPortal() {
                                                 </button>
                                             </form>
                                         )}
+                                    </div>
+
+                                    {/* Selective Table Purge Control */}
+                                    <div className="border border-yellow-500/30 bg-yellow-500/[0.02] p-6 space-y-4">
+                                        <div className="flex items-center gap-2 text-yellow-500">
+                                            <AlertCircle className="w-5 h-5 shrink-0" />
+                                            <h4 className="font-extrabold uppercase text-xs tracking-wider">Selective Table Data Purge</h4>
+                                        </div>
+                                        <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
+                                            Select a specific database table to purge all of its records. Unlike a factory reset, this will only remove the data in the selected table.
+                                        </p>
+                                        
+                                        <form onSubmit={handlePurgeTable} className="space-y-4 max-w-md pt-2">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Database Table</label>
+                                                <select
+                                                    value={selectedPurgeTable}
+                                                    onChange={e => setSelectedPurgeTable(e.target.value)}
+                                                    className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-yellow-500"
+                                                >
+                                                    <option value="" disabled className="bg-[#111]">-- Choose Table --</option>
+                                                    <option value="attendance" className="bg-[#111]">Attendance Logs</option>
+                                                    <option value="clients" className="bg-[#111]">Clients</option>
+                                                    <option value="contact_inquiries" className="bg-[#111]">Contact Inquiries</option>
+                                                    <option value="declarations" className="bg-[#111]">Declarations</option>
+                                                    <option value="documents" className="bg-[#111]">Uploaded Documents</option>
+                                                    <option value="employees" className="bg-[#111]">Employees (Warning: cascades to attendance, tasks, etc.)</option>
+                                                    <option value="intern_support" className="bg-[#111]">Intern Support Tickets</option>
+                                                    <option value="leave_requests" className="bg-[#111]">Leave Requests</option>
+                                                    <option value="meetings" className="bg-[#111]">Meetings & Attendees</option>
+                                                    <option value="payrolls" className="bg-[#111]">Payroll Allocations</option>
+                                                    <option value="support_tickets" className="bg-[#111]">Support Tickets</option>
+                                                    <option value="system_settings" className="bg-[#111]">System Settings (Pricing Slots)</option>
+                                                    <option value="tasks" className="bg-[#111]">Tasks</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                                    Type <span className="text-yellow-500 select-all font-mono">CONFIRM</span> to proceed *
+                                                </label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    placeholder="Type CONFIRM"
+                                                    value={purgeConfirmInput}
+                                                    onChange={e => setPurgeConfirmInput(e.target.value)}
+                                                    className="w-full bg-[#111111] border border-white/10 px-3 py-2.5 text-sm text-white focus:outline-none focus:border-yellow-500 transition-colors"
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={!selectedPurgeTable || purgeConfirmInput !== "CONFIRM" || isPurgingTable}
+                                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-500 disabled:bg-white/5 disabled:text-white/20 disabled:border-transparent text-black font-bold text-xs uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                            >
+                                                {isPurgingTable ? (
+                                                    <>
+                                                        <Loader2 className="w-4 h-4 animate-spin" /> Purging Table Data...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Trash2 className="w-4 h-4" /> Purge Table Data
+                                                    </>
+                                                )}
+                                            </button>
+                                        </form>
                                     </div>
 
                                     {/* Danger Zone */}
