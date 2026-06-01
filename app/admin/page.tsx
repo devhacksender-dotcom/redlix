@@ -395,7 +395,7 @@ export default function AdminPortal() {
     const [receiptInvoiceNumber, setReceiptInvoiceNumber] = useState("");
     const [receiptInvoiceDate, setReceiptInvoiceDate] = useState("");
     const [receiptDueDate, setReceiptDueDate] = useState("");
-    const [receiptCurrency, setReceiptCurrency] = useState("$");
+    const [receiptCurrency, setReceiptCurrency] = useState("₹");
     const [receiptItems, setReceiptItems] = useState<ReceiptItem[]>([
         { id: "1", category: "Web Development", description: "Development of custom web application", quantity: 1, rate: 0 }
     ]);
@@ -5758,8 +5758,12 @@ export default function AdminPortal() {
 
                                 {/* Printable / Live preview Sheet (Right column - 7 grid cols) */}
                                 <div className="lg:col-span-7 flex justify-center bg-black/25 p-4 border border-white/5 min-h-[800px] overflow-y-auto">
-                                    {/* Clean A4 Page Mockup */}
-                                    <div className="printable-receipt bg-white text-black p-12 w-full max-w-[210mm] min-h-[297mm] shadow-2xl flex flex-col justify-between font-sans leading-relaxed text-sm antialiased select-none">
+                                    <div className="printable-receipt relative bg-white text-black p-12 w-full max-w-[210mm] min-h-[297mm] shadow-2xl flex flex-col justify-between font-sans leading-relaxed text-sm antialiased select-none">
+                                        {/* Top Red Branding Bar */}
+                                        <div className="absolute top-0 left-0 w-full h-2.5 bg-[#E61E32]" />
+                                        {/* Bottom Red Branding Bar */}
+                                        <div className="absolute bottom-0 left-0 w-full h-2.5 bg-[#E61E32]" />
+
                                         <div className="space-y-12">
                                             {/* Top Row: Logo & Title Header */}
                                             <div className="flex justify-between items-start border-b border-gray-100 pb-8">
