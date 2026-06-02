@@ -1789,10 +1789,10 @@ export default function EmployeePortal() {
                             );
 
                             return (
-                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl shadow-xl overflow-y-auto h-full flex flex-col text-left animate-in fade-in duration-300 relative text-white">
+                                <div className="bg-transparent border-0 shadow-none overflow-y-auto h-full flex flex-col text-left animate-in fade-in duration-300 relative text-white scrollbar-thin pr-1 pb-10">
                                     {/* ── Banner + Identity Header ── */}
                                     <div
-                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden"
+                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-2xl border border-white/5 shadow-sm mb-6"
                                         style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
                                         {/* Dark gradient — heavier at bottom so text is legible */}
@@ -1889,7 +1889,7 @@ export default function EmployeePortal() {
 
 
                                     {/* Navigation Sub-Tabs */}
-                                    <div className="border-b border-white/5 bg-white/[0.01] px-8 flex gap-6 shrink-0">
+                                    <div className="border border-white/5 bg-white/[0.02] backdrop-blur-md px-4 py-2 flex gap-2 shrink-0 rounded-2xl mb-4 items-center overflow-x-auto scrollbar-none">
                                         {[
                                             { id: "summary", label: "Summary" },
                                             { id: "stats", label: "Stats" },
@@ -1903,10 +1903,10 @@ export default function EmployeePortal() {
                                                     setActiveProfileTab(t.id);
                                                     setIsEditingProfile(false);
                                                 }}
-                                                className={`py-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer bg-transparent ${
+                                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                                                     activeProfileTab === t.id && !isEditingProfile
-                                                        ? "border-[#E61E32] text-white"
-                                                        : "border-transparent text-white/40 hover:text-white/60"
+                                                        ? "bg-[#E61E32] text-white shadow-md shadow-[#E61E32]/10"
+                                                        : "text-white/40 hover:text-white hover:bg-white/5"
                                                 }`}
                                             >
                                                 {t.label}
@@ -1915,7 +1915,7 @@ export default function EmployeePortal() {
                                     </div>
 
                                     {/* Sub-Tab Contents */}
-                                    <div className="flex-1 overflow-y-auto">
+                                    <div className="flex-1">
                                         {isEditingProfile ? (
                                             <div className="p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
                                                 <div className="flex justify-between items-center pb-4 border-b border-white/5">
