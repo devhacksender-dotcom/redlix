@@ -1726,9 +1726,8 @@ export default function EmployeePortal() {
                                                     setTourStep(0);
                                                     setTourActive(true);
                                                 }}
-                                                className="flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-lg shadow-[#E61E32]/10"
+                                                className="flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 rounded-none transition-all cursor-pointer"
                                             >
-                                                <Sparkles className="w-3.5 h-3.5" />
                                                 Take a Tour
                                             </button>
                                             <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
