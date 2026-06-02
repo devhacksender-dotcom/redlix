@@ -2020,221 +2020,158 @@ export default function EmployeePortal() {
 
                         {/* ===== COMMUNITY TAB ===== */}
                         {activeTab === "community" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500 relative">
-                                {/* Left Column: Submit daily progress (5 cols) */}
-                                <div className="lg:col-span-5 space-y-6">
-                                    <div className="bg-white/5 border border-white/5 p-6 rounded-xl space-y-4">
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white">Share Daily Standup</h3>
-                                        <p className="text-[11px] text-white/40 leading-relaxed">
-                                            Log what you did today, new concepts learned, references/document links, and progress. Your update will be posted to the live standup feed.
-                                        </p>
-                                        
-                                        <button
-                                            onClick={() => setIsStandupModalOpen(true)}
-                                            className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-3 text-xs font-black uppercase tracking-widest transition-colors duration-200 rounded-lg flex items-center justify-center gap-2"
-                                        >
-                                            <Send className="w-3.5 h-3.5" />
-                                            + Write Daily Standup
-                                        </button>
+                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500 relative w-full">
+                                {/* Top Header Bar */}
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 w-full">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-white">Community Standups</h2>
+                                        <p className="text-xs text-white/40 mt-1">See what you and others completed today</p>
                                     </div>
-
-                                    {/* Standup Tips Info Box */}
-                                    <div className="bg-white/[0.01] border border-white/5 p-5 rounded-xl space-y-3">
-                                        <h4 className="text-xs font-bold uppercase tracking-wider text-[#E61E32] flex items-center gap-1.5">
-                                            <AlertCircle className="w-4 h-4 text-[#E61E32]" />
-                                            Standup Guidelines
-                                        </h4>
-                                        <ul className="text-[11px] text-white/50 space-y-2 list-disc list-inside">
-                                            <li>Keep it concise and focused on actual outcomes.</li>
-                                            <li>Highlight any issues/blockers hindering your work.</li>
-                                            <li>Be collaborative and read updates from other team members.</li>
-                                        </ul>
-                                    </div>
+                                    <button
+                                        onClick={() => setIsStandupModalOpen(true)}
+                                        className="bg-[#E61E32] hover:bg-[#C81428] text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-colors duration-200 rounded-none flex items-center justify-center gap-2 self-start sm:self-auto shadow-md"
+                                    >
+                                        <Send className="w-3.5 h-3.5" />
+                                        + Write Daily Standup
+                                    </button>
                                 </div>
 
-                                {/* Right Column: Community Standups Feed (7 cols) */}
-                                <div className="lg:col-span-7 flex flex-col h-full overflow-hidden">
-                                    <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full rounded-xl">
-                                        <div className="mb-4 shrink-0 flex justify-between items-center">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today's Standups</h3>
-                                            <span className="text-[10px] text-white/30 bg-white/5 px-2 py-0.5 border border-white/5 rounded-md">{communityUpdates.length} updates</span>
-                                        </div>
+                                {/* Feed of Cards */}
+                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col rounded-none max-w-2xl mx-auto w-full">
+                                    <div className="mb-4 shrink-0 flex justify-between items-center">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today's Standups</h3>
+                                        <span className="text-[10px] text-white/30 bg-white/5 px-2 py-0.5 border border-white/5 rounded-none">{communityUpdates.length} updates</span>
+                                    </div>
 
-                                        <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin space-y-4">
-                                            {communityLoading ? (
-                                                <div className="py-16 text-center space-y-3">
-                                                    <Loader2 className="w-6 h-6 animate-spin text-[#E61E32] mx-auto" />
-                                                    <p className="text-white/20 text-xs">Loading community standup updates...</p>
-                                                </div>
-                                            ) : communityUpdates.length > 0 ? (
-                                                communityUpdates.map((update) => {
-                                                    const initials = update.employee?.name
-                                                        ? update.employee.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-                                                        : "?";
+                                    <div className="space-y-4">
+                                        {communityLoading ? (
+                                            <div className="py-16 text-center space-y-3">
+                                                <Loader2 className="w-6 h-6 animate-spin text-[#E61E32] mx-auto" />
+                                                <p className="text-white/20 text-xs">Loading community standup updates...</p>
+                                            </div>
+                                        ) : communityUpdates.length > 0 ? (
+                                            communityUpdates.map((update) => {
+                                                const initials = update.employee?.name
+                                                    ? update.employee.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+                                                    : "?";
 
-                                                    const handleName = update.employee?.name
-                                                        ? update.employee.name.toLowerCase().replace(/\s+/g, "_")
-                                                        : "user";
-                                                    const handleRole = update.employee?.role
-                                                        ? update.employee.role.toLowerCase().replace(/[^a-z0-9]/g, "")
-                                                        : "member";
-                                                    const handle = `@${handleName}_${handleRole}`;
+                                                const handleName = update.employee?.name
+                                                    ? update.employee.name.toLowerCase().replace(/\s+/g, "_")
+                                                    : "user";
+                                                const handleRole = update.employee?.role
+                                                    ? update.employee.role.toLowerCase().replace(/[^a-z0-9]/g, "")
+                                                    : "member";
+                                                const handle = `@${handleName}_${handleRole}`;
 
-                                                    const timeFormatted = (() => {
-                                                        try {
-                                                            const date = new Date(update.createdAt);
-                                                            const now = new Date();
-                                                            const isToday = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) === 
-                                                                            now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
-                                                            const yesterday = new Date(now);
-                                                            yesterday.setDate(now.getDate() - 1);
-                                                            const isYesterday = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) === 
-                                                                                yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
-                                                                                
-                                                            const timeStr = date.toLocaleTimeString('en-IN', { 
-                                                                timeZone: 'Asia/Kolkata', 
-                                                                hour: '2-digit', 
-                                                                minute: '2-digit', 
-                                                                hour12: true 
-                                                            });
+                                                const timeFormatted = (() => {
+                                                    try {
+                                                        const date = new Date(update.createdAt);
+                                                        const now = new Date();
+                                                        const isToday = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) === 
+                                                                        now.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+                                                        const yesterday = new Date(now);
+                                                        yesterday.setDate(now.getDate() - 1);
+                                                        const isYesterday = date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' }) === 
+                                                                            yesterday.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+                                                                            
+                                                        const timeStr = date.toLocaleTimeString('en-IN', { 
+                                                            timeZone: 'Asia/Kolkata', 
+                                                            hour: '2-digit', 
+                                                            minute: '2-digit', 
+                                                            hour12: true 
+                                                        });
 
-                                                            if (isToday) return `Today at ${timeStr}`;
-                                                            if (isYesterday) return `Yesterday at ${timeStr}`;
-                                                            
-                                                            return `${date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })} at ${timeStr}`;
-                                                        } catch (e) {
-                                                            return "";
-                                                        }
-                                                    })();
+                                                        if (isToday) return `Today at ${timeStr}`;
+                                                        if (isYesterday) return `Yesterday at ${timeStr}`;
+                                                        
+                                                        return `${date.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short' })} at ${timeStr}`;
+                                                    } catch (e) {
+                                                        return "";
+                                                    }
+                                                })();
 
-                                                    const isLiked = likedUpdates[update.id] || false;
-
-                                                    return (
-                                                        <div key={update.id} className="bg-[#0c0c0c]/85 border border-white/10 p-5 rounded-xl space-y-4 hover:bg-[#0c0c0c] transition-all duration-200 group text-left relative">
-                                                            {/* Top row: profile & handles */}
-                                                            <div className="flex justify-between items-start gap-4">
-                                                                <div className="flex gap-3 min-w-0">
-                                                                    <div className="w-10 h-10 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] font-black text-sm uppercase shrink-0">
-                                                                        {initials}
-                                                                    </div>
-                                                                    <div className="min-w-0">
-                                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                                            <span className="font-bold text-white text-xs hover:underline cursor-pointer flex items-center gap-1">
-                                                                                {update.employee?.name}
-                                                                                <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-[#1d9bf0] text-white select-none">
-                                                                                    <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-current"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.99-3.818-3.99-.48 0-.94.1-1.348.27C14.825 2.515 13.512 1.5 12 1.5s-2.825 1.015-3.422 2.28c-.408-.17-.867-.27-1.348-.27-2.108 0-3.818 1.78-3.818 3.99 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.58.875 2.95 2.148 3.6-.154.435-.238.905-.238 1.4 0 2.21 1.71 3.99 3.818 3.99.48 0 .94-.1 1.348-.27.597 1.265 1.91 2.28 3.422 2.28s2.825-1.015 3.422-2.28c.408.17.867.27 1.348.27 2.108 0 3.818-1.78 3.818-3.99 0-.495-.084-.965-.238-1.4 1.273-.65 2.148-2.02 2.148-3.6zm-12.72 3.12l-3.24-3.24 1.41-1.42 1.83 1.83 4.54-4.54 1.42 1.41-5.96 5.96z"></path></g></svg>
-                                                                                </span>
+                                                return (
+                                                    <div key={update.id} className="bg-[#0c0c0c]/85 border border-white/10 p-5 rounded-none flex flex-col gap-4 hover:bg-[#0c0c0c] transition-all duration-200 group text-left relative w-full">
+                                                        {/* Top row: profile & handles & X Logo */}
+                                                        <div className="flex justify-between items-start gap-4">
+                                                            <div className="flex gap-3 min-w-0">
+                                                                <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] font-black text-sm uppercase shrink-0">
+                                                                    {initials}
+                                                                </div>
+                                                                <div className="min-w-0">
+                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                        <span className="font-bold text-white text-xs hover:underline cursor-pointer flex items-center gap-1">
+                                                                            {update.employee?.name}
+                                                                            <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-green-500 text-white select-none">
+                                                                                <svg viewBox="0 0 24 24" className="w-2.5 h-2.5 fill-current"><g><path d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.71-3.99-3.818-3.99-.48 0-.94.1-1.348.27C14.825 2.515 13.512 1.5 12 1.5s-2.825 1.015-3.422 2.28c-.408-.17-.867-.27-1.348-.27-2.108 0-3.818 1.78-3.818 3.99 0 .495.084.965.238 1.4-1.273.65-2.148 2.02-2.148 3.6 0 1.58.875 2.95 2.148 3.6-.154.435-.238.905-.238 1.4 0 2.21 1.71 3.99 3.818 3.99.48 0 .94-.1 1.348-.27.597 1.265 1.91 2.28 3.422 2.28s2.825-1.015 3.422-2.28c.408.17.867.27 1.348.27 2.108 0 3.818-1.78 3.818-3.99 0-.495-.084-.965-.238-1.4 1.273-.65 2.148-2.02 2.148-3.6zm-12.72 3.12l-3.24-3.24 1.41-1.42 1.83 1.83 4.54-4.54 1.42 1.41-5.96 5.96z"></path></g></svg>
                                                                             </span>
-                                                                            <span className="text-white/40 text-[11px] truncate shrink-0">{handle}</span>
-                                                                            <span className="text-white/45 text-[11px] shrink-0">·</span>
-                                                                            <span className="text-white/40 text-[11px] hover:underline cursor-pointer shrink-0">{timeFormatted}</span>
-                                                                        </div>
-                                                                        <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-0.5">{update.employee?.role || "Team Member"}</p>
+                                                                        </span>
+                                                                        <span className="text-white/40 text-[11px] truncate shrink-0">{handle}</span>
+                                                                        <span className="text-white/45 text-[11px] shrink-0">·</span>
+                                                                        <span className="text-white/40 text-[11px] hover:underline cursor-pointer shrink-0">{timeFormatted}</span>
                                                                     </div>
+                                                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-0.5">{update.employee?.role || "Team Member"}</p>
                                                                 </div>
                                                             </div>
-
-                                                            {/* Standup Content Area */}
-                                                            <div className="space-y-3.5 pl-[52px] text-xs">
-                                                                {/* Tasks Done */}
-                                                                <div className="space-y-1">
-                                                                    <span className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider block">Tasks Completed</span>
-                                                                    <p className="text-white/90 leading-relaxed break-words whitespace-pre-wrap">{update.tasksDone}</p>
-                                                                </div>
-
-                                                                {/* What You Learnt */}
-                                                                <div className="space-y-1">
-                                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Learning & Discoveries</span>
-                                                                    <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.learnt}</p>
-                                                                </div>
-
-                                                                {/* Progress Gained */}
-                                                                <div className="space-y-1">
-                                                                    <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Gained / Key Progress</span>
-                                                                    <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.gained}</p>
-                                                                </div>
-
-                                                                {/* Document/Resource Link Card Preview */}
-                                                                {update.docLink && (
-                                                                    <a
-                                                                        href={update.docLink}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="block border border-white/10 rounded-xl overflow-hidden hover:border-[#E61E32]/35 transition-all bg-white/[0.01] hover:bg-white/[0.03] max-w-md cursor-pointer"
-                                                                    >
-                                                                        <div className="p-3 flex items-center gap-3">
-                                                                            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-[#E61E32] shrink-0">
-                                                                                <LinkIcon className="w-4 h-4" />
-                                                                            </div>
-                                                                            <div className="min-w-0 flex-1">
-                                                                                <p className="text-[10px] font-black text-white/90 truncate uppercase tracking-widest">Shared Document</p>
-                                                                                <p className="text-[11px] text-[#E61E32] truncate mt-0.5 flex items-center gap-1">
-                                                                                    {update.docLink}
-                                                                                    <ExternalLink className="w-2.5 h-2.5 inline" />
-                                                                                </p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </a>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Bottom row: Twitter Action Bar */}
-                                                            <div className="flex items-center justify-between max-w-sm pl-[52px] pt-1 text-white/35">
-                                                                {/* Comments Mock */}
-                                                                <button type="button" className="flex items-center gap-1 hover:text-[#1d9bf0] transition-colors group cursor-pointer text-[11px] bg-transparent border-0 outline-none">
-                                                                    <span className="w-7 h-7 rounded-full flex items-center justify-center group-hover:bg-[#1d9bf0]/10 transition-colors">
-                                                                        <MessageSquare className="w-3.5 h-3.5" />
-                                                                    </span>
-                                                                    <span className="font-semibold select-none">3</span>
-                                                                </button>
-                                                                {/* Repost Mock */}
-                                                                <button type="button" className="flex items-center gap-1 hover:text-[#00ba7c] transition-colors group cursor-pointer text-[11px] bg-transparent border-0 outline-none">
-                                                                    <span className="w-7 h-7 rounded-full flex items-center justify-center group-hover:bg-[#00ba7c]/10 transition-colors">
-                                                                        <Globe className="w-3.5 h-3.5" />
-                                                                    </span>
-                                                                    <span className="font-semibold select-none">1</span>
-                                                                </button>
-                                                                {/* Like Button */}
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        setLikedUpdates(prev => ({
-                                                                            ...prev,
-                                                                            [update.id]: !prev[update.id]
-                                                                        }));
-                                                                    }}
-                                                                    className={`flex items-center gap-1 hover:text-[#f91880] transition-colors group cursor-pointer text-[11px] bg-transparent border-0 outline-none ${isLiked ? 'text-[#f91880]' : ''}`}
-                                                                >
-                                                                    <span className="w-7 h-7 rounded-full flex items-center justify-center group-hover:bg-[#f91880]/10 transition-colors">
-                                                                        <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current text-[#f91880]' : ''}`} />
-                                                                    </span>
-                                                                    <span className="font-semibold select-none">{isLiked ? 1 : 0}</span>
-                                                                </button>
-                                                                {/* Views Mock */}
-                                                                <div className="flex items-center gap-1 text-[11px]">
-                                                                    <span className="w-7 h-7 rounded-full flex items-center justify-center">
-                                                                        <BarChart3 className="w-3.5 h-3.5" />
-                                                                    </span>
-                                                                    <span className="font-semibold select-none">42</span>
-                                                                </div>
-                                                                {/* Share Mock */}
-                                                                <button type="button" className="flex items-center hover:text-[#1d9bf0] transition-colors group cursor-pointer bg-transparent border-0 outline-none">
-                                                                    <span className="w-7 h-7 rounded-full flex items-center justify-center group-hover:bg-[#1d9bf0]/10 transition-colors">
-                                                                        <Send className="w-3.5 h-3.5" />
-                                                                    </span>
-                                                                </button>
-                                                            </div>
+                                                            <a href="https://x.com" target="_blank" rel="noopener noreferrer">
+                                                                <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current text-white/35 hover:text-white transition-colors shrink-0">
+                                                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                                </svg>
+                                                            </a>
                                                         </div>
-                                                    );
-                                                })
-                                            ) : (
-                                                <div className="py-20 text-center border border-dashed border-white/5 rounded-lg">
-                                                    <p className="text-white/20 text-xs">No standups shared today yet.</p>
-                                                    <p className="text-white/10 text-[10px] mt-1">Be the first to share your progress!</p>
-                                                </div>
-                                            )}
-                                        </div>
+
+                                                        {/* Standup Content Area */}
+                                                        <div className="space-y-3.5 text-xs">
+                                                            {/* Tasks Done */}
+                                                            <div className="space-y-1">
+                                                                <span className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider block">Tasks Completed</span>
+                                                                <p className="text-white/90 leading-relaxed break-words whitespace-pre-wrap">{update.tasksDone}</p>
+                                                            </div>
+
+                                                            {/* What You Learnt */}
+                                                            <div className="space-y-1">
+                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Learning & Discoveries</span>
+                                                                <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.learnt}</p>
+                                                            </div>
+
+                                                            {/* Progress Gained */}
+                                                            <div className="space-y-1">
+                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Gained / Key Progress</span>
+                                                                <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.gained}</p>
+                                                            </div>
+
+                                                            {/* Document/Resource Link Card Preview */}
+                                                            {update.docLink && (
+                                                                <a
+                                                                    href={update.docLink}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="block border border-white/10 rounded-none overflow-hidden hover:border-[#E61E32]/35 transition-all bg-white/[0.01] hover:bg-white/[0.03] max-w-md cursor-pointer"
+                                                                >
+                                                                    <div className="p-3 flex items-center gap-3">
+                                                                        <div className="w-8 h-8 rounded-none bg-white/5 border border-white/5 flex items-center justify-center text-[#E61E32] shrink-0">
+                                                                            <LinkIcon className="w-4 h-4" />
+                                                                        </div>
+                                                                        <div className="min-w-0 flex-1">
+                                                                            <p className="text-[10px] font-black text-white/90 truncate uppercase tracking-widest">Shared Document</p>
+                                                                            <p className="text-[11px] text-[#E61E32] truncate mt-0.5 flex items-center gap-1">
+                                                                                {update.docLink}
+                                                                                <ExternalLink className="w-2.5 h-2.5 inline" />
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="py-20 text-center border border-dashed border-white/5 rounded-none">
+                                                <p className="text-white/20 text-xs">No standups shared today yet.</p>
+                                                <p className="text-white/10 text-[10px] mt-1">Be the first to share your progress!</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -2248,17 +2185,17 @@ export default function EmployeePortal() {
                                         />
                                         
                                         {/* Modal Body */}
-                                        <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-lg p-6 rounded-2xl shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 text-left">
+                                        <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-lg p-6 rounded-none shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 text-left">
                                             <div className="flex justify-between items-center pb-2 border-b border-white/5">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-7 h-7 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
+                                                    <div className="w-7 h-7 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
                                                         <Send className="w-3.5 h-3.5" />
                                                     </div>
                                                     <h3 className="text-xs font-bold uppercase tracking-widest text-white">Create Standup Update</h3>
                                                 </div>
                                                 <button 
                                                     onClick={() => setIsStandupModalOpen(false)} 
-                                                    className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-full"
+                                                    className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-none"
                                                 >
                                                     <X className="w-3.5 h-3.5" />
                                                 </button>
@@ -2273,7 +2210,7 @@ export default function EmployeePortal() {
                                                         required
                                                         rows={3}
                                                         placeholder="What tasks did you complete today?"
-                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg resize-none leading-relaxed"
+                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed"
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
@@ -2284,7 +2221,7 @@ export default function EmployeePortal() {
                                                         required
                                                         rows={2}
                                                         placeholder="What new concepts, library patterns, or features did you learn?"
-                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg resize-none leading-relaxed"
+                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed"
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
@@ -2295,7 +2232,7 @@ export default function EmployeePortal() {
                                                         required
                                                         rows={2}
                                                         placeholder="What is your progress / takeaway gained so far?"
-                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg resize-none leading-relaxed"
+                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed"
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
@@ -2305,21 +2242,21 @@ export default function EmployeePortal() {
                                                         value={docLink}
                                                         onChange={(e) => setDocLink(e.target.value)}
                                                         placeholder="e.g., github.com/pulls or Figma link..."
-                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
+                                                        className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
                                                     />
                                                 </div>
                                                 <div className="flex justify-end gap-3 pt-3 border-t border-white/5">
                                                     <button
                                                         type="button"
                                                         onClick={() => setIsStandupModalOpen(false)}
-                                                        className="px-4 py-2 text-xs font-semibold text-white/60 hover:text-white bg-white/5 border border-white/5 hover:bg-white/10 transition-colors rounded-lg"
+                                                        className="px-4 py-2 text-xs font-semibold text-white/60 hover:text-white bg-white/5 border border-white/5 hover:bg-white/10 transition-colors rounded-none"
                                                     >
                                                         Cancel
                                                     </button>
                                                     <button
                                                         type="submit"
                                                         disabled={submittingCommunityUpdate || !tasksDone.trim() || !learnt.trim() || !gained.trim()}
-                                                        className="px-5 py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 rounded-lg flex items-center gap-1.5"
+                                                        className="px-5 py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 rounded-none flex items-center gap-1.5"
                                                     >
                                                         {submittingCommunityUpdate ? (
                                                             <>

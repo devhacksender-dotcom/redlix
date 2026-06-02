@@ -12,17 +12,14 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Find employee with valid token and not expired
+        // Find employee with valid token
         const employee = await prisma.employee.findFirst({
             where: {
                 resetToken: token,
-                resetTokenExpiry: {
-                    gt: new Date(),
-                },
             },
         });
 
-        if (!employee) {
+        if (!employee || !employee.resetTokenExpiry || employee.resetTokenExpiry < new Date()) {
             return NextResponse.json(
                 { success: false, message: "Invalid or expired password reset token" },
                 { status: 400 }
