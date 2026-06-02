@@ -2132,14 +2132,14 @@ export default function EmployeePortal() {
                                     {/* ── Banner + Identity Header ── */}
                                     <div
                                         id="tour-profile-banner"
-                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-2xl border border-white/5 shadow-sm mb-6"
+                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-none-none border border-white/5 shadow-sm mb-6"
                                         style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
 
 
                                         {/* Hover Edit Overlay */}
                                         <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
-                                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                                            <div className="w-10 h-10 rounded-none-none bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
                                                 <Pencil className="w-4 h-4 text-white" />
                                             </div>
                                             <span className="tracking-widest uppercase text-[10px]">{isEditingProfile ? "Upload Custom Banner" : "Edit Profile Banner"}</span>
@@ -2171,13 +2171,13 @@ export default function EmployeePortal() {
                                         <div className="absolute top-4 right-4 flex gap-2 z-20">
                                             <button
                                                 onClick={() => setIsEditingProfile(true)}
-                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-full transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-none-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
                                             >
                                                 <Pencil className="w-3 h-3" /> Edit Profile
                                             </button>
                                             <button
                                                 onClick={() => setIsChangePasswordModalOpen(true)}
-                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-full transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-none-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
                                             >
                                                 <KeyRound className="w-3 h-3" /> Change Password
                                             </button>
@@ -2186,7 +2186,7 @@ export default function EmployeePortal() {
                                         {/* Name + role overlaid at bottom-left of banner */}
                                         <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 flex items-center gap-5 z-10">
                                             {/* Avatar with glowing ring */}
-                                            <div className="relative w-20 h-20 rounded-full shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
+                                            <div className="relative w-20 h-20 rounded-none-none shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
                                                 <img
                                                     src={employeeInfo?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"}
                                                     alt="Avatar"
@@ -2194,7 +2194,7 @@ export default function EmployeePortal() {
                                                 />
                                                 <button
                                                     onClick={() => setIsEditingProfile(true)}
-                                                    className="absolute inset-0 bg-black/55 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer rounded-full"
+                                                    className="absolute inset-0 bg-black/55 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer rounded-none-none"
                                                 >
                                                     <Pencil className="w-3.5 h-3.5" />
                                                 </button>
@@ -2204,12 +2204,12 @@ export default function EmployeePortal() {
                                                 <h2 className="text-2xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">{employeeInfo?.name}</h2>
                                                 <div className="flex items-center gap-2 flex-wrap mt-1.5">
                                                     {employeeInfo?.role && (
-                                                        <span className="bg-[#E61E32]/80 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-widest uppercase shadow-md">
+                                                        <span className="bg-[#E61E32]/80 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-none-none tracking-widest uppercase shadow-md">
                                                             {employeeInfo.role}
                                                         </span>
                                                     )}
                                                     {employeeInfo?.division && (
-                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
+                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[10px] font-semibold px-2.5 py-0.5 rounded-none-none border border-white/20 whitespace-nowrap">
                                                             {employeeInfo.division}
                                                         </span>
                                                     )}
@@ -2228,7 +2228,7 @@ export default function EmployeePortal() {
 
 
                                     {/* Navigation Sub-Tabs */}
-                                    <div className="border border-white/5 bg-white/[0.02] backdrop-blur-md px-4 py-2 flex gap-2 shrink-0 rounded-2xl mb-4 items-center overflow-x-auto scrollbar-none">
+                                    <div className="border border-white/5 bg-white/[0.02] backdrop-blur-md px-4 py-2 flex gap-2 shrink-0 rounded-none-none mb-4 items-center overflow-x-auto scrollbar-none">
                                         {[
                                             { id: "summary", label: "Summary" },
                                             { id: "stats", label: "Stats" },
@@ -2242,7 +2242,7 @@ export default function EmployeePortal() {
                                                     setActiveProfileTab(t.id);
                                                     setIsEditingProfile(false);
                                                 }}
-                                                className={`px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                                                className={`px-4 py-2 text-xs font-bold rounded-none-none transition-all cursor-pointer ${
                                                     activeProfileTab === t.id && !isEditingProfile
                                                         ? "bg-[#E61E32] text-white shadow-md shadow-[#E61E32]/10"
                                                         : "text-white/40 hover:text-white hover:bg-white/5"
@@ -2259,7 +2259,7 @@ export default function EmployeePortal() {
                                             <div className="p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
                                                 <div className="flex justify-between items-center pb-4 border-b border-white/5">
                                                     <div className="flex items-center gap-2.5">
-                                                        <div className="w-8 h-8 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
+                                                        <div className="w-8 h-8 rounded-none-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
                                                             <User className="w-4 h-4" />
                                                         </div>
                                                         <div>
@@ -2271,13 +2271,13 @@ export default function EmployeePortal() {
 
                                                 {/* Error and Success Alerts */}
                                                 {settingsError && (
-                                                    <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-4 rounded-xl flex items-center gap-2">
+                                                    <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-4 rounded-none-none flex items-center gap-2">
                                                         <AlertTriangle className="w-4 h-4 shrink-0" />
                                                         <span>{settingsError}</span>
                                                     </div>
                                                 )}
                                                 {settingsSuccess && (
-                                                    <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-4 rounded-xl flex items-center gap-2">
+                                                    <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-4 rounded-none-none flex items-center gap-2">
                                                         <CheckCheck className="w-4 h-4 shrink-0" />
                                                         <span>{settingsSuccess}</span>
                                                     </div>
@@ -2287,9 +2287,9 @@ export default function EmployeePortal() {
                                                     {/* Avatar System */}
                                                     <div className="space-y-3">
                                                         <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Avatar Selection</label>
-                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none-none">
                                                             {/* Large Preview */}
-                                                            <div className="relative w-20 h-20 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
+                                                            <div className="relative w-20 h-20 rounded-none-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
                                                                 <img 
                                                                     src={settingsAvatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"} 
                                                                     alt="Current Avatar Preview" 
@@ -2310,7 +2310,7 @@ export default function EmployeePortal() {
                                                                             key={idx}
                                                                             type="button"
                                                                             onClick={() => setSettingsAvatar(avatarUrl)}
-                                                                            className={`w-10 h-10 rounded-full overflow-hidden border bg-white/5 hover:scale-105 transition-all ${
+                                                                            className={`w-10 h-10 rounded-none-none overflow-hidden border bg-white/5 hover:scale-105 transition-all ${
                                                                                 settingsAvatar === avatarUrl ? "border-[#E61E32] ring-2 ring-[#E61E32]" : "border-white/10"
                                                                             }`}
                                                                         >
@@ -2319,7 +2319,7 @@ export default function EmployeePortal() {
                                                                     ))}
                                                                 </div>
                                                                 <div className="flex items-center gap-3">
-                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none-none cursor-pointer flex items-center gap-1.5 transition-colors">
                                                                         <Upload className="w-3.5 h-3.5" />
                                                                         Upload Custom Photo
                                                                         <input 
@@ -2353,8 +2353,8 @@ export default function EmployeePortal() {
                                                     {/* Profile Banner Image */}
                                                     <div className="space-y-3">
                                                         <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Banner Image</label>
-                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                                            <div className="relative w-full sm:w-48 h-20 rounded-xl border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
+                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none-none">
+                                                            <div className="relative w-full sm:w-48 h-20 rounded-none-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
                                                                 <img 
                                                                     src={settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg"} 
                                                                     alt="Current Banner Preview" 
@@ -2363,7 +2363,7 @@ export default function EmployeePortal() {
                                                             </div>
                                                             <div className="flex-1 space-y-3">
                                                                 <div className="flex items-center gap-3">
-                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none-none cursor-pointer flex items-center gap-1.5 transition-colors">
                                                                         <Upload className="w-3.5 h-3.5" />
                                                                         Upload Custom Banner
                                                                         <input 
@@ -2391,7 +2391,7 @@ export default function EmployeePortal() {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setSettingsBanner("")}
-                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent"
+                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none-none cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent"
                                                                     >
                                                                         Reset Default
                                                                     </button>
@@ -2411,7 +2411,7 @@ export default function EmployeePortal() {
                                                                 value={settingsName}
                                                                 onChange={(e) => setSettingsName(e.target.value)}
                                                                 required
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="John Doe"
                                                             />
                                                         </div>
@@ -2423,7 +2423,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsBio}
                                                                 onChange={(e) => setSettingsBio(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="Senior UI Designer & Developer"
                                                             />
                                                         </div>
@@ -2435,7 +2435,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsCollege}
                                                                 onChange={(e) => setSettingsCollege(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="Indian Institute of Technology"
                                                             />
                                                         </div>
@@ -2447,7 +2447,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={employeeInfo?.division || ""} 
                                                                 disabled
-                                                                className="w-full bg-[#121212]/50 border border-white/5 px-3.5 py-2.5 text-xs text-white/40 cursor-not-allowed rounded-xl"
+                                                                className="w-full bg-[#121212]/50 border border-white/5 px-3.5 py-2.5 text-xs text-white/40 cursor-not-allowed rounded-none-none"
                                                                 placeholder="Not Assigned"
                                                             />
                                                         </div>
@@ -2459,7 +2459,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsPhone}
                                                                 onChange={(e) => setSettingsPhone(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="+91 98765 43210"
                                                             />
                                                         </div>
@@ -2471,7 +2471,7 @@ export default function EmployeePortal() {
                                                                 type="email" 
                                                                 value={settingsAltEmail}
                                                                 onChange={(e) => setSettingsAltEmail(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="alt@example.com"
                                                             />
                                                         </div>
@@ -2483,7 +2483,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsMobile}
                                                                 onChange={(e) => setSettingsMobile(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="Emergency contact"
                                                             />
                                                         </div>
@@ -2495,7 +2495,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsUpiId}
                                                                 onChange={(e) => setSettingsUpiId(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="upi@bank"
                                                             />
                                                         </div>
@@ -2507,7 +2507,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsFatherName}
                                                                 onChange={(e) => setSettingsFatherName(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="Father's Full Name"
                                                             />
                                                         </div>
@@ -2519,7 +2519,7 @@ export default function EmployeePortal() {
                                                                 value={settingsAddress}
                                                                 onChange={(e) => setSettingsAddress(e.target.value)}
                                                                 rows={2}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl resize-none leading-relaxed"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none resize-none leading-relaxed"
                                                                 placeholder="123 Studio Street, Creative District, City"
                                                             />
                                                         </div>
@@ -2531,7 +2531,7 @@ export default function EmployeePortal() {
                                                                 type="text" 
                                                                 value={settingsPortfolioLink}
                                                                 onChange={(e) => setSettingsPortfolioLink(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                 placeholder="https://myportfolio.com"
                                                             />
                                                         </div>
@@ -2543,7 +2543,7 @@ export default function EmployeePortal() {
                                                                 value={settingsFutureGoals}
                                                                 onChange={(e) => setSettingsFutureGoals(e.target.value)}
                                                                 rows={3}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl resize-none leading-relaxed"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none resize-none leading-relaxed"
                                                                 placeholder="Describe your career goals, next steps, and what you aim to master..."
                                                             />
                                                         </div>
@@ -2554,13 +2554,13 @@ export default function EmployeePortal() {
                                                             <div className="space-y-2">
                                                                 {/* Existing links list */}
                                                                 {settingsSocialLinks.map((link, idx) => (
-                                                                    <div key={idx} className="flex items-center gap-2 bg-[#121212] border border-white/5 px-3 py-2 rounded-xl">
+                                                                    <div key={idx} className="flex items-center gap-2 bg-[#121212] border border-white/5 px-3 py-2 rounded-none-none">
                                                                         <Globe className="w-3.5 h-3.5 text-white/40" />
                                                                         <span className="text-xs text-white/80 flex-1 truncate">{link}</span>
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => setSettingsSocialLinks(prev => prev.filter((_, i) => i !== idx))}
-                                                                            className="p-1 hover:bg-white/5 text-white/40 hover:text-[#E61E32] transition-colors rounded-lg bg-transparent border-none cursor-pointer"
+                                                                            className="p-1 hover:bg-white/5 text-white/40 hover:text-[#E61E32] transition-colors rounded-none-none bg-transparent border-none cursor-pointer"
                                                                             title="Remove link"
                                                                         >
                                                                             <X className="w-3.5 h-3.5" />
@@ -2574,7 +2574,7 @@ export default function EmployeePortal() {
                                                                         type="text"
                                                                         id="new-social-link-inline"
                                                                         placeholder="Enter social link (e.g. github.com/username)"
-                                                                        className="flex-1 bg-[#121212] border border-white/10 px-3.5 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                        className="flex-1 bg-[#121212] border border-white/10 px-3.5 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none-none"
                                                                         onKeyDown={(e) => {
                                                                             if (e.key === "Enter") {
                                                                                 e.preventDefault();
@@ -2596,7 +2596,7 @@ export default function EmployeePortal() {
                                                                                 input.value = "";
                                                                             }
                                                                         }}
-                                                                        className="px-4 py-2 bg-[#E61E32]/10 border border-[#E61E32]/35 hover:bg-[#E61E32]/20 text-[#E61E32] hover:text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                                                                        className="px-4 py-2 bg-[#E61E32]/10 border border-[#E61E32]/35 hover:bg-[#E61E32]/20 text-[#E61E32] hover:text-white font-bold text-xs rounded-none-none transition-all cursor-pointer flex items-center gap-1.5"
                                                                     >
                                                                         <Plus className="w-3.5 h-3.5" /> Add Link
                                                                     </button>
@@ -2610,14 +2610,14 @@ export default function EmployeePortal() {
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsEditingProfile(false)}
-                                                            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                                                            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-none-none transition-colors cursor-pointer"
                                                         >
                                                             Cancel
                                                         </button>
                                                         <button
                                                             type="submit"
                                                             disabled={isSavingSettings}
-                                                            className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                                                            className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-none-none transition-colors flex items-center gap-2 cursor-pointer"
                                                         >
                                                             {isSavingSettings ? "Saving..." : "Save Changes"}
                                                         </button>
@@ -2669,7 +2669,7 @@ export default function EmployeePortal() {
                                                                         <User className="w-4 h-4 text-[#E61E32]" />
                                                                         About Me & Professional Bio
                                                                     </h3>
-                                                                    <p className="text-xs text-white/70 leading-relaxed font-medium bg-white/[0.01] border border-white/5 p-4 rounded-2xl">
+                                                                    <p className="text-xs text-white/70 leading-relaxed font-medium bg-white/[0.01] border border-white/5 p-4 rounded-none-none">
                                                                         {employeeInfo?.bio || "No profile bio has been written yet. Edit your profile to introduce yourself!"}
                                                                     </p>
                                                                 </div>
@@ -2689,7 +2689,7 @@ export default function EmployeePortal() {
                                                                         return (
                                                                             <div className="flex flex-wrap gap-2.5 mt-1">
                                                                                 {links.map((link, idx) => (
-                                                                                    <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full text-xs text-white/80 hover:text-white flex items-center gap-1.5 transition-all">
+                                                                                    <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-none-none text-xs text-white/80 hover:text-white flex items-center gap-1.5 transition-all">
                                                                                         <Globe className="w-3.5 h-3.5 text-white/50" />
                                                                                         <span>{link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</span>
                                                                                         <ExternalLink className="w-3 h-3 text-white/30" />
@@ -2710,12 +2710,12 @@ export default function EmployeePortal() {
                                                                     <Rocket className="w-4 h-4 text-[#E61E32]" />
                                                                     Where I Want to See Myself in Next 5 Years
                                                                 </h3>
-                                                                <div className="bg-white/[0.01] border border-white/5 p-5 rounded-2xl shadow-sm min-h-[140px] flex flex-col justify-between">
+                                                                <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none-none shadow-sm min-h-[140px] flex flex-col justify-between">
                                                                     <p className="text-xs text-white/70 leading-relaxed font-medium italic">
                                                                         &ldquo;{employeeInfo?.futureGoals || "No vision goals declared yet. Edit your profile details to document your future milestones!"}&rdquo;
                                                                     </p>
                                                                     <div className="border-t border-white/5 pt-4 mt-4 flex items-center gap-2 text-[10px] text-white/30">
-                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#E61E32]" />
+                                                                        <span className="w-1.5 h-1.5 rounded-none-none bg-[#E61E32]" />
                                                                         <span>Career Path Vision Statement</span>
                                                                     </div>
                                                                 </div>
@@ -2732,13 +2732,13 @@ export default function EmployeePortal() {
                                                                     Attendance Heatmap — 2026
                                                                 </h3>
                                                                 <div className="flex items-center gap-3 text-[10px] text-white/40">
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80"></span>Present</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-500/70"></span>Absent</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-yellow-500/60"></span>Pending</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-white/5 border border-white/10"></span>No data</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none-none bg-emerald-500/80"></span>Present</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none-none bg-red-500/70"></span>Absent</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none-none bg-yellow-500/60"></span>Pending</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none-none bg-white/5 border border-white/10"></span>No data</span>
                                                                 </div>
                                                             </div>
-                                                            <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 overflow-x-auto">
+                                                            <div className="bg-white/[0.01] border border-white/5 rounded-none-none p-5 overflow-x-auto">
                                                                 {(() => {
                                                                     const CELL = 16;
                                                                     const GAP = 3;
@@ -2865,7 +2865,7 @@ export default function EmployeePortal() {
                                                     <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
                                                         {/* Left Circular Progress Card */}
                                                         <div className="lg:col-span-1 flex flex-col items-center justify-start">
-                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl w-full max-w-[240px] flex flex-col items-center justify-center shadow-sm">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-none-none w-full max-w-[240px] flex flex-col items-center justify-center shadow-sm">
                                                                 <div className="relative flex items-center justify-center">
                                                                     <svg height="110" width="110" className="transform -rotate-90">
                                                                         <circle stroke="rgba(255,255,255,0.05)" fill="transparent" strokeWidth="8" r="44" cx="55" cy="55" />
@@ -2896,8 +2896,8 @@ export default function EmployeePortal() {
                                                         {/* Right Stats Grid */}
                                                         <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                                             {/* Streak */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-none-none bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400">
                                                                     <Flame className="w-4 h-4 fill-current" />
                                                                 </div>
                                                                 <div>
@@ -2907,8 +2907,8 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                             {/* Working Days */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-none-none bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
                                                                     <Calendar className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
@@ -2918,8 +2918,8 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                             {/* Days Present */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center border border-green-500/20 text-green-400">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-none-none bg-green-500/10 flex items-center justify-center border border-green-500/20 text-green-400">
                                                                     <CheckCircle2 className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
@@ -2929,8 +2929,8 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                             {/* Leaves */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center border border-pink-500/20 text-pink-400">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-none-none bg-pink-500/10 flex items-center justify-center border border-pink-500/20 text-pink-400">
                                                                     <Clock className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
@@ -2940,8 +2940,8 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                             {/* Late Arrivals */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 text-yellow-400">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-none-none bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 text-yellow-400">
                                                                     <Clock className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
@@ -2971,11 +2971,11 @@ export default function EmployeePortal() {
                                                         </button>
                                                     </div>
                                                     
-                                                    <div className="bg-white/[0.01] border border-white/5 rounded-2xl overflow-hidden shadow-sm">
+                                                    <div className="bg-white/[0.01] border border-white/5 rounded-none-none overflow-hidden shadow-sm">
                                                         <div className="divide-y divide-white/5">
                                                             {employeeTasks.slice(0, 5).map((task) => (
                                                                 <div key={task.id} className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                                                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 shrink-0">
+                                                                    <div className="w-9 h-9 rounded-none-none bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 shrink-0">
                                                                         <FileText className="w-4.5 h-4.5" />
                                                                     </div>
                                                                     <div className="min-w-0 flex-1 text-left">
@@ -2996,8 +2996,8 @@ export default function EmployeePortal() {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                     <div>
                                                         <h3 className="text-base font-bold text-white mb-4">Places you work in</h3>
-                                                        <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-white/10 transition-all">
-                                                            <div className="w-10 h-10 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center text-[#E61E32] font-black text-xs shrink-0">
+                                                        <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none-none shadow-sm flex items-center gap-4 hover:border-white/10 transition-all">
+                                                            <div className="w-10 h-10 rounded-none-none bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center text-[#E61E32] font-black text-xs shrink-0">
                                                                 RX
                                                             </div>
                                                             <div className="text-left">
@@ -3013,17 +3013,17 @@ export default function EmployeePortal() {
                                                             {uniqueCollaborators.slice(0, 8).map((collab: any) => (
                                                                 <div
                                                                     key={collab.id}
-                                                                    className="bg-white/[0.02] border border-white/5 pl-2.5 pr-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold text-white/70 shadow-sm"
+                                                                    className="bg-white/[0.02] border border-white/5 pl-2.5 pr-3 py-1.5 rounded-none-none flex items-center gap-2 text-xs font-bold text-white/70 shadow-sm"
                                                                     title={collab.role}
                                                                 >
-                                                                    <div className="w-5.5 h-5.5 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] text-[9px] font-black shrink-0">
+                                                                    <div className="w-5.5 h-5.5 rounded-none-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] text-[9px] font-black shrink-0">
                                                                         {collab.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
                                                                     </div>
                                                                     <span>{collab.name}</span>
                                                                 </div>
                                                             ))}
                                                             {uniqueCollaborators.length === 0 && (
-                                                                <div className="bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-2xl text-xs text-white/40 font-semibold w-full text-center">
+                                                                <div className="bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-none-none text-xs text-white/40 font-semibold w-full text-center">
                                                                     No team collaborators found.
                                                                 </div>
                                                             )}
@@ -3043,7 +3043,7 @@ export default function EmployeePortal() {
                                                 
                                                 <div className="relative border-l-2 border-white/5 pl-6 space-y-8 ml-3">
                                                     <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-[#E61E32] shadow-sm flex items-center justify-center" />
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none-none bg-[#0b0b0b] border-4 border-[#E61E32] shadow-sm flex items-center justify-center" />
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] font-bold text-white/40 tracking-wider">
                                                                 {employeeInfo?.joinedAt ? new Date(employeeInfo.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : "June 2026"}
@@ -3054,7 +3054,7 @@ export default function EmployeePortal() {
                                                     </div>
                                                     
                                                     <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none-none bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] font-bold text-white/40 tracking-wider">Onboarding Milestone</p>
                                                             <p className="text-xs font-bold text-white/90">Onboarding & Setup Complete</p>
@@ -3063,7 +3063,7 @@ export default function EmployeePortal() {
                                                     </div>
                                                     
                                                     <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none-none bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] font-bold text-white/40 tracking-wider">Active Contributions</p>
                                                             <p className="text-xs font-bold text-white/90">Assigned Gigs Progress</p>
@@ -3084,8 +3084,8 @@ export default function EmployeePortal() {
                                                 
                                                 <div className="space-y-4">
                                                     {report.slice(0, 10).map((att, idx) => (
-                                                        <div key={idx} className="flex gap-4 items-start p-4 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm">
-                                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                        <div key={idx} className="flex gap-4 items-start p-4 bg-white/[0.02] border border-white/5 rounded-none-none shadow-sm">
+                                                            <div className={`w-8 h-8 rounded-none-none flex items-center justify-center shrink-0 border ${
                                                                 att.status === "Present" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"
                                                             }`}>
                                                                 <Clock className="w-4 h-4" />
@@ -4484,17 +4484,17 @@ export default function EmployeePortal() {
                     />
                     
                     {/* Modal Body */}
-                    <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-md p-6 rounded-2xl shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 text-left">
+                    <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-md p-6 rounded-none shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 text-left">
                         <div className="flex justify-between items-center pb-2 border-b border-white/5">
                             <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
+                                <div className="w-7 h-7 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
                                     <KeyRound className="w-3.5 h-3.5" />
                                 </div>
                                 <h3 className="text-xs font-bold uppercase tracking-widest text-white">Change Account Password</h3>
                             </div>
                             <button 
                                 onClick={() => setIsChangePasswordModalOpen(false)} 
-                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-lg"
+                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-none"
                             >
                                 <X className="w-3.5 h-3.5" />
                             </button>
@@ -4502,13 +4502,13 @@ export default function EmployeePortal() {
 
                         {/* Error and Success Alerts */}
                         {changePasswordError && (
-                            <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-3 rounded-xl flex items-center gap-2">
+                            <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-3 rounded-none flex items-center gap-2">
                                 <AlertTriangle className="w-4 h-4 shrink-0" />
                                 <span>{changePasswordError}</span>
                             </div>
                         )}
                         {changePasswordSuccess && (
-                            <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-3 rounded-xl flex items-center gap-2">
+                            <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-3 rounded-none flex items-center gap-2">
                                 <CheckCheck className="w-4 h-4 shrink-0" />
                                 <span>{changePasswordSuccess}</span>
                             </div>
@@ -4523,7 +4523,7 @@ export default function EmployeePortal() {
                                     value={changePasswordCurrent}
                                     onChange={(e) => setChangePasswordCurrent(e.target.value)}
                                     required
-                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
                                     placeholder="••••••••"
                                 
                                 />
@@ -4537,7 +4537,7 @@ export default function EmployeePortal() {
                                     value={changePasswordNew}
                                     onChange={(e) => setChangePasswordNew(e.target.value)}
                                     required
-                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
                                     placeholder="•••••••• (Min 6 chars)"
                                 />
                             </div>
@@ -4550,7 +4550,7 @@ export default function EmployeePortal() {
                                     value={changePasswordConfirm}
                                     onChange={(e) => setChangePasswordConfirm(e.target.value)}
                                     required
-                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -4560,14 +4560,14 @@ export default function EmployeePortal() {
                                 <button
                                     type="button"
                                     onClick={() => setIsChangePasswordModalOpen(false)}
-                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSavingPassword}
-                                    className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                                    className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors flex items-center gap-2 cursor-pointer"
                                 >
                                     {isSavingPassword ? (
                                         <>
