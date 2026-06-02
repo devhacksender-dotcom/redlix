@@ -128,6 +128,64 @@ const renderTextWithLinks = (text: string) => {
     });
 };
 
+interface TourStep {
+    targetId: string;
+    title: string;
+    description: string;
+    placement: "right" | "bottom" | "top" | "center";
+}
+
+const TOUR_STEPS: TourStep[] = [
+    {
+        targetId: "tour-overview-stats",
+        title: "Overview Dashboard",
+        description: "Welcome to your employee portal! Here you can check your overall attendance stats, current check-in streak, and working metrics.",
+        placement: "bottom"
+    },
+    {
+        targetId: "tour-punch-controls",
+        title: "Punch In / Out",
+        description: "Track your working hours in real-time. Make sure to punch in before 10:00 AM IST to mark yourself present on time!",
+        placement: "bottom"
+    },
+    {
+        targetId: "tour-tasks-container",
+        title: "Assigned Tasks",
+        description: "View individual tasks assigned to you by the administrator. Select any task to see details and update its status.",
+        placement: "bottom"
+    },
+    {
+        targetId: "tour-submission-form",
+        title: "Work Submissions",
+        description: "Submit your completed project website links and Git repository URLs here for review and verification.",
+        placement: "right"
+    },
+    {
+        targetId: "tour-community-feed",
+        title: "Community Standups",
+        description: "Share what you accomplished or learned today with the team. You can also view and react to updates from other colleagues!",
+        placement: "bottom"
+    },
+    {
+        targetId: "tour-leaves-form",
+        title: "Request Time Off",
+        description: "Plan your leaves by submitting time-off requests. Track your request approval status in real-time.",
+        placement: "right"
+    },
+    {
+        targetId: "tour-profile-banner",
+        title: "Profile & Settings",
+        description: "Customize your profile avatar, banner, bio, social links, and update your login credentials here.",
+        placement: "bottom"
+    },
+    {
+        targetId: "tour-raise-hand",
+        title: "Raise Hand for Help",
+        description: "Need urgent assistance from the admin? Click 'Raise Hand' to instantly send a high-priority alert to the administration panel.",
+        placement: "bottom"
+    }
+];
+
 export default function EmployeePortal() {
     const router = useRouter();
     const [employeeInfo, setEmployeeInfo] = useState<{
@@ -151,7 +209,7 @@ export default function EmployeePortal() {
         futureGoals?: string;
         socialLinks?: string;
     } | null>(null);
-    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves" | "community" | "declarations">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves" | "community" | "declarations" | "submissions">("overview");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     // Community standup states
@@ -294,6 +352,195 @@ export default function EmployeePortal() {
     const [declarationSuccess, setDeclarationSuccess] = useState("");
     const [declarationError, setDeclarationError] = useState("");
     const [previewFile, setPreviewFile] = useState<{ name: string; type: string; data: string } | null>(null);
+
+    // Work submissions states
+    interface ClientOption {
+        id: number;
+        companyName: string;
+        appName?: string | null;
+        clientName: string;
+    }
+    interface WorkSubmission {
+        id: number;
+        clientId: number;
+        client: { companyName: string; clientName: string };
+        websiteLink: string;
+        gitRepoLink: string;
+        createdAt: string;
+    }
+    const [clients, setClients] = useState<ClientOption[]>([]);
+    const [submissions, setSubmissions] = useState<WorkSubmission[]>([]);
+    const [submitClientId, setSubmitClientId] = useState("");
+    const [submitWebsiteLink, setSubmitWebsiteLink] = useState("");
+    const [submitGitRepoLink, setSubmitGitRepoLink] = useState("");
+    const [isSubmittingWork, setIsSubmittingWork] = useState(false);
+    const [submissionError, setSubmissionError] = useState("");
+    const [submissionSuccess, setSubmissionSuccess] = useState("");
+
+    // Tour states
+    const [tourActive, setTourActive] = useState(false);
+    const [tourStep, setTourStep] = useState(0);
+    const [tourPosition, setTourPosition] = useState({ x: 0, y: 0 });
+    const [highlightClipPath, setHighlightClipPath] = useState("");
+    const tourCardRef = React.useRef<HTMLDivElement>(null);
+
+    const currentTourStepData = TOUR_STEPS[tourStep];
+
+    const handleEndTour = () => {
+        setTourActive(false);
+        localStorage.setItem("redlix_portal_tour_completed", "true");
+    };
+
+    const handleNextTourStep = () => {
+        if (tourStep === TOUR_STEPS.length - 1) {
+            handleEndTour();
+        } else {
+            setTourStep(prev => prev + 1);
+        }
+    };
+
+    const handlePrevTourStep = () => {
+        if (tourStep > 0) {
+            setTourStep(prev => prev - 1);
+        }
+    };
+
+    useEffect(() => {
+        if (employeeInfo) {
+            const completed = localStorage.getItem("redlix_portal_tour_completed");
+            if (!completed) {
+                const timer = setTimeout(() => {
+                    setTourStep(0);
+                    setTourActive(true);
+                }, 1500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [employeeInfo]);
+
+    useEffect(() => {
+        if (!tourActive) return;
+
+        let frameId: number;
+
+        const updateTourTarget = () => {
+            const step = TOUR_STEPS[tourStep];
+
+            // 1. Automatically switch tabs to show targeted components BEFORE resolving elements
+            if (step.targetId === "tour-overview-stats" && activeTab !== "overview") {
+                setActiveTab("overview");
+                return;
+            }
+            if (step.targetId === "tour-punch-controls" && activeTab !== "attendance") {
+                setActiveTab("attendance");
+                return;
+            }
+            if (step.targetId === "tour-tasks-container" && activeTab !== "tasks") {
+                setActiveTab("tasks");
+                return;
+            }
+            if (step.targetId === "tour-submission-form" && activeTab !== "submissions") {
+                setActiveTab("submissions");
+                return;
+            }
+            if (step.targetId === "tour-community-feed" && activeTab !== "community") {
+                setActiveTab("community");
+                return;
+            }
+            if (step.targetId === "tour-leaves-form" && activeTab !== "leaves") {
+                setActiveTab("leaves");
+                return;
+            }
+            if (step.targetId === "tour-profile-banner" && activeTab !== "settings") {
+                setActiveTab("settings");
+                return;
+            }
+
+            // 2. Find target element in DOM
+            const element = document.getElementById(step.targetId);
+
+            if (!element) {
+                const cardWidth = 320;
+                const cardHeight = 200;
+                setTourPosition({
+                    x: (window.innerWidth - cardWidth) / 2,
+                    y: (window.innerHeight - cardHeight) / 2
+                });
+                setHighlightClipPath("");
+                return;
+            }
+
+            const rect = element.getBoundingClientRect();
+
+            // If target element is not loaded or has no visible size, show popup at center
+            if (rect.width === 0 || rect.height === 0) {
+                const cardWidth = 320;
+                const cardHeight = 200;
+                setTourPosition({
+                    x: (window.innerWidth - cardWidth) / 2,
+                    y: (window.innerHeight - cardHeight) / 2
+                });
+                setHighlightClipPath("");
+                return;
+            }
+
+            const pad = 8;
+            const t = Math.max(0, rect.top - pad);
+            const b = Math.min(window.innerHeight, rect.bottom + pad);
+            const l = Math.max(0, rect.left - pad);
+            const r = Math.min(window.innerWidth, rect.right + pad);
+
+            setHighlightClipPath(`polygon(0% 0%, 0% 100%, ${l}px 100%, ${l}px ${t}px, ${r}px ${t}px, ${r}px ${b}px, ${l}px ${b}px, ${l}px 100%, 100% 100%, 100% 0%)`);
+
+            let px = 0;
+            let py = 0;
+            const cardWidth = 320;
+            const cardHeight = 180;
+
+            if (step.placement === "right") {
+                px = r + 16;
+                py = t + (b - t - cardHeight) / 2;
+                if (px + cardWidth > window.innerWidth) {
+                    px = l - cardWidth - 16;
+                }
+            } else if (step.placement === "bottom") {
+                px = l + (r - l - cardWidth) / 2;
+                py = b + 16;
+            } else if (step.placement === "top") {
+                px = l + (r - l - cardWidth) / 2;
+                py = t - cardHeight - 16;
+            } else {
+                px = (window.innerWidth - cardWidth) / 2;
+                py = (window.innerHeight - cardHeight) / 2;
+            }
+
+            px = Math.max(16, Math.min(window.innerWidth - cardWidth - 16, px));
+            py = Math.max(16, Math.min(window.innerHeight - cardHeight - 16, py));
+
+            setTourPosition({ x: px, y: py });
+        };
+
+        // Scroll the targeted element into view once when step transitions
+        const step = TOUR_STEPS[tourStep];
+        const element = document.getElementById(step.targetId);
+        if (element) {
+            element.scrollIntoView({ behavior: "instant", block: "center" });
+        }
+
+        const loop = () => {
+            updateTourTarget();
+            frameId = requestAnimationFrame(loop);
+        };
+
+        frameId = requestAnimationFrame(loop);
+
+        window.addEventListener("resize", updateTourTarget);
+
+        return () => {
+            cancelAnimationFrame(frameId);
+            window.removeEventListener("resize", updateTourTarget);
+        };
+    }, [tourActive, tourStep, activeTab]);
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
     const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string, customStart?: Date, customEnd?: Date) => {
@@ -616,6 +863,8 @@ export default function EmployeePortal() {
             fetchCommunityUpdates();
         } else if (activeTab === "declarations") {
             fetchDeclarations();
+        } else if (activeTab === "submissions") {
+            fetchSubmissionsData();
         }
     }, [activeTab, employeeInfo]);
 
@@ -771,6 +1020,64 @@ export default function EmployeePortal() {
             setDeclarationError(err instanceof Error ? err.message : "Upload failed. Please try again.");
         } finally {
             setDeclarationSubmitting(false);
+        }
+    };
+
+    const fetchSubmissionsData = async () => {
+        try {
+            const clientRes = await fetch("/api/employee/clients");
+            const clientJson = await clientRes.json();
+            if (clientJson.success) setClients(clientJson.data);
+
+            const subRes = await fetch("/api/employee/submissions");
+            const subJson = await subRes.json();
+            if (subJson.success) setSubmissions(subJson.data);
+        } catch (error) {
+            console.error("Error fetching submissions data:", error);
+        }
+    };
+
+    const handleSubmitWork = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!submitClientId) {
+            setSubmissionError("Please select a client.");
+            return;
+        }
+        if (!submitWebsiteLink.trim() || !submitGitRepoLink.trim()) {
+            setSubmissionError("Please fill out both the website and repository links.");
+            return;
+        }
+
+        setIsSubmittingWork(true);
+        setSubmissionError("");
+        setSubmissionSuccess("");
+
+        try {
+            const res = await fetch("/api/employee/submissions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    clientId: submitClientId,
+                    websiteLink: submitWebsiteLink.trim(),
+                    gitRepoLink: submitGitRepoLink.trim()
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setSubmissionSuccess("Work submitted successfully!");
+                setSubmitWebsiteLink("");
+                setSubmitGitRepoLink("");
+                setSubmitClientId("");
+                setSubmissions(prev => [data.data, ...prev]);
+                setTimeout(() => setSubmissionSuccess(""), 5000);
+            } else {
+                setSubmissionError(data.message || "Failed to submit work.");
+            }
+        } catch (error) {
+            console.error("Failed to submit work:", error);
+            setSubmissionError("Server error. Please try again later.");
+        } finally {
+            setIsSubmittingWork(false);
         }
     };
 
@@ -1160,6 +1467,7 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        id="tour-sidebar-tasks"
                         onClick={() => setActiveTab("tasks")}
                         className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -1236,6 +1544,7 @@ export default function EmployeePortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        id="tour-sidebar-community"
                         onClick={() => setActiveTab("community")}
                         className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -1261,6 +1570,22 @@ export default function EmployeePortal() {
                         {pendingDeclarationsCount > 0 && (
                             <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                 {pendingDeclarationsCount}
+                            </span>
+                        )}
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
+                        id="tour-sidebar-submissions"
+                        onClick={() => setActiveTab("submissions")}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <Send className="w-4 h-4" />
+                            <span>Work Submission</span>
+                        </div>
+                        {submissions.length > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                {submissions.length}
                             </span>
                         )}
                     </button>
@@ -1331,7 +1656,8 @@ export default function EmployeePortal() {
                                                 activeTab === "payrolls" ? "Payrolls" :
                                                     activeTab === "leaves" ? "Leaves" :
                                                         activeTab === "community" ? "Community" :
-                                                            activeTab === "declarations" ? "Declarations" : "Settings"}
+                                                            activeTab === "declarations" ? "Declarations" :
+                                                                activeTab === "submissions" ? "Work Submissions" : "Settings"}
                         </span>
                         <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
                             — {activeTab === "overview" ? "your stats and activity" :
@@ -1342,7 +1668,8 @@ export default function EmployeePortal() {
                                                 activeTab === "payrolls" ? "monthly payments and history" :
                                                     activeTab === "leaves" ? "submit and track leave requests" :
                                                         activeTab === "community" ? "what you and others did today" :
-                                                            activeTab === "declarations" ? "upload & submit client declaration documents" : "update personal, payroll and address info"}
+                                                            activeTab === "declarations" ? "upload & submit client declaration documents" :
+                                                                activeTab === "submissions" ? "submit completed work links for review" : "update personal, payroll and address info"}
                         </span>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1354,6 +1681,7 @@ export default function EmployeePortal() {
                         ) : (
                             <div className="relative group">
                                 <button
+                                    id="tour-raise-hand"
                                     onClick={handleRaiseHand}
                                     disabled={isRaisingHand}
                                     className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer rounded-lg disabled:opacity-60"
@@ -1392,8 +1720,20 @@ export default function EmployeePortal() {
                                         <p className="text-[11px] md:text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
                                     </div>
                                     <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
-                                        <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
-                                            {employeeInfo?.role}
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setTourStep(0);
+                                                    setTourActive(true);
+                                                }}
+                                                className="flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all cursor-pointer shadow-lg shadow-[#E61E32]/10"
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                                Take a Tour
+                                            </button>
+                                            <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
+                                                {employeeInfo?.role}
+                                            </div>
                                         </div>
                                         {employeeInfo?.division && (
                                             <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
@@ -1404,7 +1744,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+                                <div id="tour-overview-stats" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
                                     <StatCard
                                         icon={<ListTodo className="w-5 h-5" />}
                                         label="Total Tasks"
@@ -1511,7 +1851,7 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "tasks" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
+                            <div id="tour-tasks-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
                                 {/* Tasks List */}
                                 <div className={`overflow-y-auto space-y-3 pr-2 scrollbar-thin ${selectedEmployeeTask ? 'hidden lg:block' : 'block'}`}>
                                     {tasksLoading ? (
@@ -1526,7 +1866,7 @@ export default function EmployeePortal() {
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                                                     <h3 className="font-bold text-white flex items-center gap-2 flex-wrap min-w-0">
                                                         {t.title}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md shrink-0 ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
                                                             {t.status.replace("_", " ")}
                                                         </span>
                                                     </h3>
@@ -1655,7 +1995,7 @@ export default function EmployeePortal() {
                                 {/* Main Attendance Content */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 flex-grow lg:min-h-[400px]">
                                     {/* Punch Actions Card */}
-                                    <div className="bg-white/5 border border-white/5 p-5 sm:p-8 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 min-h-[300px] sm:min-h-[350px] rounded-xl">
+                                    <div id="tour-punch-controls" className="bg-white/5 border border-white/5 p-5 sm:p-8 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 min-h-[300px] sm:min-h-[350px] rounded-xl">
                                         <div className="space-y-2">
                                             <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
                                                 {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -1792,6 +2132,7 @@ export default function EmployeePortal() {
                                 <div className="bg-transparent border-0 shadow-none overflow-y-auto h-full flex flex-col text-left animate-in fade-in duration-300 relative text-white scrollbar-thin pr-1 pb-10">
                                     {/* ── Banner + Identity Header ── */}
                                     <div
+                                        id="tour-profile-banner"
                                         className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-2xl border border-white/5 shadow-sm mb-6"
                                         style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
@@ -3027,7 +3368,7 @@ export default function EmployeePortal() {
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500">
                                 {/* Left Column: Leave Form (5 cols) */}
                                 <div className="lg:col-span-5 space-y-6">
-                                    <div className="bg-white/5 border border-white/5 p-6 rounded-xl">
+                                    <div id="tour-leaves-form" className="bg-white/5 border border-white/5 p-6 rounded-xl">
                                         <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-4">Request Time Off</h3>
                                         <form onSubmit={handleSubmitLeave} className="space-y-4">
                                             <div>
@@ -3180,7 +3521,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Feed of Cards */}
-                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col rounded-none max-w-2xl mx-auto w-full">
+                                <div id="tour-community-feed" className="bg-white/5 border border-white/5 p-6 flex flex-col rounded-none max-w-2xl mx-auto w-full">
                                     <div className="mb-4 shrink-0 flex justify-between items-center">
                                         <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today's Standups</h3>
                                         <span className="text-[10px] text-white/30 bg-white/5 px-2 py-0.5 border border-white/5 rounded-none">{communityUpdates.length} updates</span>
@@ -3634,6 +3975,166 @@ export default function EmployeePortal() {
                                 </div>
                             </div>
                         )}
+
+                        {/* ─── WORK SUBMISSIONS TAB ─────────────────────────────── */}
+                        {activeTab === "submissions" && (
+                            <div className="space-y-6 h-auto lg:h-full animate-in fade-in duration-500 overflow-visible lg:overflow-y-auto pr-2 pb-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <h2 className="text-lg font-bold text-white">Work Submissions</h2>
+                                        <p className="text-xs text-white/40 mt-1">Submit completed website links and git repository URLs for review.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
+                                        <Send className="w-3.5 h-3.5" />
+                                        <span className="uppercase tracking-wider font-semibold">{submissions.length} Total Submissions</span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                                    {/* Submission Form */}
+                                    <div id="tour-submission-form" className="lg:col-span-1 bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white">New Submission</h3>
+                                        <form onSubmit={handleSubmitWork} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-semibold text-white/60">Select Client</label>
+                                                <select
+                                                    value={submitClientId}
+                                                    onChange={(e) => setSubmitClientId(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-[#E61E32] rounded-xl text-white appearance-none"
+                                                >
+                                                    <option value="" className="bg-[#111] text-white/40">Select a client...</option>
+                                                    {clients.map((c) => (
+                                                        <option key={c.id} value={c.id} className="bg-[#111] text-white">
+                                                            {c.companyName} ({c.clientName})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-semibold text-white/60">Website Link</label>
+                                                <div className="relative">
+                                                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://example.com"
+                                                        value={submitWebsiteLink}
+                                                        onChange={(e) => setSubmitWebsiteLink(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 pl-10 pr-3 py-2 text-xs focus:outline-none focus:border-[#E61E32] rounded-xl text-white placeholder-white/20"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-semibold text-white/60">Git Repository Link</label>
+                                                <div className="relative">
+                                                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://github.com/username/repo"
+                                                        value={submitGitRepoLink}
+                                                        onChange={(e) => setSubmitGitRepoLink(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 pl-10 pr-3 py-2 text-xs focus:outline-none focus:border-[#E61E32] rounded-xl text-white placeholder-white/20"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {submissionError && (
+                                                <div className="flex items-center gap-2 text-xs text-[#E61E32] bg-[#E61E32]/10 border border-[#E61E32]/20 p-3 rounded-xl">
+                                                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                                                    <span>{submissionError}</span>
+                                                </div>
+                                            )}
+
+                                            {submissionSuccess && (
+                                                <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/10 border border-green-500/20 p-3 rounded-xl">
+                                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                    <span>{submissionSuccess}</span>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                type="submit"
+                                                disabled={isSubmittingWork}
+                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+                                            >
+                                                {isSubmittingWork ? (
+                                                    <>
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        Submitting...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send className="w-3.5 h-3.5" />
+                                                        Submit Work
+                                                    </>
+                                                )}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    {/* History List */}
+                                    <div className="lg:col-span-2 bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
+                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                            <Briefcase className="w-4 h-4" />
+                                            Submission History
+                                            <span className="ml-auto text-white/20 font-normal normal-case tracking-normal">{submissions.length} total</span>
+                                        </h3>
+
+                                        {submissions.length === 0 ? (
+                                            <div className="text-center py-12 space-y-2">
+                                                <Send className="w-10 h-10 text-white/10 mx-auto" />
+                                                <p className="text-sm text-white/20">No work submitted yet.</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                                                {submissions.map((sub) => (
+                                                    <div key={sub.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-4 bg-white/[0.02] border border-white/8 rounded-xl hover:border-white/15 transition-all">
+                                                        <div className="min-w-0 flex-grow space-y-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-sm font-semibold text-white truncate">{sub.client?.companyName}</p>
+                                                                <span className="text-[10px] text-white/40">({sub.client?.clientName})</span>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <div className="flex items-center gap-2 text-xs">
+                                                                    <span className="text-white/40 w-16 shrink-0">Website:</span>
+                                                                    <a
+                                                                        href={sub.websiteLink}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-blue-400 hover:underline truncate flex items-center gap-1 min-w-0"
+                                                                    >
+                                                                        <Globe className="w-3.5 h-3.5 shrink-0" />
+                                                                        <span className="truncate">{sub.websiteLink}</span>
+                                                                        <ExternalLink className="w-3 h-3 shrink-0" />
+                                                                    </a>
+                                                                </div>
+                                                                <div className="flex items-center gap-2 text-xs">
+                                                                    <span className="text-white/40 w-16 shrink-0">Repository:</span>
+                                                                    <a
+                                                                        href={sub.gitRepoLink}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="text-blue-400 hover:underline truncate flex items-center gap-1 min-w-0"
+                                                                    >
+                                                                        <Building className="w-3.5 h-3.5 shrink-0" />
+                                                                        <span className="truncate">{sub.gitRepoLink}</span>
+                                                                        <ExternalLink className="w-3 h-3 shrink-0" />
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-[10px] text-white/20">
+                                                                Submitted on {new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 </div>
@@ -3843,6 +4344,27 @@ export default function EmployeePortal() {
                                         </span>
                                     )}
                                 </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("submissions");
+                                        setIsMobileMenuOpen(false);
+                                    }}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                                        activeTab === "submissions"
+                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
+                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Send className="w-4 h-4" />
+                                        <span className="text-xs font-semibold">Work Submission</span>
+                                    </div>
+                                    {submissions.length > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                            {submissions.length}
+                                        </span>
+                                    )}
+                                </button>
                             </div>
                         </div>
 
@@ -4004,6 +4526,7 @@ export default function EmployeePortal() {
                                     required
                                     className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
                                     placeholder="••••••••"
+                                
                                 />
                             </div>
 
@@ -4057,6 +4580,72 @@ export default function EmployeePortal() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Tour Overlay */}
+            {tourActive && currentTourStepData && (
+                <div className="fixed inset-0 z-50 pointer-events-none">
+                    {/* Backdrop focusing on targeted element */}
+                    <div 
+                        className="absolute inset-0 bg-black/75 pointer-events-auto transition-all duration-300"
+                        style={{
+                            clipPath: highlightClipPath
+                        }}
+                    />
+
+                    {/* Popover Card */}
+                    <div 
+                        ref={tourCardRef}
+                        className="absolute bg-[#0f0f0f] border border-white/10 w-72 sm:w-80 p-5 rounded-none shadow-2xl space-y-4 pointer-events-auto text-left transition-all duration-300 z-50 select-none animate-in zoom-in-95 duration-200"
+                        style={{
+                            left: `${tourPosition.x}px`,
+                            top: `${tourPosition.y}px`
+                        }}
+                    >
+                        <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/10 border border-[#E61E32]/25 px-2 py-0.5 rounded-none">
+                                Guide: Step {tourStep + 1} of {TOUR_STEPS.length}
+                            </span>
+                            <button
+                                onClick={handleEndTour}
+                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1 rounded-none cursor-pointer"
+                                title="Skip Tour"
+                            >
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <h4 className="text-sm font-bold text-white tracking-tight">{currentTourStepData.title}</h4>
+                            <p className="text-xs text-white/50 leading-relaxed font-normal">{currentTourStepData.description}</p>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                            <button
+                                onClick={handleEndTour}
+                                className="text-white/40 hover:text-white text-[10px] uppercase font-bold tracking-wider hover:underline cursor-pointer"
+                            >
+                                Skip
+                            </button>
+                            <div className="flex items-center gap-2">
+                                {tourStep > 0 && (
+                                    <button
+                                        onClick={handlePrevTourStep}
+                                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold text-[10px] uppercase tracking-wider rounded-none transition-colors border border-white/10 cursor-pointer"
+                                    >
+                                        Back
+                                    </button>
+                                )}
+                                <button
+                                    onClick={handleNextTourStep}
+                                    className="px-3 py-1.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white font-bold text-[10px] uppercase tracking-wider rounded-none transition-colors cursor-pointer flex items-center gap-1"
+                                >
+                                    {tourStep === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

@@ -141,7 +141,7 @@ interface InternSupport {
 
 export default function AdminPortal() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings" | "declarations" | "receipt-generator">("overview");
+    const [activeTab, setActiveTab] = useState<"overview" | "inquiries" | "employees" | "attendance" | "tasks" | "support" | "intern-support" | "clients" | "payment-due-sender" | "payment-received-sender" | "meetings" | "documents" | "payrolls" | "leaves" | "alerts" | "settings" | "declarations" | "receipt-generator" | "submissions">("overview");
 
     // Task management states
     interface Task {
@@ -219,6 +219,31 @@ export default function AdminPortal() {
     const [adminDeclarations, setAdminDeclarations] = useState<AdminDeclaration[]>([]);
     const [declarationsLoading, setDeclarationsLoading] = useState(false);
     const [previewFile, setPreviewFile] = useState<{ name: string; type: string; data: string } | null>(null);
+
+    // Admin Work Submissions states
+    interface AdminWorkSubmission {
+        id: number;
+        employeeId: number;
+        employee: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+            avatar?: string | null;
+        };
+        clientId: number;
+        client: {
+            id: number;
+            companyName: string;
+            clientName: string;
+            appName?: string | null;
+        };
+        websiteLink: string;
+        gitRepoLink: string;
+        createdAt: string;
+    }
+    const [adminSubmissions, setAdminSubmissions] = useState<AdminWorkSubmission[]>([]);
+    const [submissionsLoading, setSubmissionsLoading] = useState(false);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [showAddTaskForm, setShowAddTaskForm] = useState(false);
@@ -691,6 +716,8 @@ export default function AdminPortal() {
             fetchDocuments();
         } else if (activeTab === "declarations") {
             fetchAdminDeclarations();
+        } else if (activeTab === "submissions") {
+            fetchAdminSubmissions();
         } else if (activeTab === "attendance") {
             fetchGlobalAttendance();
             fetchEmployees();
@@ -827,6 +854,19 @@ export default function AdminPortal() {
             console.error("Failed to fetch declarations:", error);
         } finally {
             setDeclarationsLoading(false);
+        }
+    };
+
+    const fetchAdminSubmissions = async () => {
+        setSubmissionsLoading(true);
+        try {
+            const res = await fetch("/api/admin/submissions");
+            const data = await res.json();
+            if (data.success) setAdminSubmissions(data.data);
+        } catch (error) {
+            console.error("Failed to fetch admin submissions:", error);
+        } finally {
+            setSubmissionsLoading(false);
         }
     };
 
@@ -1632,6 +1672,14 @@ export default function AdminPortal() {
         return matchesSearch && matchesFilter;
     });
 
+    const filteredSubmissions = adminSubmissions.filter(sub =>
+        sub.employee.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.client.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.client.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.websiteLink.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.gitRepoLink.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const analyticsData = activeTab === "overview" ? getAnalyticsData() : null;
 
     return (
@@ -1837,6 +1885,21 @@ export default function AdminPortal() {
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
+                        onClick={() => setActiveTab("submissions")}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                    >
+                        <div className="flex items-center gap-3">
+                            <Send className="w-4 h-4" />
+                            <span>Work Submissions</span>
+                        </div>
+                        {adminSubmissions.length > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                {adminSubmissions.length}
+                            </span>
+                        )}
+                    </button>
+                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
+                    <button
                         onClick={() => setActiveTab("leaves")}
                         className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
@@ -1967,11 +2030,12 @@ export default function AdminPortal() {
                                                                     activeTab === "meetings" ? "Meetings" :
                                                                         activeTab === "documents" ? "Documents" :
                                                                             activeTab === "declarations" ? "Declarations" :
-                                                                            activeTab === "payrolls" ? "Payrolls" :
-                                                                                activeTab === "leaves" ? "Leaves" :
-                                                                                    activeTab === "settings" ? "Settings" :
-                                                                                        activeTab === "payment-due-sender" ? "Due Mail Sender" :
-                                                                                            activeTab === "receipt-generator" ? "Receipt Generator" : "Received Mail Sender"}
+                                                                                activeTab === "submissions" ? "Work Submissions" :
+                                                                                    activeTab === "payrolls" ? "Payrolls" :
+                                                                                        activeTab === "leaves" ? "Leaves" :
+                                                                                            activeTab === "settings" ? "Settings" :
+                                                                                                activeTab === "payment-due-sender" ? "Due Mail Sender" :
+                                                                                                    activeTab === "receipt-generator" ? "Receipt Generator" : "Received Mail Sender"}
                                 </span>
                             </div>
                             <h2 className="text-xl font-semibold text-white tracking-tight">
@@ -1985,11 +2049,13 @@ export default function AdminPortal() {
                                                             activeTab === "clients" ? "Client management" :
                                                                 activeTab === "meetings" ? "Meeting management" :
                                                                     activeTab === "documents" ? "Document vault" :
-                                                                        activeTab === "payrolls" ? "Payroll allocation" :
-                                                                            activeTab === "leaves" ? "Leave Requests" :
-                                                                                activeTab === "settings" ? "System Settings" :
-                                                                                    activeTab === "payment-due-sender" ? "Payment Due Sender" :
-                                                                                        activeTab === "receipt-generator" ? "Payment Receipt Generator" : "Payment Received Sender"}
+                                                                        activeTab === "declarations" ? "Declarations" :
+                                                                            activeTab === "submissions" ? "Employee Work Submissions" :
+                                                                                activeTab === "payrolls" ? "Payroll allocation" :
+                                                                                    activeTab === "leaves" ? "Leave Requests" :
+                                                                                        activeTab === "settings" ? "System Settings" :
+                                                                                            activeTab === "payment-due-sender" ? "Payment Due Sender" :
+                                                                                                activeTab === "receipt-generator" ? "Payment Receipt Generator" : "Payment Received Sender"}
                             </h2>
                             <p className="text-xs text-white/30 mt-0.5">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
@@ -2003,11 +2069,12 @@ export default function AdminPortal() {
                                                                 activeTab === "meetings" ? "schedule and manage internal employee meetings" :
                                                                     activeTab === "documents" ? "upload and manage company and client documents" :
                                                                         activeTab === "declarations" ? "review employee-submitted client declaration documents" :
-                                                                        activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
-                                                                            activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
-                                                                                activeTab === "settings" ? "manage system controls and master settings" :
-                                                                                    activeTab === "payment-due-sender" ? "send billing notices to registered clients" :
-                                                                                        activeTab === "receipt-generator" ? "generate high-fidelity printable payment receipts" : "send payment receipts to registered clients"}
+                                                                            activeTab === "submissions" ? "review website and repository links submitted by employees" :
+                                                                                activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
+                                                                                    activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
+                                                                                        activeTab === "settings" ? "manage system controls and master settings" :
+                                                                                            activeTab === "payment-due-sender" ? "send billing notices to registered clients" :
+                                                                                                activeTab === "receipt-generator" ? "generate high-fidelity printable payment receipts" : "send payment receipts to registered clients"}
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -4708,6 +4775,111 @@ export default function AdminPortal() {
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* ===== WORK SUBMISSIONS TAB ===== */}
+                        {activeTab === "submissions" && (
+                            <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+                                    <div>
+                                        <h2 className="text-base font-bold text-white">Employee Work Submissions</h2>
+                                        <p className="text-xs text-white/40 mt-1">Review website and repository links submitted by employees.</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
+                                        <Send className="w-3.5 h-3.5" />
+                                        <span className="uppercase tracking-wider font-semibold">{filteredSubmissions.length} Submissions</span>
+                                    </div>
+                                </div>
+
+                                {submissionsLoading ? (
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                ) : filteredSubmissions.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center py-20 gap-3 border border-dashed border-white/5">
+                                        <Send className="w-12 h-12 text-white/10" />
+                                        <p className="text-sm text-white/20">No work submissions found.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {filteredSubmissions.map(sub => (
+                                            <div key={sub.id} className="bg-white/[0.02] border border-white/8 rounded-xl p-5 flex flex-col justify-between gap-4 hover:border-white/15 transition-all group">
+                                                <div className="space-y-4">
+                                                    {/* Header with Employee and Client Details */}
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                                                {sub.employee?.avatar ? (
+                                                                    <img src={sub.employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <User className="w-5 h-5 text-white/30" />
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-white leading-tight">{sub.employee?.name}</p>
+                                                                <span className="text-[10px] text-white/40">{sub.employee?.role}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-full">
+                                                                Client
+                                                            </span>
+                                                            <p className="text-xs font-semibold text-white/80 mt-1">{sub.client?.companyName}</p>
+                                                            <span className="text-[9px] text-white/40">({sub.client?.clientName})</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="h-[1px] bg-white/5" />
+
+                                                    {/* Website and Git Repo Links */}
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <Globe className="w-4 h-4 text-white/40 shrink-0" />
+                                                                <div className="min-w-0">
+                                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">Website Link</p>
+                                                                    <p className="text-xs text-blue-400 font-medium truncate min-w-0" title={sub.websiteLink}>{sub.websiteLink}</p>
+                                                                </div>
+                                                            </div>
+                                                            <a
+                                                                href={sub.websiteLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                title="Open Website"
+                                                            >
+                                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                            </a>
+                                                        </div>
+
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
+                                                            <div className="flex items-center gap-2 min-w-0">
+                                                                <Building className="w-4 h-4 text-white/40 shrink-0" />
+                                                                <div className="min-w-0">
+                                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">Git Repository</p>
+                                                                    <p className="text-xs text-blue-400 font-medium truncate min-w-0" title={sub.gitRepoLink}>{sub.gitRepoLink}</p>
+                                                                </div>
+                                                            </div>
+                                                            <a
+                                                                href={sub.gitRepoLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                title="Open Repository"
+                                                            >
+                                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Date submitted */}
+                                                <div className="text-[10px] text-white/20 text-right mt-1">
+                                                    Submitted on {new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </div>
                                         ))}
