@@ -2320,8 +2320,8 @@ export default function EmployeePortal() {
                                                     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                                                     return (
                                                     <div className="p-8 space-y-8 text-left">
-                                                        {/* Top 2-col: Bio + Goals */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                        {/* Top Stacked: Bio + Goals */}
+                                                        <div className="flex flex-col gap-8">
                                                             {/* Left: Bio, Portfolio, Social */}
                                                             <div className="space-y-5">
                                                                 <div className="space-y-2">
