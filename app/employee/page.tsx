@@ -1793,7 +1793,7 @@ export default function EmployeePortal() {
                                     {/* ── Banner + Identity Header ── */}
                                     <div
                                         className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden"
-                                        style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200") : (employeeInfo?.banner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200")}')` }}
+                                        style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
                                         {/* Dark gradient — heavier at bottom so text is legible */}
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -2017,7 +2017,7 @@ export default function EmployeePortal() {
                                                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
                                                             <div className="relative w-full sm:w-48 h-20 rounded-xl border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
                                                                 <img 
-                                                                    src={settingsBanner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600"} 
+                                                                    src={settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg"} 
                                                                     alt="Current Banner Preview" 
                                                                     className="w-full h-full object-cover" 
                                                                 />
