@@ -27,7 +27,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { name, email, phone, upiId, fatherName, mobile, altEmail, address } = body;
+        const { name, email, phone, upiId, fatherName, mobile, altEmail, address, avatar, banner, bio, college, division, portfolioLink, futureGoals, socialLinks } = body;
 
         // Validation
         if (!name || !email) {
@@ -61,6 +61,14 @@ export async function PATCH(request: NextRequest) {
                 mobile: mobile !== undefined ? mobile : null,
                 altEmail: altEmail !== undefined ? altEmail : null,
                 address: address !== undefined ? address : null,
+                avatar: avatar !== undefined ? avatar : undefined,
+                banner: banner !== undefined ? banner : undefined,
+                bio: bio !== undefined ? bio : null,
+                college: college !== undefined ? college : null,
+                division: division !== undefined ? division : null,
+                portfolioLink: portfolioLink !== undefined ? portfolioLink : null,
+                futureGoals: futureGoals !== undefined ? futureGoals : null,
+                socialLinks: socialLinks !== undefined ? socialLinks : null,
             },
         });
 
@@ -78,6 +86,14 @@ export async function PATCH(request: NextRequest) {
                 mobile: updatedEmployee.mobile,
                 altEmail: updatedEmployee.altEmail,
                 address: updatedEmployee.address,
+                avatar: updatedEmployee.avatar,
+                banner: updatedEmployee.banner,
+                bio: updatedEmployee.bio,
+                college: updatedEmployee.college,
+                division: updatedEmployee.division,
+                portfolioLink: updatedEmployee.portfolioLink,
+                futureGoals: updatedEmployee.futureGoals,
+                socialLinks: updatedEmployee.socialLinks,
             }
         });
     } catch (error) {

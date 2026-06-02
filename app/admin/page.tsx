@@ -100,6 +100,7 @@ interface Employee {
     altEmail?: string;
     address?: string;
     isDeptAdmin?: boolean;
+    division?: string;
 }
 
 interface SupportTicket {
@@ -287,7 +288,7 @@ export default function AdminPortal() {
     // Employee Form State
     const [showAddForm, setShowAddForm] = useState(false);
     const [showOnboardForm, setShowOnboardForm] = useState(false);
-    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false });
+    const [newEmployee, setNewEmployee] = useState({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false, division: "" });
     const [newOnboardEmployee, setNewOnboardEmployee] = useState({ name: "", email: "", role: "", isDeptAdmin: false });
 
     // Client Form State
@@ -595,6 +596,19 @@ export default function AdminPortal() {
     const [leaves, setLeaves] = useState<AdminLeave[]>([]);
     const [leavesLoading, setLeavesLoading] = useState(false);
 
+    // Real-time badge indicators for admin sidebar
+    const unreadInquiriesCount = inquiries.filter(i => !i.isRead).length;
+    const pendingTicketsCount = tickets.filter(t => t.status === "pending").length;
+    const pendingInternTicketsCount = internTickets.filter(t => t.status === "pending").length;
+    const employeesCount = employees.length;
+    const pendingTasksCount = tasks.filter(t => t.status !== "completed").length;
+    const clientsCount = clients.length;
+    const upcomingMeetingsCount = meetings.filter(m => new Date(m.scheduledAt) > new Date()).length;
+    const documentsCount = documents.length;
+    const pendingDeclarationsCount = adminDeclarations.filter(d => d.status === "pending").length;
+    const pendingPayrollsCount = payrolls.filter(p => p.status === "pending").length;
+    const pendingLeavesCount = leaves.filter(l => l.status === "pending").length;
+
     const fetchTasks = async () => {
         setLoading(true);
         try {
@@ -716,6 +730,7 @@ export default function AdminPortal() {
                 fetchTasks(),
                 fetchMeetings(),
                 fetchDocuments(),
+                fetchAdminDeclarations(),
                 fetchGlobalAttendance(),
                 fetchPayrolls(),
                 fetchLeaves()
@@ -1231,7 +1246,7 @@ export default function AdminPortal() {
             if (data.success) {
                 setEmployees([data.data, ...employees]);
                 setShowAddForm(false);
-                setNewEmployee({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false });
+                setNewEmployee({ name: "", email: "", role: "", password: "", offerLetterLink: "", isDeptAdmin: false, division: "" });
             } else {
                 alert(data.message || "Failed to add employee");
             }
@@ -1670,33 +1685,54 @@ export default function AdminPortal() {
                             <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
                                 <button
                                     onClick={() => setActiveTab("inquiries")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries'
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries'
                                         ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
                                         : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
                                         }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                                    Inquiries
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                        <span>Inquiries</span>
+                                    </div>
+                                    {unreadInquiriesCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {unreadInquiriesCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("intern-support")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support'
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support'
                                         ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
                                         : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
                                         }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                                    Intern Support
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                        <span>Intern Support</span>
+                                    </div>
+                                    {pendingInternTicketsCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                            {pendingInternTicketsCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("support")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'support'
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'support'
                                         ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
                                         : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
                                         }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                                    Support Tickets
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                        <span>Support Tickets</span>
+                                    </div>
+                                    {pendingTicketsCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {pendingTicketsCount}
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         )}
@@ -1704,10 +1740,17 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("employees")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Users className="w-4 h-4" />
-                        Employees
+                        <div className="flex items-center gap-3">
+                            <Users className="w-4 h-4" />
+                            <span>Employees</span>
+                        </div>
+                        {employeesCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                {employeesCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -1720,50 +1763,92 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("tasks")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <ListTodo className="w-4 h-4" />
-                        Tasks
+                        <div className="flex items-center gap-3">
+                            <ListTodo className="w-4 h-4" />
+                            <span>Tasks</span>
+                        </div>
+                        {pendingTasksCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                {pendingTasksCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("clients")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Briefcase className="w-4 h-4" />
-                        Clients
+                        <div className="flex items-center gap-3">
+                            <Briefcase className="w-4 h-4" />
+                            <span>Clients</span>
+                        </div>
+                        {clientsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                {clientsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("meetings")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Video className="w-4 h-4" />
-                        Meetings
+                        <div className="flex items-center gap-3">
+                            <Video className="w-4 h-4" />
+                            <span>Meetings</span>
+                        </div>
+                        {upcomingMeetingsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
+                                {upcomingMeetingsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("documents")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <FileText className="w-4 h-4" />
-                        Documents
+                        <div className="flex items-center gap-3">
+                            <FileText className="w-4 h-4" />
+                            <span>Documents</span>
+                        </div>
+                        {documentsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                {documentsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("declarations")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <FolderUp className="w-4 h-4" />
-                        Declarations
+                        <div className="flex items-center gap-3">
+                            <FolderUp className="w-4 h-4" />
+                            <span>Declarations</span>
+                        </div>
+                        {pendingDeclarationsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                {pendingDeclarationsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("leaves")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Calendar className="w-4 h-4" />
-                        Leaves
+                        <div className="flex items-center gap-3">
+                            <Calendar className="w-4 h-4" />
+                            <span>Leaves</span>
+                        </div>
+                        {pendingLeavesCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                {pendingLeavesCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <div className="space-y-1">
@@ -1814,13 +1899,20 @@ export default function AdminPortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payrolls")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls'
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls'
                                         ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
                                         : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
                                         }`}
                                 >
-                                    <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
-                                    Payrolls
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
+                                        <span>Payrolls</span>
+                                    </div>
+                                    {pendingPayrollsCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {pendingPayrollsCount}
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         )}
@@ -2044,40 +2136,32 @@ export default function AdminPortal() {
                                         all analytics
                                     </h3>
                                     
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                        {/* Employees Analytics Card */}
-                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Employees</span>
-                                            <SharpLineChart 
-                                                data={analyticsData.employees} 
-                                                labels={analyticsData.labels} 
-                                                color="#3b82f6" 
-                                                gradientId="empGrad" 
-                                            />
-                                        </div>
-
-                                        {/* Amount Generated Analytics Card */}
-                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Amount generated</span>
-                                            <SharpLineChart 
-                                                data={analyticsData.amount} 
-                                                labels={analyticsData.labels} 
-                                                color="#10b981" 
-                                                gradientId="amtGrad" 
-                                            />
-                                        </div>
-
-                                        {/* Work Hours Analytics Card */}
-                                        <div className="bg-white/[0.02] border border-white/5 p-6 space-y-4 hover:border-white/10 transition-colors">
-                                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Work Hours</span>
-                                            <SharpLineChart 
-                                                data={analyticsData.hours} 
-                                                labels={analyticsData.labels} 
-                                                color="#ef4444" 
-                                                gradientId="hrsGrad" 
-                                            />
-                                        </div>
-                                    </div>
+                                    <CombinedSharpLineChart 
+                                        labels={analyticsData.labels}
+                                        datasets={[
+                                            {
+                                                name: "Employees",
+                                                data: analyticsData.employees,
+                                                color: "#3b82f6",
+                                                gradientId: "empGrad",
+                                                unit: " members"
+                                            },
+                                            {
+                                                name: "Amount Generated",
+                                                data: analyticsData.amount,
+                                                color: "#10b981",
+                                                gradientId: "amtGrad",
+                                                unit: "₹"
+                                            },
+                                            {
+                                                name: "Work Hours",
+                                                data: analyticsData.hours,
+                                                color: "#ef4444",
+                                                gradientId: "hrsGrad",
+                                                unit: "h"
+                                            }
+                                        ]}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -2632,15 +2716,27 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
-                                                    <input
-                                                        type="url"
-                                                        value={newEmployee.offerLetterLink}
-                                                        onChange={(e) => setNewEmployee({ ...newEmployee, offerLetterLink: e.target.value })}
-                                                        placeholder="https://..."
-                                                        className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
-                                                    />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                        <input
+                                                            type="text"
+                                                            value={newEmployee.division}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, division: e.target.value })}
+                                                            placeholder="e.g. Division A"
+                                                            className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                        <input
+                                                            type="url"
+                                                            value={newEmployee.offerLetterLink}
+                                                            onChange={(e) => setNewEmployee({ ...newEmployee, offerLetterLink: e.target.value })}
+                                                            placeholder="https://..."
+                                                            className="w-full bg-white/5 border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30"
+                                                        />
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-3 bg-white/5 border border-white/5 p-4">
                                                     <input
@@ -2937,13 +3033,23 @@ export default function AdminPortal() {
                                                             className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none resize-none font-sans"
                                                         />
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-3 gap-4">
                                                         <div className="space-y-1.5">
                                                             <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Joined Date</label>
                                                             <input
                                                                 type="date"
                                                                 value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString() })}
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                            <input
+                                                                type="text"
+                                                                value={selectedEmployee.division || ""}
+                                                                onChange={(e) => setSelectedEmployee({ ...selectedEmployee, division: e.target.value })}
+                                                                placeholder="e.g. Division A"
                                                                 className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
                                                             />
                                                         </div>
@@ -2998,6 +3104,7 @@ export default function AdminPortal() {
                                                                 <InfoBlock label="Phone Number" value={selectedEmployee.phone || "Not Provided"} />
                                                                 <InfoBlock label="Alternative Email" value={selectedEmployee.altEmail || "Not Provided"} />
                                                                 <InfoBlock label="Joined Date" value={new Date(selectedEmployee.joinedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })} />
+                                                                <InfoBlock label="Division" value={selectedEmployee.division || "Not Assigned"} />
                                                                 <InfoBlock label="Department Admin Access" value={selectedEmployee.isDeptAdmin ? "Yes (Authorized to login to Dept Portal)" : "No"} />
                                                             </div>
 
@@ -6147,6 +6254,142 @@ function SharpLineChart({ data, labels, color, gradientId }: SharpLineChartProps
                     </g>
                 ))}
             </svg>
+        </div>
+    );
+}
+
+interface CombinedDataset {
+    name: string;
+    data: number[];
+    color: string;
+    gradientId: string;
+    unit?: string;
+}
+
+interface CombinedSharpLineChartProps {
+    datasets: CombinedDataset[];
+    labels: string[];
+}
+
+function CombinedSharpLineChart({ datasets, labels }: CombinedSharpLineChartProps) {
+    const width = 800;
+    const height = 300;
+    const paddingLeft = 40;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+
+    const chartWidth = width - paddingLeft - paddingRight;
+    const chartHeight = height - paddingTop - paddingBottom;
+
+    return (
+        <div className="relative w-full bg-white/[0.01] border border-white/5 p-6 rounded-none space-y-4">
+            {/* Legend */}
+            <div className="flex flex-wrap gap-6 justify-center text-[10px] uppercase font-bold tracking-widest border-b border-white/5 pb-4">
+                {datasets.map((dataset, dIdx) => {
+                    const lastVal = dataset.data[dataset.data.length - 1];
+                    const formattedVal = dataset.unit === "₹" ? `₹${lastVal.toLocaleString()}` : `${lastVal}${dataset.unit || ""}`;
+                    return (
+                        <div key={dIdx} className="flex items-center gap-2">
+                            <span className="w-2 h-2" style={{ backgroundColor: dataset.color }} />
+                            <span className="text-white/40">{dataset.name}:</span>
+                            <span className="text-white font-mono">{formattedVal}</span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="w-full">
+                <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+
+
+                    {/* Grid Lines */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+                        const y = paddingTop + chartHeight * ratio;
+                        return (
+                            <line
+                                key={i}
+                                x1={paddingLeft}
+                                y1={y}
+                                x2={width - paddingRight}
+                                y2={y}
+                                stroke="rgba(255,255,255,0.03)"
+                                strokeDasharray="3,3"
+                            />
+                        );
+                    })}
+
+                    {/* X Axis Labels */}
+                    {labels.map((label, idx) => {
+                        const x = paddingLeft + (idx / Math.max(labels.length - 1, 1)) * chartWidth;
+                        return (
+                            <text
+                                key={idx}
+                                x={x}
+                                y={height - 10}
+                                fill="rgba(255,255,255,0.3)"
+                                fontSize="9"
+                                textAnchor="middle"
+                                className="font-mono"
+                            >
+                                {label}
+                            </text>
+                        );
+                    })}
+
+                    {/* Render each dataset */}
+                    {datasets.map((dataset, dIdx) => {
+                        const max = Math.max(...dataset.data, 1);
+                        const min = 0;
+
+                        const points = dataset.data.map((val, idx) => {
+                            const x = paddingLeft + (idx / Math.max(dataset.data.length - 1, 1)) * chartWidth;
+                            const y = paddingTop + chartHeight - ((val - min) / (max - min)) * chartHeight;
+                            return { x, y, val };
+                        });
+
+                        const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+
+                        return (
+                            <g key={dIdx}>
+                                {/* Sharp line */}
+                                {linePath && (
+                                    <path
+                                        d={linePath}
+                                        fill="none"
+                                        stroke={dataset.color}
+                                        strokeWidth="2"
+                                        strokeLinecap="square"
+                                        strokeLinejoin="miter"
+                                    />
+                                )}
+
+                                {/* Dots */}
+                                {points.map((p, i) => (
+                                    <g key={i} className="group cursor-pointer">
+                                        <circle
+                                            cx={p.x}
+                                            cy={p.y}
+                                            r="3.5"
+                                            fill={dataset.color}
+                                            stroke="#0a0a0a"
+                                            strokeWidth="1.5"
+                                        />
+                                        <circle
+                                            cx={p.x}
+                                            cy={p.y}
+                                            r="10"
+                                            fill="transparent"
+                                            className="hover:fill-white/10 transition-colors"
+                                        />
+                                        <title>{`${dataset.name} (${labels[i]}): ${dataset.unit === "₹" ? `₹${p.val.toLocaleString()}` : `${p.val}${dataset.unit || ""}`}`}</title>
+                                    </g>
+                                ))}
+                            </g>
+                        );
+                    })}
+                </svg>
+            </div>
         </div>
     );
 }

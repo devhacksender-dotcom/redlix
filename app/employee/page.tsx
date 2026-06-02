@@ -37,7 +37,16 @@ import {
     Upload,
     CheckCheck,
     Hourglass,
-    Eye
+    Eye,
+    Flame,
+    MapPin,
+    Sparkles,
+    KeyRound,
+    Pencil,
+    Plus,
+    Target,
+    Rocket,
+    Camera
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -133,6 +142,14 @@ export default function EmployeePortal() {
         altEmail?: string;
         address?: string;
         joinedAt?: string;
+        avatar?: string;
+        banner?: string;
+        bio?: string;
+        college?: string;
+        division?: string;
+        portfolioLink?: string;
+        futureGoals?: string;
+        socialLinks?: string;
     } | null>(null);
     const [activeTab, setActiveTab] = useState<"overview" | "tasks" | "attendance" | "settings" | "meetings" | "documents" | "payrolls" | "leaves" | "community" | "declarations">("overview");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -279,12 +296,12 @@ export default function EmployeePortal() {
     const [previewFile, setPreviewFile] = useState<{ name: string; type: string; data: string } | null>(null);
 
     // Helper to generate daily attendance logs (e.g. past 30 days) and check 10:00 AM check-in constraint
-    const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string) => {
+    const getDailyAttendanceList = (history: AttendanceRecord[], joinedAtStr?: string, customStart?: Date, customEnd?: Date) => {
         const report: {
             dateStr: string;
             punchIn: string;
             punchOut: string;
-            status: "Present" | "Absent" | "Pending";
+            status: "Present" | "Absent" | "Pending" | "Future";
             statusReason: string;
             workMinutes: number;
             isActive: boolean;
@@ -305,8 +322,10 @@ export default function EmployeePortal() {
         };
 
         const today = new Date();
-        const start = joinedAtStr ? new Date(joinedAtStr) : new Date();
-        if (!joinedAtStr) {
+        let start = joinedAtStr ? new Date(joinedAtStr) : new Date();
+        if (customStart) {
+            start = new Date(customStart);
+        } else if (!joinedAtStr) {
             start.setDate(today.getDate() - 30);
         } else {
             const limitDate = new Date();
@@ -319,8 +338,12 @@ export default function EmployeePortal() {
         const curr = new Date(start);
         curr.setHours(0, 0, 0, 0);
         
-        const end = new Date(today);
-        end.setHours(23, 59, 59, 999);
+        const end = customEnd ? new Date(customEnd) : new Date(today);
+        if (!customEnd) {
+            end.setHours(23, 59, 59, 999);
+        } else {
+            end.setHours(23, 59, 59, 999);
+        }
         
         while (curr.getTime() <= end.getTime()) {
             const dateStrKey = curr.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -364,7 +387,15 @@ export default function EmployeePortal() {
                 const todayISTTime = getISTTimeParts(today);
                 const isBefore10AM = todayISTTime.hour < 10;
                 
-                let status: "Present" | "Absent" | "Pending" = "Absent";
+                // Reset hours to compare dates cleanly
+                const checkDate = new Date(curr);
+                checkDate.setHours(0, 0, 0, 0);
+                const compareToday = new Date(today);
+                compareToday.setHours(0, 0, 0, 0);
+                
+                const isFuture = checkDate.getTime() > compareToday.getTime();
+                
+                let status: "Present" | "Absent" | "Pending" | "Future" = "Absent";
                 let statusReason = "No Check-in recorded";
                 
                 if (isToday) {
@@ -375,6 +406,9 @@ export default function EmployeePortal() {
                         status = "Absent";
                         statusReason = "Missed 10:00 AM IST cutoff";
                     }
+                } else if (isFuture) {
+                    status = "Future";
+                    statusReason = "Future Date";
                 }
                 
                 report.push({
@@ -417,6 +451,39 @@ export default function EmployeePortal() {
         };
     };
 
+    const getWorkingDays = () => {
+        if (!employeeInfo?.joinedAt) return 30; // fallback
+        const joinDate = new Date(employeeInfo.joinedAt);
+        const today = new Date();
+        const diffTime = Math.abs(today.getTime() - joinDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(1, diffDays);
+    };
+
+    const getStreak = (report: any[]) => {
+        let streak = 0;
+        const sortedReport = [...report].sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime()); // newest first
+        
+        if (sortedReport.length === 0) return 0;
+        
+        let startIndex = 0;
+        const todayStr = new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' });
+        
+        // If today has no check-in yet, skip today for streak calculation
+        if (sortedReport[0].dateStr === todayStr && sortedReport[0].punchIn === "-") {
+            startIndex = 1;
+        }
+        
+        for (let i = startIndex; i < sortedReport.length; i++) {
+            if (sortedReport[i].punchIn !== "-") {
+                streak++;
+            } else {
+                break;
+            }
+        }
+        return streak;
+    };
+
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
@@ -439,9 +506,37 @@ export default function EmployeePortal() {
     const [settingsMobile, setSettingsMobile] = useState("");
     const [settingsAltEmail, setSettingsAltEmail] = useState("");
     const [settingsAddress, setSettingsAddress] = useState("");
+    const [settingsAvatar, setSettingsAvatar] = useState("");
+    const [settingsBanner, setSettingsBanner] = useState("");
+    const [settingsBio, setSettingsBio] = useState("");
+    const [settingsCollege, setSettingsCollege] = useState("");
+    const [settingsDivision, setSettingsDivision] = useState("");
+    const [settingsPortfolioLink, setSettingsPortfolioLink] = useState("");
+    const [settingsFutureGoals, setSettingsFutureGoals] = useState("");
+    const [settingsSocialLinks, setSettingsSocialLinks] = useState<string[]>([]);
+    const [activeProfileTab, setActiveProfileTab] = useState("summary");
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+
+    // Password change states
+    const [changePasswordCurrent, setChangePasswordCurrent] = useState("");
+    const [changePasswordNew, setChangePasswordNew] = useState("");
+    const [changePasswordConfirm, setChangePasswordConfirm] = useState("");
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
+    const [changePasswordSuccess, setChangePasswordSuccess] = useState("");
+    const [changePasswordError, setChangePasswordError] = useState("");
+
     const [isSavingSettings, setIsSavingSettings] = useState(false);
     const [settingsSuccess, setSettingsSuccess] = useState("");
     const [settingsError, setSettingsError] = useState("");
+
+    // Real-time badge indicators
+    const activeTasksCount = employeeTasks.filter(t => t.status !== "completed").length;
+    const pendingLeavesCount = employeeLeaves.filter(l => l.status === "pending").length;
+    const communityCount = communityUpdates.length;
+    const upcomingMeetingsCount = employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length;
+    const documentsCount = employeeDocuments.length;
+    const pendingDeclarationsCount = declarations.filter(d => d.status === "pending").length;
 
     // Load logged in employee info
     useEffect(() => {
@@ -459,6 +554,22 @@ export default function EmployeePortal() {
                     setSettingsMobile(data.data.mobile || "");
                     setSettingsAltEmail(data.data.altEmail || "");
                     setSettingsAddress(data.data.address || "");
+                    setSettingsAvatar(data.data.avatar || "");
+                    setSettingsBanner(data.data.banner || "");
+                    setSettingsBio(data.data.bio || "");
+                    setSettingsCollege(data.data.college || "");
+                    setSettingsDivision(data.data.division || "");
+                    setSettingsPortfolioLink(data.data.portfolioLink || "");
+                    setSettingsFutureGoals(data.data.futureGoals || "");
+                    let parsedSocialLinks: string[] = [];
+                    try {
+                        if (data.data.socialLinks) {
+                            parsedSocialLinks = JSON.parse(data.data.socialLinks);
+                        }
+                    } catch (e) {
+                        console.error("Failed to parse social links from DB", e);
+                    }
+                    setSettingsSocialLinks(parsedSocialLinks);
                 } else {
                     router.push("/employee/login");
                 }
@@ -469,6 +580,20 @@ export default function EmployeePortal() {
         };
         fetchMe();
     }, [router]);
+
+    useEffect(() => {
+        if (!employeeInfo) return;
+        
+        // Eagerly preload all metrics and lists for real-time sidebar badges
+        fetchEmployeeTasks();
+        fetchAttendanceInfo();
+        fetchEmployeeMeetings();
+        fetchEmployeeDocuments();
+        fetchEmployeePayrolls();
+        fetchEmployeeLeaves();
+        fetchCommunityUpdates();
+        fetchDeclarations();
+    }, [employeeInfo]);
 
     useEffect(() => {
         if (!employeeInfo) return;
@@ -881,6 +1006,14 @@ export default function EmployeePortal() {
                     mobile: settingsMobile,
                     altEmail: settingsAltEmail,
                     address: settingsAddress,
+                    avatar: settingsAvatar,
+                    banner: settingsBanner,
+                    bio: settingsBio,
+                    college: settingsCollege,
+                    division: settingsDivision,
+                    portfolioLink: settingsPortfolioLink,
+                    futureGoals: settingsFutureGoals,
+                    socialLinks: JSON.stringify(settingsSocialLinks),
                 })
             });
 
@@ -889,6 +1022,10 @@ export default function EmployeePortal() {
             if (data.success) {
                 setSettingsSuccess(data.message || "Profile settings saved successfully");
                 setEmployeeInfo(prev => prev ? { ...prev, ...data.data } : null);
+                setTimeout(() => {
+                    setIsEditingProfile(false);
+                    setSettingsSuccess("");
+                }, 1000);
             } else {
                 setSettingsError(data.message || "Failed to save settings");
             }
@@ -897,6 +1034,55 @@ export default function EmployeePortal() {
             console.error("Save settings error:", error);
         } finally {
             setIsSavingSettings(false);
+        }
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setChangePasswordError("");
+        setChangePasswordSuccess("");
+
+        if (changePasswordNew !== changePasswordConfirm) {
+            setChangePasswordError("New passwords do not match");
+            return;
+        }
+
+        if (changePasswordNew.length < 6) {
+            setChangePasswordError("Password must be at least 6 characters long");
+            return;
+        }
+
+        setIsSavingPassword(true);
+
+        try {
+            const res = await fetch("/api/employee/change-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    currentPassword: changePasswordCurrent,
+                    newPassword: changePasswordNew,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                setChangePasswordSuccess(data.message || "Password updated successfully");
+                setChangePasswordCurrent("");
+                setChangePasswordNew("");
+                setChangePasswordConfirm("");
+                setTimeout(() => {
+                    setIsChangePasswordModalOpen(false);
+                    setChangePasswordSuccess("");
+                }, 1500);
+            } else {
+                setChangePasswordError(data.message || "Failed to update password");
+            }
+        } catch (error) {
+            setChangePasswordError("Connection error. Please try again.");
+            console.error("Change password error:", error);
+        } finally {
+            setIsSavingPassword(false);
         }
     };
 
@@ -975,10 +1161,17 @@ export default function EmployeePortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("tasks")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <ListTodo className="w-4 h-4" />
-                        Tasks
+                        <div className="flex items-center gap-3">
+                            <ListTodo className="w-4 h-4" />
+                            <span>Tasks</span>
+                        </div>
+                        {activeTasksCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                {activeTasksCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -991,18 +1184,32 @@ export default function EmployeePortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("meetings")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Video className="w-4 h-4" />
-                        Meetings
+                        <div className="flex items-center gap-3">
+                            <Video className="w-4 h-4" />
+                            <span>Meetings</span>
+                        </div>
+                        {upcomingMeetingsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
+                                {upcomingMeetingsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("documents")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <FileText className="w-4 h-4" />
-                        Documents
+                        <div className="flex items-center gap-3">
+                            <FileText className="w-4 h-4" />
+                            <span>Documents</span>
+                        </div>
+                        {documentsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                {documentsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -1015,26 +1222,47 @@ export default function EmployeePortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("leaves")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <Calendar className="w-4 h-4" />
-                        Leaves
+                        <div className="flex items-center gap-3">
+                            <Calendar className="w-4 h-4" />
+                            <span>Leaves</span>
+                        </div>
+                        {pendingLeavesCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                {pendingLeavesCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("community")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <MessageSquare className="w-4 h-4" />
-                        Community
+                        <div className="flex items-center gap-3">
+                            <MessageSquare className="w-4 h-4" />
+                            <span>Community</span>
+                        </div>
+                        {communityCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                {communityCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("declarations")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
                     >
-                        <FolderUp className="w-4 h-4" />
-                        Declarations
+                        <div className="flex items-center gap-3">
+                            <FolderUp className="w-4 h-4" />
+                            <span>Declarations</span>
+                        </div>
+                        {pendingDeclarationsCount > 0 && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                {pendingDeclarationsCount}
+                            </span>
+                        )}
                     </button>
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
@@ -1051,8 +1279,12 @@ export default function EmployeePortal() {
                     <div className="h-[1px] bg-white/5" />
                     <div className="bg-white/[0.03] border border-white/8 p-3 space-y-2 rounded-none">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-none bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                                <User className="w-4 h-4 text-white/70" />
+                            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                {employeeInfo?.avatar ? (
+                                    <img src={employeeInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-4 h-4 text-white/70" />
+                                )}
                             </div>
                             <div className="min-w-0">
                                 <div className="text-[12px] font-bold text-white tracking-tight truncate" title={employeeInfo?.name}>
@@ -1061,6 +1293,11 @@ export default function EmployeePortal() {
                                 <div className="text-[9px] text-white/40 uppercase font-semibold tracking-wider truncate" title={employeeInfo?.role}>
                                     {employeeInfo?.role || "Team Member"}
                                 </div>
+                                {employeeInfo?.division && (
+                                    <div className="text-[9px] text-[#E61E32] uppercase font-bold tracking-wider truncate mt-0.5" title={employeeInfo.division}>
+                                        {employeeInfo.division}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-1.5 text-[10px] text-white/30">
@@ -1154,8 +1391,15 @@ export default function EmployeePortal() {
                                         <h3 className="text-base md:text-lg font-bold">Welcome back, {employeeInfo?.name}!</h3>
                                         <p className="text-[11px] md:text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
                                     </div>
-                                    <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
-                                        {employeeInfo?.role}
+                                    <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
+                                        <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
+                                            {employeeInfo?.role}
+                                        </div>
+                                        {employeeInfo?.division && (
+                                            <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                                Division: {employeeInfo.division}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1221,7 +1465,15 @@ export default function EmployeePortal() {
                                                 </div>
                                             ))}
                                             {employeeTasks.filter(t => t.status !== 'completed').length === 0 && (
-                                                <p className="text-xs text-white/20 py-4 text-center">No active tasks.</p>
+                                                <div className="flex flex-col items-center justify-center py-6 text-center">
+                                                    <dotlottie-wc
+                                                        src="https://lottie.host/10b6df46-cc4e-4e85-9607-54af123c48b9/nEtCJjLM2m.lottie"
+                                                        style={{ width: "280px", height: "280px" }}
+                                                        autoplay
+                                                        loop
+                                                    />
+                                                    <p className="text-xs text-white/40 mt-1 font-medium">No active tasks assigned.</p>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -1288,8 +1540,14 @@ export default function EmployeePortal() {
                                             </div>
                                         ))
                                     ) : (
-                                        <div className="py-20 text-center border border-dashed border-white/5 rounded-xl">
-                                            <p className="text-white/20 text-sm">No tasks assigned to you.</p>
+                                        <div className="py-12 border border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center text-center">
+                                            <dotlottie-wc
+                                                src="https://lottie.host/10b6df46-cc4e-4e85-9607-54af123c48b9/nEtCJjLM2m.lottie"
+                                                style={{ width: "380px", height: "380px" }}
+                                                autoplay
+                                                loop
+                                            />
+                                            <p className="text-white/40 text-sm mt-1 font-medium">No tasks assigned to you.</p>
                                         </div>
                                     )}
                                 </div>
@@ -1511,125 +1769,1007 @@ export default function EmployeePortal() {
                                     </div>
                                 </div>
                             </div>
-                        )}                        {activeTab === "settings" && (
-                            <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto h-full animate-in fade-in duration-300 rounded-xl">
-                                <h3 className="text-lg font-bold uppercase tracking-tight mb-6">Profile Settings</h3>
-                                
-                                <form onSubmit={handleSaveSettings} className="space-y-6 max-w-4xl">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
-                                            <input
-                                                required
-                                                type="text"
-                                                value={settingsName}
-                                                onChange={(e) => setSettingsName(e.target.value)}
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
-                                            <input
-                                                required
-                                                type="email"
-                                                value={settingsEmail}
-                                                onChange={(e) => setSettingsEmail(e.target.value)}
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
- 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
-                                            <input
-                                                type="tel"
-                                                value={settingsPhone}
-                                                onChange={(e) => setSettingsPhone(e.target.value)}
-                                                placeholder="+91 XXXXX XXXXX"
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">UPI ID (For Payrolls)</label>
-                                            <input
-                                                type="text"
-                                                value={settingsUpiId}
-                                                onChange={(e) => setSettingsUpiId(e.target.value)}
-                                                placeholder="username@upi"
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
- 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Father's Name</label>
-                                            <input
-                                                type="text"
-                                                value={settingsFatherName}
-                                                onChange={(e) => setSettingsFatherName(e.target.value)}
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Emergency Mobile Number</label>
-                                            <input
-                                                type="tel"
-                                                value={settingsMobile}
-                                                onChange={(e) => setSettingsMobile(e.target.value)}
-                                                placeholder="XXXXXXXXXX"
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Alternative Email</label>
-                                            <input
-                                                type="email"
-                                                value={settingsAltEmail}
-                                                onChange={(e) => setSettingsAltEmail(e.target.value)}
-                                                placeholder="name@personal.com"
-                                                className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
- 
-                                    <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Postal Address (For Goodies/Deliveries)</label>
-                                        <textarea
-                                            rows={3}
-                                            value={settingsAddress}
-                                            onChange={(e) => setSettingsAddress(e.target.value)}
-                                            placeholder="House No, Street Name, Area, City, State, Pincode"
-                                            className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg resize-none"
-                                        />
-                                    </div>
- 
-                                    {settingsSuccess && (
-                                        <div className="bg-green-500/10 border border-green-500/20 p-4 text-green-500 text-xs font-bold uppercase tracking-wider rounded-lg">
-                                            {settingsSuccess}
-                                        </div>
-                                    )}
-                                    {settingsError && (
-                                        <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 p-4 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-lg">
-                                            {settingsError}
-                                        </div>
-                                    )}
- 
-                                    <button
-                                        type="submit"
-                                        disabled={isSavingSettings}
-                                        className="w-full md:w-auto px-8 py-3.5 bg-[#E61E32] hover:bg-[#ff1f34] text-white text-xs font-bold uppercase tracking-widest transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
+                        )}                        {activeTab === "settings" && (() => {
+                            // Local calculations for stats
+                            const report = getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt);
+                            const presentCount = report.filter(r => r.status === "Present").length;
+                            const workingCount = getWorkingDays();
+                            const attendancePercent = workingCount > 0 ? Math.min(100, Math.round((presentCount / workingCount) * 100)) : 0;
+                            
+                            const streakCount = getStreak(report);
+                            const lateCount = report.filter(r => r.punchIn !== "-" && r.status === "Absent" && r.statusReason.includes("Late")).length;
+                            const approvedLeavesCount = employeeLeaves.filter(l => l.status === "approved").length;
+
+                            const uniqueCollaborators = Array.from(
+                                new Map(
+                                    communityUpdates
+                                        .filter(u => u.employee && u.employee.id !== employeeInfo?.id)
+                                        .map(u => [u.employee.id, u.employee])
+                                ).values()
+                            );
+
+                            return (
+                                <div className="bg-white/[0.02] border border-white/5 rounded-2xl shadow-xl overflow-y-auto h-full flex flex-col text-left animate-in fade-in duration-300 relative text-white">
+                                    {/* ── Banner + Identity Header ── */}
+                                    <div
+                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden"
+                                        style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200") : (employeeInfo?.banner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200")}')` }}
                                     >
-                                        {isSavingSettings ? (
+                                        {/* Dark gradient — heavier at bottom so text is legible */}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                                        {/* Hover Edit Overlay */}
+                                        <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
+                                            <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                <Pencil className="w-4 h-4 text-white" />
+                                            </div>
+                                            <span className="tracking-widest uppercase text-[10px]">{isEditingProfile ? "Upload Custom Banner" : "Edit Profile Banner"}</span>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        if (file.size > 3 * 1024 * 1024) {
+                                                            setSettingsError("File is too large. Please select a banner image smaller than 3MB.");
+                                                            return;
+                                                        }
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            if (typeof reader.result === "string") {
+                                                                setSettingsBanner(reader.result);
+                                                                if (!isEditingProfile) setIsEditingProfile(true);
+                                                            }
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </label>
+
+                                        {/* Action buttons — frosted glass, top-right */}
+                                        <div className="absolute top-4 right-4 flex gap-2 z-20">
+                                            <button
+                                                onClick={() => setIsEditingProfile(true)}
+                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-full transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                            >
+                                                <Pencil className="w-3 h-3" /> Edit Profile
+                                            </button>
+                                            <button
+                                                onClick={() => setIsChangePasswordModalOpen(true)}
+                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-full transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                            >
+                                                <KeyRound className="w-3 h-3" /> Change Password
+                                            </button>
+                                        </div>
+
+                                        {/* Name + role overlaid at bottom-left of banner */}
+                                        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 flex items-center gap-5 z-10">
+                                            {/* Avatar with glowing ring */}
+                                            <div className="relative w-20 h-20 rounded-full shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
+                                                <img
+                                                    src={employeeInfo?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"}
+                                                    alt="Avatar"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    onClick={() => setIsEditingProfile(true)}
+                                                    className="absolute inset-0 bg-black/55 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer rounded-full"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
+                                            {/* Name + tags */}
+                                            <div className="min-w-0">
+                                                <h2 className="text-2xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">{employeeInfo?.name}</h2>
+                                                <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                                                    {employeeInfo?.role && (
+                                                        <span className="bg-[#E61E32]/80 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-widest uppercase shadow-md">
+                                                            {employeeInfo.role}
+                                                        </span>
+                                                    )}
+                                                    {employeeInfo?.division && (
+                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[10px] font-semibold px-2.5 py-0.5 rounded-full border border-white/20 whitespace-nowrap">
+                                                            {employeeInfo.division}
+                                                        </span>
+                                                    )}
+                                                    {employeeInfo?.college && (
+                                                        <span className="flex items-center gap-1 text-[10px] text-white/60 font-semibold whitespace-nowrap drop-shadow">
+                                                            <Building className="w-3 h-3 text-[#E61E32]" />
+                                                            {employeeInfo.college}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+                                    {/* Navigation Sub-Tabs */}
+                                    <div className="border-b border-white/5 bg-white/[0.01] px-8 flex gap-6 shrink-0">
+                                        {[
+                                            { id: "summary", label: "Summary" },
+                                            { id: "stats", label: "Stats" },
+                                            { id: "worked-on", label: "Worked on" },
+                                            { id: "journey", label: "My Journey" },
+                                            { id: "activity", label: "Activity" }
+                                        ].map((t) => (
+                                            <button
+                                                key={t.id}
+                                                onClick={() => {
+                                                    setActiveProfileTab(t.id);
+                                                    setIsEditingProfile(false);
+                                                }}
+                                                className={`py-3.5 text-xs font-bold border-b-2 transition-all cursor-pointer bg-transparent ${
+                                                    activeProfileTab === t.id && !isEditingProfile
+                                                        ? "border-[#E61E32] text-white"
+                                                        : "border-transparent text-white/40 hover:text-white/60"
+                                                }`}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    {/* Sub-Tab Contents */}
+                                    <div className="flex-1 overflow-y-auto">
+                                        {isEditingProfile ? (
+                                            <div className="p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
+                                                <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="w-8 h-8 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
+                                                            <User className="w-4 h-4" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-sm font-bold text-white">Edit Profile Details</h3>
+                                                            <p className="text-[10px] text-white/40 font-medium mt-0.5">Update your personal and professional profile details inline</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Error and Success Alerts */}
+                                                {settingsError && (
+                                                    <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-4 rounded-xl flex items-center gap-2">
+                                                        <AlertTriangle className="w-4 h-4 shrink-0" />
+                                                        <span>{settingsError}</span>
+                                                    </div>
+                                                )}
+                                                {settingsSuccess && (
+                                                    <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-4 rounded-xl flex items-center gap-2">
+                                                        <CheckCheck className="w-4 h-4 shrink-0" />
+                                                        <span>{settingsSuccess}</span>
+                                                    </div>
+                                                )}
+
+                                                <form onSubmit={handleSaveSettings} className="space-y-6 text-left">
+                                                    {/* Avatar System */}
+                                                    <div className="space-y-3">
+                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Avatar Selection</label>
+                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                            {/* Large Preview */}
+                                                            <div className="relative w-20 h-20 rounded-full border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
+                                                                <img 
+                                                                    src={settingsAvatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"} 
+                                                                    alt="Current Avatar Preview" 
+                                                                    className="w-full h-full object-cover" 
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 space-y-3">
+                                                                <div className="grid grid-cols-6 gap-2">
+                                                                    {[
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver",
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Sam",
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Jack",
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Lily",
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Bella",
+                                                                        "https://api.dicebear.com/7.x/adventurer/svg?seed=Coco"
+                                                                    ].map((avatarUrl, idx) => (
+                                                                        <button
+                                                                            key={idx}
+                                                                            type="button"
+                                                                            onClick={() => setSettingsAvatar(avatarUrl)}
+                                                                            className={`w-10 h-10 rounded-full overflow-hidden border bg-white/5 hover:scale-105 transition-all ${
+                                                                                settingsAvatar === avatarUrl ? "border-[#E61E32] ring-2 ring-[#E61E32]" : "border-white/10"
+                                                                            }`}
+                                                                        >
+                                                                            <img src={avatarUrl} alt="Avatar option" className="w-full h-full object-cover" />
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                        <Upload className="w-3.5 h-3.5" />
+                                                                        Upload Custom Photo
+                                                                        <input 
+                                                                            type="file" 
+                                                                            accept="image/*" 
+                                                                            className="hidden" 
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 2 * 1024 * 1024) {
+                                                                                        setSettingsError("File is too large. Please select an image smaller than 2MB.");
+                                                                                        return;
+                                                                                    }
+                                                                                    const reader = new FileReader();
+                                                                                    reader.onloadend = () => {
+                                                                                        if (typeof reader.result === "string") {
+                                                                                            setSettingsAvatar(reader.result);
+                                                                                        }
+                                                                                    };
+                                                                                    reader.readAsDataURL(file);
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                    <span className="text-[9px] text-white/30">PNG/JPG up to 2MB</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+ 
+                                                    {/* Profile Banner Image */}
+                                                    <div className="space-y-3">
+                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Banner Image</label>
+                                                        <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                            <div className="relative w-full sm:w-48 h-20 rounded-xl border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
+                                                                <img 
+                                                                    src={settingsBanner || "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600"} 
+                                                                    alt="Current Banner Preview" 
+                                                                    className="w-full h-full object-cover" 
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 space-y-3">
+                                                                <div className="flex items-center gap-3">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                        <Upload className="w-3.5 h-3.5" />
+                                                                        Upload Custom Banner
+                                                                        <input 
+                                                                            type="file" 
+                                                                            accept="image/*" 
+                                                                            className="hidden" 
+                                                                            onChange={(e) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    if (file.size > 3 * 1024 * 1024) {
+                                                                                        setSettingsError("File is too large. Please select a banner image smaller than 3MB.");
+                                                                                        return;
+                                                                                    }
+                                                                                    const reader = new FileReader();
+                                                                                    reader.onloadend = () => {
+                                                                                        if (typeof reader.result === "string") {
+                                                                                            setSettingsBanner(reader.result);
+                                                                                        }
+                                                                                    };
+                                                                                    reader.readAsDataURL(file);
+                                                                                }
+                                                                            }}
+                                                                        />
+                                                                    </label>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setSettingsBanner("")}
+                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-lg cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent"
+                                                                    >
+                                                                        Reset Default
+                                                                    </button>
+                                                                    <span className="text-[9px] text-white/30">PNG/JPG up to 3MB</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Inputs Grid */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {/* Name */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsName}
+                                                                onChange={(e) => setSettingsName(e.target.value)}
+                                                                required
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="John Doe"
+                                                            />
+                                                        </div>
+
+                                                        {/* Bio */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Bio / Role Description</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsBio}
+                                                                onChange={(e) => setSettingsBio(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="Senior UI Designer & Developer"
+                                                            />
+                                                        </div>
+
+                                                        {/* College */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">College / Institution</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsCollege}
+                                                                onChange={(e) => setSettingsCollege(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="Indian Institute of Technology"
+                                                            />
+                                                        </div>
+
+                                                        {/* Division (Read-only, given by Admin directly) */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={employeeInfo?.division || ""} 
+                                                                disabled
+                                                                className="w-full bg-[#121212]/50 border border-white/5 px-3.5 py-2.5 text-xs text-white/40 cursor-not-allowed rounded-xl"
+                                                                placeholder="Not Assigned"
+                                                            />
+                                                        </div>
+
+                                                        {/* Phone */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsPhone}
+                                                                onChange={(e) => setSettingsPhone(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="+91 98765 43210"
+                                                            />
+                                                        </div>
+
+                                                        {/* Alternate Email */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Alternate Email</label>
+                                                            <input 
+                                                                type="email" 
+                                                                value={settingsAltEmail}
+                                                                onChange={(e) => setSettingsAltEmail(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="alt@example.com"
+                                                            />
+                                                        </div>
+
+                                                        {/* Mobile */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Emergency Mobile</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsMobile}
+                                                                onChange={(e) => setSettingsMobile(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="Emergency contact"
+                                                            />
+                                                        </div>
+
+                                                        {/* UPI ID */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">UPI ID (for payments)</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsUpiId}
+                                                                onChange={(e) => setSettingsUpiId(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="upi@bank"
+                                                            />
+                                                        </div>
+
+                                                        {/* Father's Name */}
+                                                        <div className="space-y-1.5 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Father's Name</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsFatherName}
+                                                                onChange={(e) => setSettingsFatherName(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="Father's Full Name"
+                                                            />
+                                                        </div>
+
+                                                        {/* Address */}
+                                                        <div className="space-y-1.5 text-left md:col-span-2">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Permanent Address</label>
+                                                            <textarea 
+                                                                value={settingsAddress}
+                                                                onChange={(e) => setSettingsAddress(e.target.value)}
+                                                                rows={2}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl resize-none leading-relaxed"
+                                                                placeholder="123 Studio Street, Creative District, City"
+                                                            />
+                                                        </div>
+
+                                                        {/* Portfolio Link */}
+                                                        <div className="space-y-1.5 text-left md:col-span-2">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Portfolio Link</label>
+                                                            <input 
+                                                                type="text" 
+                                                                value={settingsPortfolioLink}
+                                                                onChange={(e) => setSettingsPortfolioLink(e.target.value)}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                placeholder="https://myportfolio.com"
+                                                            />
+                                                        </div>
+
+                                                        {/* 5-Year Vision Statement */}
+                                                        <div className="space-y-1.5 text-left md:col-span-2">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Where you want to see yourself in the next 5 years?</label>
+                                                            <textarea 
+                                                                value={settingsFutureGoals}
+                                                                onChange={(e) => setSettingsFutureGoals(e.target.value)}
+                                                                rows={3}
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl resize-none leading-relaxed"
+                                                                placeholder="Describe your career goals, next steps, and what you aim to master..."
+                                                            />
+                                                        </div>
+
+                                                        {/* Social Media Links */}
+                                                        <div className="space-y-2 md:col-span-2 text-left">
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Social Media Links</label>
+                                                            <div className="space-y-2">
+                                                                {/* Existing links list */}
+                                                                {settingsSocialLinks.map((link, idx) => (
+                                                                    <div key={idx} className="flex items-center gap-2 bg-[#121212] border border-white/5 px-3 py-2 rounded-xl">
+                                                                        <Globe className="w-3.5 h-3.5 text-white/40" />
+                                                                        <span className="text-xs text-white/80 flex-1 truncate">{link}</span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => setSettingsSocialLinks(prev => prev.filter((_, i) => i !== idx))}
+                                                                            className="p-1 hover:bg-white/5 text-white/40 hover:text-[#E61E32] transition-colors rounded-lg bg-transparent border-none cursor-pointer"
+                                                                            title="Remove link"
+                                                                        >
+                                                                            <X className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                                
+                                                                {/* Add new link input */}
+                                                                <div className="flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        id="new-social-link-inline"
+                                                                        placeholder="Enter social link (e.g. github.com/username)"
+                                                                        className="flex-1 bg-[#121212] border border-white/10 px-3.5 py-2 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === "Enter") {
+                                                                                e.preventDefault();
+                                                                                const val = e.currentTarget.value.trim();
+                                                                                if (val && !settingsSocialLinks.includes(val)) {
+                                                                                    setSettingsSocialLinks(prev => [...prev, val]);
+                                                                                    e.currentTarget.value = "";
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            const input = document.getElementById("new-social-link-inline") as HTMLInputElement;
+                                                                            const val = input?.value.trim();
+                                                                            if (val && !settingsSocialLinks.includes(val)) {
+                                                                                setSettingsSocialLinks(prev => [...prev, val]);
+                                                                                input.value = "";
+                                                                            }
+                                                                        }}
+                                                                        className="px-4 py-2 bg-[#E61E32]/10 border border-[#E61E32]/35 hover:bg-[#E61E32]/20 text-[#E61E32] hover:text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+                                                                    >
+                                                                        <Plus className="w-3.5 h-3.5" /> Add Link
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Actions */}
+                                                    <div className="flex justify-end gap-3 pt-6 border-t border-white/5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setIsEditingProfile(false)}
+                                                            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            type="submit"
+                                                            disabled={isSavingSettings}
+                                                            className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                                                        >
+                                                            {isSavingSettings ? "Saving..." : "Save Changes"}
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        ) : (
                                             <>
-                                                <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-                                            </>
-                                        ) : "Save Settings"}
-                                    </button>
-                                </form>
-                            </div>
-                        )}
+                                                {/* SUMMARY TAB */}
+                                                {activeProfileTab === "summary" && (() => {
+                                                    // Build heatmap data for the complete year 2026
+                                                    const heatmapReport = getDailyAttendanceList(
+                                                        attendanceHistory,
+                                                        employeeInfo?.joinedAt,
+                                                        new Date(2026, 0, 1),
+                                                        new Date(2026, 11, 31)
+                                                    );
+                                                    // Sort oldest → newest for left-to-right display
+                                                    const sortedReport = [...heatmapReport].sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
+                                                    // Group by week (columns)
+                                                    const weeks: typeof sortedReport[] = [];
+                                                    let week: typeof sortedReport = [];
+                                                    sortedReport.forEach((day, i) => {
+                                                        const dow = day.rawDate.getDay(); // 0=Sun
+                                                        if (i === 0 && dow !== 0) {
+                                                            // pad start of first week with nulls
+                                                            for (let p = 0; p < dow; p++) week.push(null as unknown as (typeof sortedReport)[0]);
+                                                        }
+                                                        week.push(day);
+                                                        if (day.rawDate.getDay() === 6 || i === sortedReport.length - 1) {
+                                                            if (i === sortedReport.length - 1 && day.rawDate.getDay() !== 6) {
+                                                                // pad end of last week with nulls
+                                                                const remaining = 6 - day.rawDate.getDay();
+                                                                for (let p = 0; p < remaining; p++) week.push(null as unknown as (typeof sortedReport)[0]);
+                                                            }
+                                                            weeks.push(week);
+                                                            week = [];
+                                                        }
+                                                    });
+                                                    const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                                                    return (
+                                                    <div className="p-8 space-y-8 text-left">
+                                                        {/* Top 2-col: Bio + Goals */}
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                            {/* Left: Bio, Portfolio, Social */}
+                                                            <div className="space-y-5">
+                                                                <div className="space-y-2">
+                                                                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                                                        <User className="w-4 h-4 text-[#E61E32]" />
+                                                                        About Me & Professional Bio
+                                                                    </h3>
+                                                                    <p className="text-xs text-white/70 leading-relaxed font-medium bg-white/[0.01] border border-white/5 p-4 rounded-2xl">
+                                                                        {employeeInfo?.bio || "No profile bio has been written yet. Edit your profile to introduce yourself!"}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Portfolio Website</p>
+                                                                    {employeeInfo?.portfolioLink ? (
+                                                                        <a href={employeeInfo.portfolioLink.startsWith("http") ? employeeInfo.portfolioLink : `https://${employeeInfo.portfolioLink}`} target="_blank" rel="noopener noreferrer" className="text-[#E61E32] hover:underline flex items-center gap-1 mt-1 text-xs font-semibold">
+                                                                            <Globe className="w-3.5 h-3.5" />{employeeInfo.portfolioLink}<ExternalLink className="w-3 h-3" />
+                                                                        </a>
+                                                                    ) : <p className="text-xs text-white/30 italic mt-0.5">No portfolio link configured.</p>}
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Social Media Networks</p>
+                                                                    {(() => {
+                                                                        let links: string[] = [];
+                                                                        try { if (employeeInfo?.socialLinks) links = JSON.parse(employeeInfo.socialLinks); } catch (e) {}
+                                                                        return (
+                                                                            <div className="flex flex-wrap gap-2.5 mt-1">
+                                                                                {links.map((link, idx) => (
+                                                                                    <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-white/20 px-3 py-1.5 rounded-full text-xs text-white/80 hover:text-white flex items-center gap-1.5 transition-all">
+                                                                                        <Globe className="w-3.5 h-3.5 text-white/50" />
+                                                                                        <span>{link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</span>
+                                                                                        <ExternalLink className="w-3 h-3 text-white/30" />
+                                                                                    </a>
+                                                                                ))}
+                                                                                {links.length === 0 && <p className="text-xs text-white/30 italic mt-0.5">No social links configured.</p>}
+                                                                            </div>
+                                                                        );
+                                                                    })()}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Right: 5 Year Vision */}
+                                                            <div className="space-y-2">
+                                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                                                    <Rocket className="w-4 h-4 text-[#E61E32]" />
+                                                                    Where I Want to See Myself in Next 5 Years
+                                                                </h3>
+                                                                <div className="bg-white/[0.01] border border-white/5 p-5 rounded-2xl shadow-sm min-h-[140px] flex flex-col justify-between">
+                                                                    <p className="text-xs text-white/70 leading-relaxed font-medium italic">
+                                                                        &ldquo;{employeeInfo?.futureGoals || "No vision goals declared yet. Edit your profile details to document your future milestones!"}&rdquo;
+                                                                    </p>
+                                                                    <div className="border-t border-white/5 pt-4 mt-4 flex items-center gap-2 text-[10px] text-white/30">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-[#E61E32]" />
+                                                                        <span>Career Path Vision Statement</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Attendance Heatmap */}
+                                                        <div className="space-y-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                                                                    <BarChart3 className="w-4 h-4 text-[#E61E32]" />
+                                                                    Attendance Heatmap — 2026
+                                                                </h3>
+                                                                <div className="flex items-center gap-3 text-[10px] text-white/40">
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80"></span>Present</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-500/70"></span>Absent</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-yellow-500/60"></span>Pending</span>
+                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-white/5 border border-white/10"></span>No data</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="bg-white/[0.01] border border-white/5 rounded-2xl p-5 overflow-x-auto">
+                                                                {(() => {
+                                                                    const CELL = 16;
+                                                                    const GAP = 3;
+                                                                    const STEP = CELL + GAP;
+                                                                    const LABEL_W = 28;
+                                                                    const LABEL_H = 18;
+                                                                    const svgW = LABEL_W + weeks.length * STEP;
+                                                                    const svgH = LABEL_H + 7 * STEP;
+
+                                                                    const cellColor = (status: string) => {
+                                                                        if (status === 'Present') return '#22c55e';   // green
+                                                                        if (status === 'Absent')  return '#ef4444';   // red
+                                                                        if (status === 'Pending') return '#eab308';   // yellow
+                                                                        return 'rgba(255,255,255,0.04)';
+                                                                    };
+
+                                                                    return (
+                                                                        <svg
+                                                                            width={svgW}
+                                                                            height={svgH}
+                                                                            viewBox={`0 0 ${svgW} ${svgH}`}
+                                                                            className="overflow-visible"
+                                                                            style={{ minWidth: svgW }}
+                                                                        >
+                                                                            {/* ── Grid lines (horizontal rows) ── */}
+                                                                            {Array.from({ length: 8 }).map((_, ri) => (
+                                                                                <line
+                                                                                    key={`hr-${ri}`}
+                                                                                    x1={LABEL_W}
+                                                                                    y1={LABEL_H + ri * STEP - 1}
+                                                                                    x2={LABEL_W + weeks.length * STEP}
+                                                                                    y2={LABEL_H + ri * STEP - 1}
+                                                                                    stroke="rgba(255,255,255,0.06)"
+                                                                                    strokeWidth="1"
+                                                                                />
+                                                                            ))}
+                                                                            {/* ── Grid lines (vertical columns) ── */}
+                                                                            {Array.from({ length: weeks.length + 1 }).map((_, ci) => (
+                                                                                <line
+                                                                                    key={`vr-${ci}`}
+                                                                                    x1={LABEL_W + ci * STEP - 1}
+                                                                                    y1={LABEL_H}
+                                                                                    x2={LABEL_W + ci * STEP - 1}
+                                                                                    y2={LABEL_H + 7 * STEP}
+                                                                                    stroke="rgba(255,255,255,0.06)"
+                                                                                    strokeWidth="1"
+                                                                                />
+                                                                            ))}
+
+                                                                            {/* ── Day labels (left column) ── */}
+                                                                            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, di) => (
+                                                                                di % 2 !== 0 && (
+                                                                                    <text
+                                                                                        key={d}
+                                                                                        x={LABEL_W - 4}
+                                                                                        y={LABEL_H + di * STEP + CELL * 0.78}
+                                                                                        textAnchor="end"
+                                                                                        fontSize="9"
+                                                                                        fill="rgba(255,255,255,0.25)"
+                                                                                        fontFamily="monospace"
+                                                                                    >{d}</text>
+                                                                                )
+                                                                            ))}
+
+                                                                            {/* ── Week columns: month label + cells ── */}
+                                                                            {weeks.map((wk, wi) => {
+                                                                                const firstReal = wk.find(d => d != null);
+                                                                                const monthLabel = wk.find(d => d && d.rawDate.getDate() === 1);
+                                                                                const showLabel = wi === 0 ? firstReal : monthLabel;
+                                                                                const labelDate = wi === 0 ? firstReal : monthLabel;
+                                                                                return (
+                                                                                    <g key={wi}>
+                                                                                        {/* Month label */}
+                                                                                        {showLabel && labelDate && (
+                                                                                            <text
+                                                                                                x={LABEL_W + wi * STEP}
+                                                                                                y={LABEL_H - 4}
+                                                                                                fontSize="9"
+                                                                                                fill="rgba(255,255,255,0.25)"
+                                                                                                fontFamily="monospace"
+                                                                                            >
+                                                                                                {labelDate.rawDate.toLocaleString('default', { month: 'short' })}
+                                                                                            </text>
+                                                                                        )}
+                                                                                        {/* 7 day cells */}
+                                                                                        {Array.from({ length: 7 }).map((_, di) => {
+                                                                                            const cell = wk[di];
+                                                                                            const x = LABEL_W + wi * STEP;
+                                                                                            const y = LABEL_H + di * STEP;
+                                                                                            const fill = cell ? cellColor(cell.status) : 'rgba(255,255,255,0.04)';
+                                                                                            const opacity = cell?.status === 'Present' ? 0.85 : cell?.status === 'Absent' ? 0.75 : cell?.status === 'Pending' ? 0.7 : 1;
+                                                                                            return (
+                                                                                                <rect
+                                                                                                    key={di}
+                                                                                                    x={x}
+                                                                                                    y={y}
+                                                                                                    width={CELL}
+                                                                                                    height={CELL}
+                                                                                                    rx="2"
+                                                                                                    fill={fill}
+                                                                                                    opacity={opacity}
+                                                                                                    className="cursor-default transition-opacity hover:opacity-100"
+                                                                                                >
+                                                                                                    {cell && (
+                                                                                                        <title>{cell.dateStr} — {cell.status}{cell.punchIn !== '-' ? ` · In: ${cell.punchIn}` : ''}</title>
+                                                                                                    )}
+                                                                                                </rect>
+                                                                                            );
+                                                                                        })}
+                                                                                    </g>
+                                                                                );
+                                                                            })}
+                                                                        </svg>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    );
+                                                })()}
+
+                                                {/* STATS TAB */}
+                                                {activeProfileTab === "stats" && (
+                                                    <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                                                        {/* Left Circular Progress Card */}
+                                                        <div className="lg:col-span-1 flex flex-col items-center justify-start">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-2xl w-full max-w-[240px] flex flex-col items-center justify-center shadow-sm">
+                                                                <div className="relative flex items-center justify-center">
+                                                                    <svg height="110" width="110" className="transform -rotate-90">
+                                                                        <circle stroke="rgba(255,255,255,0.05)" fill="transparent" strokeWidth="8" r="44" cx="55" cy="55" />
+                                                                        <circle
+                                                                            stroke="#E61E32"
+                                                                            fill="transparent"
+                                                                            strokeWidth="8"
+                                                                            strokeDasharray={`${2 * Math.PI * 44}`}
+                                                                            style={{
+                                                                                strokeDashoffset: `${2 * Math.PI * 44 - (attendancePercent / 100) * 2 * Math.PI * 44}`,
+                                                                                transition: 'stroke-dashoffset 0.35s'
+                                                                            }}
+                                                                            strokeLinecap="round"
+                                                                            r="44"
+                                                                            cx="55"
+                                                                            cy="55"
+                                                                        />
+                                                                    </svg>
+                                                                    <div className="absolute text-2xl font-bold text-white">{attendancePercent}%</div>
+                                                                </div>
+                                                                <div className="text-center mt-4 space-y-0.5">
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Attendance</p>
+                                                                    <p className="text-xs font-semibold text-white/70">My progress</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Right Stats Grid */}
+                                                        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                            {/* Streak */}
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400">
+                                                                    <Flame className="w-4 h-4 fill-current" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Current Streak</p>
+                                                                    <h4 className="text-2xl font-bold text-white mt-1">{streakCount} days</h4>
+                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Consecutive login</p>
+                                                                </div>
+                                                            </div>
+                                                            {/* Working Days */}
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+                                                                    <Calendar className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Working Days</p>
+                                                                    <h4 className="text-2xl font-bold text-white mt-1">{workingCount}</h4>
+                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Tracked days</p>
+                                                                </div>
+                                                            </div>
+                                                            {/* Days Present */}
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center border border-green-500/20 text-green-400">
+                                                                    <CheckCircle2 className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Days Present</p>
+                                                                    <h4 className="text-2xl font-bold text-white mt-1">{presentCount}</h4>
+                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Present days</p>
+                                                                </div>
+                                                            </div>
+                                                            {/* Leaves */}
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center border border-pink-500/20 text-pink-400">
+                                                                    <Clock className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Leaves</p>
+                                                                    <h4 className="text-2xl font-bold text-white mt-1">{approvedLeavesCount}</h4>
+                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Official leaves</p>
+                                                                </div>
+                                                            </div>
+                                                            {/* Late Arrivals */}
+                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl space-y-3 shadow-sm hover:border-white/10 transition-colors">
+                                                                <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 text-yellow-400">
+                                                                    <Clock className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Late Arrivals</p>
+                                                                    <h4 className="text-2xl font-bold text-white mt-1">{lateCount}</h4>
+                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Late days</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                        {/* WORKED ON TAB */}
+                                        {activeProfileTab === "worked-on" && (
+                                            <div className="p-8 space-y-8">
+                                                <div>
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <div>
+                                                            <h3 className="text-base font-bold text-white">Worked on</h3>
+                                                            <p className="text-xs text-white/40 mt-0.5">Others will only see what they can access.</p>
+                                                        </div>
+                                                        <button 
+                                                            onClick={() => setActiveTab("tasks")} 
+                                                            className="text-xs font-bold text-[#E61E32] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none"
+                                                        >
+                                                            View all <ExternalLink className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div className="bg-white/[0.01] border border-white/5 rounded-2xl overflow-hidden shadow-sm">
+                                                        <div className="divide-y divide-white/5">
+                                                            {employeeTasks.slice(0, 5).map((task) => (
+                                                                <div key={task.id} className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
+                                                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 shrink-0">
+                                                                        <FileText className="w-4.5 h-4.5" />
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1 text-left">
+                                                                        <p className="text-xs font-bold text-white/90 truncate">{task.title}</p>
+                                                                        <p className="text-[10px] text-white/35 font-semibold mt-0.5">
+                                                                            {task.status.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())} • {task.deadline ? `Due ${new Date(task.deadline).toLocaleDateString()}` : "No deadline"}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {employeeTasks.length === 0 && (
+                                                                <div className="p-8 text-center text-white/40 text-xs font-medium">No assigned tasks found.</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div>
+                                                        <h3 className="text-base font-bold text-white mb-4">Places you work in</h3>
+                                                        <div className="bg-white/[0.02] border border-white/5 p-5 rounded-2xl shadow-sm flex items-center gap-4 hover:border-white/10 transition-all">
+                                                            <div className="w-10 h-10 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center text-[#E61E32] font-black text-xs shrink-0">
+                                                                RX
+                                                            </div>
+                                                            <div className="text-left">
+                                                                <p className="text-[10px] text-white/40 font-bold tracking-wider">Workspace</p>
+                                                                <p className="text-xs font-bold text-white/90 mt-0.5">Redlix Studio Portal</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div>
+                                                        <h3 className="text-base font-bold text-white mb-4">Works with</h3>
+                                                        <div className="flex flex-wrap gap-2.5">
+                                                            {uniqueCollaborators.slice(0, 8).map((collab: any) => (
+                                                                <div
+                                                                    key={collab.id}
+                                                                    className="bg-white/[0.02] border border-white/5 pl-2.5 pr-3 py-1.5 rounded-full flex items-center gap-2 text-xs font-bold text-white/70 shadow-sm"
+                                                                    title={collab.role}
+                                                                >
+                                                                    <div className="w-5.5 h-5.5 rounded-full bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] text-[9px] font-black shrink-0">
+                                                                        {collab.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                                                                    </div>
+                                                                    <span>{collab.name}</span>
+                                                                </div>
+                                                            ))}
+                                                            {uniqueCollaborators.length === 0 && (
+                                                                <div className="bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-2xl text-xs text-white/40 font-semibold w-full text-center">
+                                                                    No team collaborators found.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* MY JOURNEY TAB */}
+                                        {activeProfileTab === "journey" && (
+                                            <div className="p-8 text-left max-w-xl mx-auto">
+                                                <h3 className="text-base font-bold text-white mb-6 flex items-center gap-2">
+                                                    <Sparkles className="w-4.5 h-4.5 text-[#E61E32]" />
+                                                    My Journey at Redlix Studio
+                                                </h3>
+                                                
+                                                <div className="relative border-l-2 border-white/5 pl-6 space-y-8 ml-3">
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-[#E61E32] shadow-sm flex items-center justify-center" />
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">
+                                                                {employeeInfo?.joinedAt ? new Date(employeeInfo.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : "June 2026"}
+                                                            </p>
+                                                            <p className="text-xs font-bold text-white/90">Joined Redlix Studio</p>
+                                                            <p className="text-xs text-white/50">Began career journey as a {employeeInfo?.role || "Team Member"}.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">Onboarding Milestone</p>
+                                                            <p className="text-xs font-bold text-white/90">Onboarding & Setup Complete</p>
+                                                            <p className="text-xs text-white/50">Completed portal registration, set up profile details, and verified credentials.</p>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="relative">
+                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-full bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">Active Contributions</p>
+                                                            <p className="text-xs font-bold text-white/90">Assigned Gigs Progress</p>
+                                                            <p className="text-xs text-white/50">Successfully contributed to active projects and closed {employeeTasks.filter(t => t.status === 'completed').length} client deliverables.</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* ACTIVITY TAB */}
+                                        {activeProfileTab === "activity" && (
+                                            <div className="p-8 text-left max-w-xl mx-auto space-y-6">
+                                                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                                                    <Clock className="w-4.5 h-4.5 text-[#E61E32]" />
+                                                    Recent Activity Logs
+                                                </h3>
+                                                
+                                                <div className="space-y-4">
+                                                    {report.slice(0, 10).map((att, idx) => (
+                                                        <div key={idx} className="flex gap-4 items-start p-4 bg-white/[0.02] border border-white/5 rounded-2xl shadow-sm">
+                                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${
+                                                                att.status === "Present" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"
+                                                            }`}>
+                                                                <Clock className="w-4 h-4" />
+                                                            </div>
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-xs font-bold text-white/90">{att.dateStr}</p>
+                                                                <p className="text-[10px] text-white/50 mt-0.5">
+                                                                    Status: <span className="font-bold">{att.status}</span> ({att.statusReason})
+                                                                </p>
+                                                                <p className="text-[10px] text-white/35 font-semibold">
+                                                                    Logged check-in: {att.punchIn} | check-out: {att.punchOut}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    {report.length === 0 && (
+                                                        <div className="py-8 text-center text-white/40 text-xs font-medium">No recent activities recorded.</div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* ===== MEETINGS TAB ===== */}
                         {activeTab === "meetings" && (
@@ -2515,11 +3655,18 @@ export default function EmployeePortal() {
                         setActiveTab("tasks");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${
                         activeTab === "tasks" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
                     }`}
                 >
-                    <ListTodo className="w-5 h-5" />
+                    <div className="relative">
+                        <ListTodo className="w-5 h-5" />
+                        {activeTasksCount > 0 && (
+                            <span className="absolute -top-1.5 -right-2 text-[8px] px-1 bg-[#E61E32] text-white rounded-full font-bold scale-90">
+                                {activeTasksCount}
+                            </span>
+                        )}
+                    </div>
                     <span className="text-[10px] font-medium">Tasks</span>
                 </button>
                 <button
@@ -2539,11 +3686,18 @@ export default function EmployeePortal() {
                         setActiveTab("meetings");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${
                         activeTab === "meetings" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
                     }`}
                 >
-                    <Video className="w-5 h-5" />
+                    <div className="relative">
+                        <Video className="w-5 h-5" />
+                        {upcomingMeetingsCount > 0 && (
+                            <span className="absolute -top-1.5 -right-2 text-[8px] px-1 bg-emerald-500 text-white rounded-full font-bold scale-90">
+                                {upcomingMeetingsCount}
+                            </span>
+                        )}
+                    </div>
                     <span className="text-[10px] font-medium">Meetings</span>
                 </button>
                 <button
@@ -2579,14 +3733,21 @@ export default function EmployeePortal() {
                                         setActiveTab("documents");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                                         activeTab === "documents"
                                             ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
                                             : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
                                     }`}
                                 >
-                                    <FileText className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Documents</span>
+                                    <div className="flex items-center gap-3">
+                                        <FileText className="w-4 h-4" />
+                                        <span className="text-xs font-semibold">Documents</span>
+                                    </div>
+                                    {documentsCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                            {documentsCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => {
@@ -2607,14 +3768,21 @@ export default function EmployeePortal() {
                                         setActiveTab("leaves");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                                         activeTab === "leaves"
                                             ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
                                             : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
                                     }`}
                                 >
-                                    <Calendar className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Leaves</span>
+                                    <div className="flex items-center gap-3">
+                                        <Calendar className="w-4 h-4" />
+                                        <span className="text-xs font-semibold">Leaves</span>
+                                    </div>
+                                    {pendingLeavesCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                            {pendingLeavesCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => {
@@ -2635,28 +3803,42 @@ export default function EmployeePortal() {
                                         setActiveTab("community");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                                         activeTab === "community"
                                             ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
                                             : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
                                     }`}
                                 >
-                                    <MessageSquare className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Community</span>
+                                    <div className="flex items-center gap-3">
+                                        <MessageSquare className="w-4 h-4" />
+                                        <span className="text-xs font-semibold">Community</span>
+                                    </div>
+                                    {communityCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                            {communityCount}
+                                        </span>
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => {
                                         setActiveTab("declarations");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
                                         activeTab === "declarations"
                                             ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
                                             : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
                                     }`}
                                 >
-                                    <FolderUp className="w-4 h-4" />
-                                    <span className="text-xs font-semibold">Declarations</span>
+                                    <div className="flex items-center gap-3">
+                                        <FolderUp className="w-4 h-4" />
+                                        <span className="text-xs font-semibold">Declarations</span>
+                                    </div>
+                                    {pendingDeclarationsCount > 0 && (
+                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {pendingDeclarationsCount}
+                                        </span>
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -2664,12 +3846,19 @@ export default function EmployeePortal() {
                         {/* User Profile Summary */}
                         <div className="bg-white/[0.02] border border-white/5 p-4 rounded-xl flex items-center justify-between">
                             <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-9 h-9 rounded-full bg-[#E61E32]/15 border border-[#E61E32]/25 flex items-center justify-center shrink-0">
-                                    <User className="w-4.5 h-4.5 text-[#E61E32]" />
+                                <div className="w-9 h-9 rounded-full bg-[#E61E32]/15 border border-[#E61E32]/25 overflow-hidden flex items-center justify-center shrink-0">
+                                    {employeeInfo?.avatar ? (
+                                        <img src={employeeInfo.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User className="w-4.5 h-4.5 text-[#E61E32]" />
+                                    )}
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold text-white truncate">{employeeInfo?.name}</p>
                                     <p className="text-[10px] text-white/40 uppercase tracking-wider truncate mt-0.5">{employeeInfo?.role || "Team Member"}</p>
+                                    {employeeInfo?.division && (
+                                        <p className="text-[9px] text-[#E61E32] font-semibold uppercase tracking-wider truncate mt-0.5">{employeeInfo.division}</p>
+                                    )}
                                 </div>
                             </div>
                             <span className="flex items-center gap-1 text-[9px] text-white/30 bg-white/5 px-2 py-1 rounded-md">
@@ -2755,6 +3944,116 @@ export default function EmployeePortal() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+
+
+            {/* CHANGE PASSWORD MODAL */}
+            {isChangePasswordModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200 text-slate-200">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+                        onClick={() => setIsChangePasswordModalOpen(false)} 
+                    />
+                    
+                    {/* Modal Body */}
+                    <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-md p-6 rounded-2xl shadow-2xl space-y-5 animate-in zoom-in-95 duration-200 z-10 text-left">
+                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
+                                    <KeyRound className="w-3.5 h-3.5" />
+                                </div>
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-white">Change Account Password</h3>
+                            </div>
+                            <button 
+                                onClick={() => setIsChangePasswordModalOpen(false)} 
+                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1.5 rounded-lg"
+                            >
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        {/* Error and Success Alerts */}
+                        {changePasswordError && (
+                            <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-xs p-3 rounded-xl flex items-center gap-2">
+                                <AlertTriangle className="w-4 h-4 shrink-0" />
+                                <span>{changePasswordError}</span>
+                            </div>
+                        )}
+                        {changePasswordSuccess && (
+                            <div className="bg-green-500/10 border border-green-500/20 text-green-500 text-xs p-3 rounded-xl flex items-center gap-2">
+                                <CheckCheck className="w-4 h-4 shrink-0" />
+                                <span>{changePasswordSuccess}</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleChangePassword} className="space-y-4">
+                            {/* Current Password */}
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Current Password</label>
+                                <input 
+                                    type="password" 
+                                    value={changePasswordCurrent}
+                                    onChange={(e) => setChangePasswordCurrent(e.target.value)}
+                                    required
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
+                            {/* New Password */}
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">New Password</label>
+                                <input 
+                                    type="password" 
+                                    value={changePasswordNew}
+                                    onChange={(e) => setChangePasswordNew(e.target.value)}
+                                    required
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    placeholder="•••••••• (Min 6 chars)"
+                                />
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="space-y-1.5">
+                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Confirm New Password</label>
+                                <input 
+                                    type="password" 
+                                    value={changePasswordConfirm}
+                                    onChange={(e) => setChangePasswordConfirm(e.target.value)}
+                                    required
+                                    className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-xl"
+                                    placeholder="••••••••"
+                                />
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex justify-end gap-3 pt-4 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsChangePasswordModalOpen(false)}
+                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isSavingPassword}
+                                    className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center gap-2 cursor-pointer"
+                                >
+                                    {isSavingPassword ? (
+                                        <>
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating...
+                                        </>
+                                    ) : (
+                                        "Change Password"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

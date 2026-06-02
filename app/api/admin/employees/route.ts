@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { name, email, role, password, offerLetterLink, isDeptAdmin } = body;
+        const { name, email, role, password, offerLetterLink, isDeptAdmin, division } = body;
 
         if (!name || !email || !role) {
             return NextResponse.json(
@@ -51,6 +51,7 @@ export async function POST(req: Request) {
                 password: password || undefined,
                 offerLetterLink,
                 isDeptAdmin: isDeptAdmin !== undefined ? !!isDeptAdmin : false,
+                division: division || null,
             },
         });
 

@@ -48,6 +48,14 @@ export async function GET(request: NextRequest) {
                     altEmail: employee.altEmail,
                     address: employee.address,
                     joinedAt: employee.joinedAt,
+                    avatar: employee.avatar,
+                    banner: employee.banner,
+                    bio: employee.bio,
+                    college: employee.college,
+                    division: employee.division,
+                    portfolioLink: employee.portfolioLink,
+                    futureGoals: employee.futureGoals,
+                    socialLinks: employee.socialLinks,
                 }
             });
         } catch (err) {

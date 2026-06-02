@@ -43,6 +43,14 @@ model Employee {
   offerLetterLink String?
   resetToken      String?
   resetTokenExpiry DateTime?
+  avatar          String?  @db.Text
+  banner          String?  @db.Text
+  bio             String?
+  college         String?
+  division        String?
+  portfolioLink   String?
+  futureGoals     String?
+  socialLinks     String?  @db.Text
   phone           String?
   upiId           String?
   fatherName      String?
