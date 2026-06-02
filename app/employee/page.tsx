@@ -1795,8 +1795,7 @@ export default function EmployeePortal() {
                                         className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-2xl border border-white/5 shadow-sm mb-6"
                                         style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
-                                        {/* Dark gradient — heavier at bottom so text is legible */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
 
                                         {/* Hover Edit Overlay */}
                                         <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
