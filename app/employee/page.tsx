@@ -2361,6 +2361,8 @@ export default function EmployeePortal() {
                                                                     })()}
                                                                 </div>
                                                             </div>
+                                                            
+                                                            <div className="h-[1px] bg-white/5 w-full" />
 
                                                             {/* Right: 5 Year Vision */}
                                                             <div className="space-y-2">
@@ -2379,6 +2381,8 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        <div className="h-[1px] bg-white/5 w-full" />
 
                                                         {/* Attendance Heatmap */}
                                                         <div className="space-y-3">
