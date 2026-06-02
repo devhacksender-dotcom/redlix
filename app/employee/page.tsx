@@ -384,6 +384,9 @@ export default function EmployeePortal() {
     const [highlightClipPath, setHighlightClipPath] = useState("");
     const tourCardRef = React.useRef<HTMLDivElement>(null);
 
+    // Division congratulate modal state
+    const [showDivisionModal, setShowDivisionModal] = useState(false);
+
     const currentTourStepData = TOUR_STEPS[tourStep];
 
     const handleEndTour = () => {
@@ -405,8 +408,30 @@ export default function EmployeePortal() {
         }
     };
 
+    const handleCloseDivisionModal = () => {
+        if (employeeInfo) {
+            localStorage.setItem(`redlix_division_modal_seen_${employeeInfo.id}`, "true");
+            setShowDivisionModal(false);
+
+            // After dismissing congratulations, start the portal tour if not completed
+            const completed = localStorage.getItem("redlix_portal_tour_completed");
+            if (!completed) {
+                setTourStep(0);
+                setTourActive(true);
+            }
+        }
+    };
+
     useEffect(() => {
         if (employeeInfo) {
+            if (employeeInfo.division) {
+                const seen = localStorage.getItem(`redlix_division_modal_seen_${employeeInfo.id}`);
+                if (!seen) {
+                    setShowDivisionModal(true);
+                    return; // Hold off on tour until congratulations are closed
+                }
+            }
+
             const completed = localStorage.getItem("redlix_portal_tour_completed");
             if (!completed) {
                 const timer = setTimeout(() => {
@@ -4419,6 +4444,53 @@ export default function EmployeePortal() {
             />
 
             {/* PORTAL UPDATES POPUP MODAL */}
+            {showDivisionModal && employeeInfo?.division && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    {/* Backdrop */}
+                    <div 
+                        className="absolute inset-0 bg-black/85 backdrop-blur-sm transition-opacity" 
+                        onClick={handleCloseDivisionModal} 
+                    />
+                    
+                    {/* Modal Body */}
+                    <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-sm p-8 text-center space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 z-10 rounded-none">
+                        {/* Lottie Animation at Top */}
+                        <div className="flex justify-center -mt-8">
+                            <dotlottie-wc
+                                src="https://lottie.host/3075f240-62a5-46db-8d64-5dda79afd538/4FE24H0UXC.lottie"
+                                style={{ width: "200px", height: "200px" }}
+                                autoplay
+                                loop
+                            />
+                        </div>
+
+                        {/* Congratulations Header */}
+                        <div className="space-y-1">
+                            <h2 className="text-xl font-black uppercase tracking-widest text-[#E61E32]">Congratulations!</h2>
+                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">New Division Assignment</p>
+                        </div>
+
+                        {/* Allotted Division Info */}
+                        <div className="border border-white/10 bg-white/[0.02] p-4 text-center rounded-none">
+                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Your Allotted Division</p>
+                            <h3 className="text-base font-black text-white uppercase tracking-wider mt-1">{employeeInfo.division}</h3>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-xs text-white/50 leading-relaxed font-medium">
+                            The respective division lead will be assigned and let you know the things of this division.
+                        </p>
+
+                        {/* Action Button */}
+                        <button
+                            onClick={handleCloseDivisionModal}
+                            className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-2.5 text-xs font-black uppercase tracking-widest transition-colors rounded-none cursor-pointer"
+                        >
+                            Acknowledge & Continue
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Document Preview Modal */}
             {previewFile && (
