@@ -4448,7 +4448,7 @@ export default function EmployeePortal() {
                 <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
                     {/* Backdrop */}
                     <div 
-                        className="absolute inset-0 bg-black/85 backdrop-blur-sm transition-opacity" 
+                        className="absolute inset-0 bg-black/85 transition-opacity" 
                         onClick={handleCloseDivisionModal} 
                     />
                     
@@ -4466,14 +4466,14 @@ export default function EmployeePortal() {
 
                         {/* Congratulations Header */}
                         <div className="space-y-1">
-                            <h2 className="text-xl font-black uppercase tracking-widest text-[#E61E32]">Congratulations!</h2>
-                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">New Division Assignment</p>
+                            <h2 className="text-xl font-black text-[#E61E32] tracking-wide">Congratulations!</h2>
+                            <p className="text-[10px] text-white/40 font-bold tracking-wide">New division assignment</p>
                         </div>
 
                         {/* Allotted Division Info */}
                         <div className="border border-white/10 bg-white/[0.02] p-4 text-center rounded-none">
-                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Your Allotted Division</p>
-                            <h3 className="text-base font-black text-white uppercase tracking-wider mt-1">{employeeInfo.division}</h3>
+                            <p className="text-[9px] font-bold text-white/30 tracking-wide">Your allotted division</p>
+                            <h3 className="text-base font-black text-white tracking-wide mt-1">{employeeInfo.division}</h3>
                         </div>
 
                         {/* Description */}
@@ -4484,7 +4484,7 @@ export default function EmployeePortal() {
                         {/* Action Button */}
                         <button
                             onClick={handleCloseDivisionModal}
-                            className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-2.5 text-xs font-black uppercase tracking-widest transition-colors rounded-none cursor-pointer"
+                            className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-2.5 text-xs font-black tracking-wide transition-colors rounded-none cursor-pointer"
                         >
                             Acknowledge & Continue
                         </button>
