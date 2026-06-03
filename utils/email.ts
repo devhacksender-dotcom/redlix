@@ -1,12 +1,16 @@
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.SMTP_EMAIL,
-        pass: process.env.SMTP_PASSWORD,
-    },
-});
+const transporter = {
+    sendMail: (mailOptions: nodemailer.SendMailOptions) => {
+        return nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.SMTP_EMAIL,
+                pass: process.env.SMTP_PASSWORD,
+            },
+        }).sendMail(mailOptions);
+    }
+};
 
 interface SendAutoReplyParams {
     to: string;
@@ -1168,6 +1172,7 @@ export async function sendTaskAssignmentEmail({ to, employeeName, taskTitle, tas
     };
     try {
         await transporter.sendMail(mailOptions);
+        console.log(`Task assignment email sent successfully to ${to}`);
         return { success: true };
     } catch (error) {
         console.error("Error sending task assignment email:", error);
