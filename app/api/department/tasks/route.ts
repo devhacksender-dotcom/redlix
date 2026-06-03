@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { sendTaskAssignmentEmail } from "@/utils/email";
 
 export async function GET() {
     try {
@@ -72,6 +73,19 @@ export async function POST(req: Request) {
                 }
             }
         });
+
+        // Trigger automatic email notification to the assigned employee (non-blocking)
+        if (task.employee) {
+            sendTaskAssignmentEmail({
+                to: task.employee.email,
+                employeeName: task.employee.name,
+                taskTitle: task.title,
+                taskDescription: task.description ?? undefined,
+                deadline: task.deadline,
+            }).catch(err => {
+                console.error("Failed to send task assignment email asynchronously:", err);
+            });
+        }
 
         return NextResponse.json({
             success: true,

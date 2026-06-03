@@ -708,7 +708,6 @@ export async function sendHandRaiseNotification({ employeeName, employeeEmail, a
 // ALERT SYSTEM EMAILS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const REDLIX_LOGO = "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png";
 const SITE_BASE = "https://www.redlix.co.in";
 const EMPLOYEE_PORTAL = "https://www.redlix.co.in/employee";
 const EMPLOYEE_LOGIN  = "https://www.redlix.co.in/employee/login";
@@ -720,7 +719,7 @@ const PORTFOLIO_PAGE  = "https://www.redlix.co.in/portfolio";
 function ctaButton(label: string, href: string): string {
     return `
         <div style="margin:28px 0 8px 0;text-align:left;">
-            <a href="${href}" target="_blank" style="display:inline-block;background-color:#E61E32;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:14px 28px;border-radius:2px;">
+            <a href="${href}" target="_blank" style="display:inline-block;background-color:#ffffff;color:#E61E32;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;padding:14px 28px;border-radius:4px;box-shadow:0 2px 4px rgba(0,0,0,0.1);">
                 ${label} &rarr;
             </a>
         </div>
@@ -730,31 +729,44 @@ function ctaButton(label: string, href: string): string {
 /** Ghost / secondary link row */
 function quickLinks(links: { label: string; href: string }[]): string {
     const items = links
-        .map(l => `<a href="${l.href}" target="_blank" style="color:#E61E32;font-size:12px;font-weight:600;text-decoration:none;margin-right:20px;white-space:nowrap;">${l.label}</a>`)
+        .map(l => `<a href="${l.href}" target="_blank" style="color:#ffffff;font-size:12px;font-weight:700;text-decoration:underline;margin-right:20px;white-space:nowrap;">${l.label}</a>`)
         .join('');
     return `
-        <div style="margin-top:16px;padding:14px 18px;background-color:#f8f8f8;border:1px solid #eee;">
-            <p style="margin:0 0 8px 0;font-size:9px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:0.15em;">Quick Links</p>
-            <div style="display:flex;flex-wrap:wrap;gap:4px;">${items}</div>
+        <div style="margin-top:24px;padding:16px 20px;background-color:rgba(0,0,0,0.12);border:1px solid rgba(255,255,255,0.15);border-radius:4px;">
+            <p style="margin:0 0 8px 0;font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.15em;">Quick Links</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px 16px;">${items}</div>
         </div>
     `;
 }
 
 function baseEmailWrapper(headerLabel: string, body: string): string {
     return `
-        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:620px;margin:0 auto;border:1px solid #e0e0e0;background-color:#ffffff;color:#1a1a1a;">
-            <div style="background-color:#0a0a0a;padding:22px 36px;display:flex;align-items:center;justify-content:space-between;">
-                <a href="${SITE_BASE}" target="_blank" style="text-decoration:none;">
-                    <img src="${REDLIX_LOGO}" alt="Redlix Studio" style="height:30px;filter:brightness(0) invert(1);" />
-                </a>
-                <span style="font-size:9px;font-weight:700;letter-spacing:0.2em;color:#E61E32;text-transform:uppercase;">${headerLabel}</span>
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background-color:#E61E32;color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="padding: 24px 36px 0 36px;">
+                <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 16px;">
+                    <tr>
+                        <td style="text-align: left; vertical-align: middle; padding-bottom: 16px;">
+                            <span style="font-size: 11px; font-weight: 800; letter-spacing: 0.15em; color: #ffffff; text-transform: uppercase;">
+                                ${headerLabel}
+                            </span>
+                        </td>
+                        <td style="text-align: right; vertical-align: middle; padding-bottom: 16px;">
+                            <img src="https://ik.imagekit.io/dypkhqxip/R.png?updatedAt=1780079675376" alt="Redlix" style="height: 28px; width: auto; display: inline-block;" />
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <div style="padding:40px 36px;">
+
+            <!-- Body -->
+            <div style="padding:32px 36px 40px 36px;">
                 ${body}
             </div>
-            <div style="background-color:#fafafa;padding:24px 36px;border-top:1px solid #eee;">
-                <p style="margin:0;font-size:11px;color:#999;line-height:1.8;">
-                    © 2026 Redlix Studio &middot; Software &amp; IT Infrastructure Solutions &middot; <a href="${SITE_BASE}" style="color:#E61E32;font-weight:600;text-decoration:none;">www.redlix.co.in</a><br/>
+            
+            <!-- Footer -->
+            <div style="background-color:rgba(0,0,0,0.15);padding:24px 36px;text-align:center;">
+                <p style="margin:0;font-size:11px;color:#ffffff;opacity:0.8;line-height:1.8;">
+                    © 2026 Redlix Studio &middot; Software &amp; IT Infrastructure Solutions &middot; <a href="${SITE_BASE}" style="color:#ffffff;font-weight:700;text-decoration:underline;">www.redlix.co.in</a><br/>
                     This is an automated notification. Please do not reply to this email.
                 </p>
             </div>
@@ -772,22 +784,22 @@ interface SendDashboardAccessPendingParams {
 
 export async function sendDashboardAccessPendingAlert({ to, name, customMessage }: SendDashboardAccessPendingParams) {
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Dashboard Access — Pending</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Dashboard Access — Pending</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Hello <strong>${name}</strong>,</p>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:24px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
             We noticed that your <strong>Redlix Employee Dashboard</strong> access is still pending. To activate your account and get full access to your portal, please complete the setup steps below.
         </p>
-        <div style="background-color:#f8f8f8;border:1px solid #eee;padding:24px;margin-bottom:28px;">
-            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.12em;">Action Required</p>
-            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#333;">
+        <div style="background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Action Required</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ffffff;">
                 <li>Log in to the Redlix Employee Portal using your registered email</li>
                 <li>Reset your default password on first login</li>
                 <li>Complete your profile details (phone, address, UPI ID)</li>
                 <li>Confirm your onboarding checklist</li>
             </ul>
         </div>
-        ${customMessage ? `<div style="border-left:3px solid #E61E32;padding:12px 16px;background-color:#fef2f2;margin-bottom:24px;font-size:13px;color:#555;line-height:1.6;"><strong>Note from Admin:</strong> ${customMessage}</div>` : ''}
+        ${customMessage ? `<div style="border-left:3px solid #ffffff;padding:12px 16px;background-color:rgba(255,255,255,0.15);margin-bottom:24px;font-size:13px;color:#ffffff;line-height:1.6;border-radius:0 4px 4px 0;"><strong>Note from Admin:</strong> ${customMessage}</div>` : ''}
         ${ctaButton('Access Employee Portal', EMPLOYEE_LOGIN)}
         ${quickLinks([
             { label: 'Employee Portal', href: EMPLOYEE_PORTAL },
@@ -795,10 +807,10 @@ export async function sendDashboardAccessPendingAlert({ to, name, customMessage 
             { label: 'Get Support', href: SUPPORT_PAGE },
             { label: 'Visit Website', href: SITE_BASE },
         ])}
-        <p style="font-size:12px;color:#aaa;line-height:1.7;margin-top:20px;">If you are facing any issues logging in, please visit our <a href="${SUPPORT_PAGE}" style="color:#E61E32;text-decoration:none;font-weight:600;">support page</a> or reply to this email.</p>
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">Redlix HR &amp; Admin Team</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio &middot; Employee Portal</p>
+        <p style="font-size:12px;color:#ffffff;opacity:0.8;line-height:1.7;margin-top:20px;">If you are facing any issues logging in, please visit our <a href="${SUPPORT_PAGE}" style="color:#ffffff;text-decoration:underline;font-weight:700;">support page</a> or reply to this email.</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix HR &amp; Admin Team</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; Employee Portal</p>
         </div>
     `;
     const mailOptions = {
@@ -831,27 +843,27 @@ export async function sendProfilePendingAlert({ to, name, missingFields, customM
         : "<li>Phone / Mobile Number</li><li>UPI ID</li><li>Father's Name</li><li>Permanent Address</li><li>Alternate Email</li>";
 
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Profile Incomplete — Action Needed</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Profile Incomplete — Action Needed</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Hello <strong>${name}</strong>,</p>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:24px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
             Your employee profile on the <strong>Redlix Portal</strong> is incomplete. A complete profile helps us process your payroll, communications, and work assignments correctly.
         </p>
-        <div style="background-color:#f8f8f8;border:1px solid #eee;padding:24px;margin-bottom:28px;">
-            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.12em;">Pending Profile Fields</p>
-            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#333;">${fieldList}</ul>
+        <div style="background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Pending Profile Fields</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ffffff;">${fieldList}</ul>
         </div>
-        ${customMessage ? `<div style="border-left:3px solid #E61E32;padding:12px 16px;background-color:#fef2f2;margin-bottom:24px;font-size:13px;color:#555;line-height:1.6;"><strong>Note from Admin:</strong> ${customMessage}</div>` : ''}
-        <p style="font-size:13px;color:#444;line-height:1.7;margin-bottom:4px;">Please update your profile within <strong>48 hours</strong> to avoid any delays in payments or communications.</p>
+        ${customMessage ? `<div style="border-left:3px solid #ffffff;padding:12px 16px;background-color:rgba(255,255,255,0.15);margin-bottom:24px;font-size:13px;color:#ffffff;line-height:1.6;border-radius:0 4px 4px 0;"><strong>Note from Admin:</strong> ${customMessage}</div>` : ''}
+        <p style="font-size:13px;color:#ffffff;opacity:0.9;line-height:1.7;margin-bottom:4px;">Please update your profile within <strong>48 hours</strong> to avoid any delays in payments or communications.</p>
         ${ctaButton('Update My Profile', `${EMPLOYEE_PORTAL}`)}
         ${quickLinks([
             { label: 'Employee Portal', href: EMPLOYEE_PORTAL },
             { label: 'Portal Login', href: EMPLOYEE_LOGIN },
             { label: 'Get Support', href: SUPPORT_PAGE },
         ])}
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">Redlix HR Team</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio &middot; Human Resources</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix HR Team</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; Human Resources</p>
         </div>
     `;
     const mailOptions = {
@@ -885,25 +897,25 @@ export async function sendTermsUpdateAlert({ to, clientName, companyName, effect
         : 'immediately';
 
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Terms &amp; Conditions Updated</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Terms &amp; Conditions Updated</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Dear <strong>${clientName}</strong>,</p>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:24px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
             We are writing to inform you that <strong>Redlix Studio</strong> has updated its Terms &amp; Conditions, effective <strong>${displayDate}</strong>. These changes may affect your ongoing project engagement and service agreement with us.
         </p>
-        <div style="background-color:#0a0a0a;color:#fff;padding:28px;margin-bottom:28px;">
-            <p style="margin:0 0 12px 0;font-size:10px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.15em;">Key Highlights</p>
-            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ccc;">
+        <div style="background-color:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.15);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:10px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.15em;">Key Highlights</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ffffff;">
                 <li>Updated service delivery and project timelines</li>
                 <li>Revised payment and refund policies</li>
                 <li>Changes to intellectual property ownership clauses</li>
                 <li>Updated confidentiality and data handling provisions</li>
             </ul>
         </div>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:20px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;opacity:0.9;margin-bottom:20px;">
             By continuing to use Redlix Studio services after <strong>${displayDate}</strong>, you agree to the updated Terms &amp; Conditions. We encourage you to read the full document before that date.
         </p>
-        ${customMessage ? `<div style="border-left:3px solid #E61E32;padding:12px 16px;background-color:#fef2f2;margin-bottom:24px;font-size:13px;color:#555;line-height:1.6;"><strong>Additional Note:</strong> ${customMessage}</div>` : ''}
+        ${customMessage ? `<div style="border-left:3px solid #ffffff;padding:12px 16px;background-color:rgba(255,255,255,0.15);margin-bottom:24px;font-size:13px;color:#ffffff;line-height:1.6;border-radius:0 4px 4px 0;"><strong>Additional Note:</strong> ${customMessage}</div>` : ''}
         ${ctaButton('Read Full Terms & Conditions', TERMS_PAGE)}
         ${quickLinks([
             { label: 'Terms & Conditions', href: TERMS_PAGE },
@@ -911,9 +923,9 @@ export async function sendTermsUpdateAlert({ to, clientName, companyName, effect
             { label: 'Contact Us', href: SUPPORT_PAGE },
             { label: 'Visit Website', href: SITE_BASE },
         ])}
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">Redlix Legal &amp; Compliance</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio &middot; ${companyName}</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix Legal &amp; Compliance</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; ${companyName}</p>
         </div>
     `;
     const mailOptions = {
@@ -947,18 +959,18 @@ export async function sendClientInfoUpdateAlert({ to, clientName, companyName, f
         : "<li>Company contact details</li><li>Project requirements / scope</li><li>Billing address</li><li>Point of contact information</li>";
 
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Client Information Update Request</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Client Information Update Request</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Dear <strong>${clientName}</strong>,</p>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:24px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
             To ensure we continue to serve <strong>${companyName}</strong> with the highest quality, our team requires you to review and update certain information in your project record. Please reply to this email or get in touch with us directly.
         </p>
-        <div style="background-color:#f8f8f8;border:1px solid #eee;padding:24px;margin-bottom:28px;">
-            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.12em;">Information to Review / Update</p>
-            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#333;">${fieldList}</ul>
+        <div style="background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Information to Review / Update</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ffffff;">${fieldList}</ul>
         </div>
-        ${customMessage ? `<div style="border-left:3px solid #E61E32;padding:12px 16px;background-color:#fef2f2;margin-bottom:24px;font-size:13px;color:#555;line-height:1.6;"><strong>Message from our team:</strong> ${customMessage}</div>` : ''}
-        <p style="font-size:13px;color:#444;line-height:1.7;margin-bottom:4px;">Please respond within <strong>3 business days</strong>. You can reach out via our support page or simply reply to this email.</p>
+        ${customMessage ? `<div style="border-left:3px solid #ffffff;padding:12px 16px;background-color:rgba(255,255,255,0.15);margin-bottom:24px;font-size:13px;color:#ffffff;line-height:1.6;border-radius:0 4px 4px 0;"><strong>Message from our team:</strong> ${customMessage}</div>` : ''}
+        <p style="font-size:13px;color:#ffffff;opacity:0.9;line-height:1.7;margin-bottom:4px;">Please respond within <strong>3 business days</strong>. You can reach out via our support page or simply reply to this email.</p>
         ${ctaButton('Contact Our Team', SUPPORT_PAGE)}
         ${quickLinks([
             { label: 'Support Page', href: SUPPORT_PAGE },
@@ -966,9 +978,9 @@ export async function sendClientInfoUpdateAlert({ to, clientName, companyName, f
             { label: 'Terms & Conditions', href: TERMS_PAGE },
             { label: 'Our Portfolio', href: PORTFOLIO_PAGE },
         ])}
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">Redlix Client Relations</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio &middot; Client Success Team</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix Client Relations</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; Client Success Team</p>
         </div>
     `;
     const mailOptions = {
@@ -999,31 +1011,31 @@ interface SendNewClientWelcomeParams {
 
 export async function sendNewClientWelcomeAlert({ to, clientName, companyName, appName, developerName, customMessage }: SendNewClientWelcomeParams) {
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Welcome to Redlix Studio!</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">Welcome to Redlix Studio!</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Dear <strong>${clientName}</strong>,</p>
-        <p style="font-size:14px;line-height:1.7;color:#444;margin-bottom:24px;">
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
             On behalf of the entire team at <strong>Redlix Studio</strong>, we are thrilled to welcome <strong>${companyName}</strong> as our newest client. We look forward to building something exceptional together.
         </p>
-        <div style="background-color:#0a0a0a;color:#fff;padding:28px;margin-bottom:28px;">
-            <p style="margin:0 0 16px 0;font-size:10px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.15em;">Your Project Details</p>
+        <div style="background-color:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.15);padding:28px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 16px 0;font-size:10px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.15em;">Your Project Details</p>
             <table style="width:100%;border-collapse:collapse;">
-                <tr><td style="padding:8px 0;font-size:12px;color:#aaa;width:140px;">Client</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#fff;">${clientName} &mdash; ${companyName}</td></tr>
-                ${appName ? `<tr><td style="padding:8px 0;font-size:12px;color:#aaa;">Project / App</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#fff;">${appName}</td></tr>` : ''}
-                ${developerName ? `<tr><td style="padding:8px 0;font-size:12px;color:#aaa;">Your Developer</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#E61E32;">${developerName}</td></tr>` : ''}
-                <tr><td style="padding:8px 0;font-size:12px;color:#aaa;">Email</td><td style="padding:8px 0;font-size:13px;color:#fff;">${to}</td></tr>
+                <tr><td style="padding:8px 0;font-size:12px;color:rgba(255,255,255,0.65);width:140px;">Client</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#ffffff;">${clientName} &mdash; ${companyName}</td></tr>
+                ${appName ? `<tr><td style="padding:8px 0;font-size:12px;color:rgba(255,255,255,0.65);">Project / App</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#ffffff;">${appName}</td></tr>` : ''}
+                ${developerName ? `<tr><td style="padding:8px 0;font-size:12px;color:rgba(255,255,255,0.65);">Your Developer</td><td style="padding:8px 0;font-size:13px;font-weight:600;color:#ffffff;">${developerName}</td></tr>` : ''}
+                <tr><td style="padding:8px 0;font-size:12px;color:rgba(255,255,255,0.65);">Email</td><td style="padding:8px 0;font-size:13px;color:#ffffff;">${to}</td></tr>
             </table>
         </div>
-        <div style="background-color:#f8f8f8;border:1px solid #eee;padding:24px;margin-bottom:28px;">
-            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.12em;">What Happens Next</p>
-            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#333;">
+        <div style="background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">What Happens Next</p>
+            <ul style="margin:0;padding-left:18px;font-size:13px;line-height:2;color:#ffffff;">
                 <li>Our team will reach out to schedule your <strong>Discovery Call</strong></li>
                 <li>You'll receive project timeline and milestone details via email</li>
                 <li>A dedicated project lead will be assigned to your account</li>
                 <li>All communications will be handled through your registered email</li>
             </ul>
         </div>
-        ${customMessage ? `<div style="border-left:3px solid #E61E32;padding:12px 16px;background-color:#fef2f2;margin-bottom:24px;font-size:13px;color:#555;line-height:1.6;"><strong>Personal Note:</strong> ${customMessage}</div>` : ''}
+        ${customMessage ? `<div style="border-left:3px solid #ffffff;padding:12px 16px;background-color:rgba(255,255,255,0.15);margin-bottom:24px;font-size:13px;color:#ffffff;line-height:1.6;border-radius:0 4px 4px 0;"><strong>Personal Note:</strong> ${customMessage}</div>` : ''}
         ${ctaButton('Visit Our Website', SITE_BASE)}
         ${quickLinks([
             { label: 'Our Portfolio', href: PORTFOLIO_PAGE },
@@ -1031,12 +1043,12 @@ export async function sendNewClientWelcomeAlert({ to, clientName, companyName, a
             { label: 'Terms & Conditions', href: TERMS_PAGE },
             { label: 'Support', href: SUPPORT_PAGE },
         ])}
-        <p style="font-size:12px;color:#aaa;line-height:1.7;margin-top:20px;">
-            We are committed to transparency, quality, and delivering results that exceed your expectations. If you have any immediate questions, feel free to <a href="${SUPPORT_PAGE}" style="color:#E61E32;font-weight:600;text-decoration:none;">contact our support team</a>.
+        <p style="font-size:12px;color:#ffffff;opacity:0.8;line-height:1.7;margin-top:20px;">
+            We are committed to transparency, quality, and delivering results that exceed your expectations. If you have any immediate questions, feel free to <a href="${SUPPORT_PAGE}" style="color:#ffffff;font-weight:700;text-decoration:underline;">contact our support team</a>.
         </p>
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">Redlix Client Success</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio &middot; We build what matters</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix Client Success</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; We build what matters</p>
         </div>
     `;
     const mailOptions = {
@@ -1067,18 +1079,18 @@ interface SendCustomAlertParams {
 export async function sendCustomAlert({ to, subject, recipientName, messageBody, senderLabel }: SendCustomAlertParams) {
     const greeting = recipientName ? `<p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Dear <strong>${recipientName}</strong>,</p>` : '';
     const body = `
-        <h1 style="color:#0a0a0a;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">${subject}</h1>
-        <div style="width:36px;height:3px;background-color:#E61E32;margin-bottom:28px;"></div>
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">${subject}</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
         ${greeting}
-        <div style="font-size:14px;line-height:1.8;color:#444;margin-bottom:28px;">${messageBody.replace(/\n/g, '<br/>')}</div>
+        <div style="font-size:14px;line-height:1.8;color:#ffffff;opacity:0.9;margin-bottom:28px;">${messageBody.replace(/\n/g, '<br/>')}</div>
         ${quickLinks([
             { label: 'Visit Redlix Studio', href: SITE_BASE },
             { label: 'Our Portfolio', href: PORTFOLIO_PAGE },
             { label: 'Support', href: SUPPORT_PAGE },
         ])}
-        <div style="margin-top:32px;padding-top:24px;border-top:1px solid #eee;">
-            <p style="margin:0;font-size:11px;font-weight:700;color:#E61E32;text-transform:uppercase;letter-spacing:0.1em;">${senderLabel || 'Redlix Admin Team'}</p>
-            <p style="margin:4px 0 0 0;font-size:13px;color:#555;">Redlix Studio</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">${senderLabel || 'Redlix Admin Team'}</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio</p>
         </div>
     `;
     const toAddresses = Array.isArray(to) ? to.join(', ') : to;
@@ -1093,6 +1105,72 @@ export async function sendCustomAlert({ to, subject, recipientName, messageBody,
         return { success: true };
     } catch (error) {
         console.error("Error sending custom alert:", error);
+        return { success: false, error };
+    }
+}
+
+
+interface SendTaskAssignmentParams {
+    to: string;
+    employeeName: string;
+    taskTitle: string;
+    taskDescription?: string;
+    deadline?: string | Date | null;
+}
+
+export async function sendTaskAssignmentEmail({ to, employeeName, taskTitle, taskDescription, deadline }: SendTaskAssignmentParams) {
+    const displayDeadline = deadline
+        ? new Date(deadline).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+        : 'No deadline set';
+
+    const body = `
+        <h1 style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:-0.01em;margin:0 0 8px 0;">New Task Assigned</h1>
+        <div style="width:36px;height:3px;background-color:#ffffff;margin-bottom:28px;"></div>
+        <p style="font-size:15px;line-height:1.7;margin-bottom:20px;">Hello <strong>${employeeName}</strong>,</p>
+        <p style="font-size:14px;line-height:1.7;color:#ffffff;margin-bottom:24px;opacity:0.9;">
+            You have been assigned a new task on the <strong>Redlix Employee Portal</strong>. Please review the details below.
+        </p>
+        <div style="background-color:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);padding:24px;margin-bottom:28px;border-radius:4px;">
+            <p style="margin:0 0 12px 0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.12em;">Task Details</p>
+            <table style="width:100%;border-collapse:collapse;color:#ffffff;font-size:14px;">
+                <tr>
+                    <td style="padding:6px 0;font-weight:700;width:120px;color:rgba(255,255,255,0.7);">Title</td>
+                    <td style="padding:6px 0;font-weight:600;">${taskTitle}</td>
+                </tr>
+                ${taskDescription ? `
+                <tr>
+                    <td style="padding:6px 0;font-weight:700;vertical-align:top;color:rgba(255,255,255,0.7);">Description</td>
+                    <td style="padding:6px 0;line-height:1.5;">${taskDescription}</td>
+                </tr>` : ''}
+                <tr>
+                    <td style="padding:6px 0;font-weight:700;color:rgba(255,255,255,0.7);">Deadline</td>
+                    <td style="padding:6px 0;font-weight:600;">${displayDeadline}</td>
+                </tr>
+            </table>
+        </div>
+        ${ctaButton('Access Employee Portal', EMPLOYEE_LOGIN)}
+        ${quickLinks([
+            { label: 'Employee Portal', href: EMPLOYEE_PORTAL },
+            { label: 'Portal Login', href: EMPLOYEE_LOGIN },
+            { label: 'Get Support', href: SUPPORT_PAGE },
+        ])}
+        <p style="font-size:12px;color:#ffffff;opacity:0.8;line-height:1.7;margin-top:20px;">If you have any questions or need clarification, please reply directly to this email.</p>
+        <div style="margin-top:32px;padding-top:24px;border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="margin:0;font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;letter-spacing:0.1em;">Redlix Operations Team</p>
+            <p style="margin:4px 0 0 0;font-size:13px;color:#ffffff;opacity:0.9;">Redlix Studio &middot; Employee Portal</p>
+        </div>
+    `;
+    const mailOptions = {
+        from: `"Redlix Tasks" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `New Task Assigned: ${taskTitle}`,
+        html: baseEmailWrapper("Task Assignment", body),
+    };
+    try {
+        await transporter.sendMail(mailOptions);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending task assignment email:", error);
         return { success: false, error };
     }
 }

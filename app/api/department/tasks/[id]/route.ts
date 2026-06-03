@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { sendTaskAssignmentEmail } from "@/utils/email";
 
 export async function PATCH(
     req: Request,
@@ -18,7 +19,13 @@ export async function PATCH(
         const body = await req.json();
         const { title, description, status, deadline, employeeId } = body;
 
-        const updateData: any = {};
+        const updateData: {
+            title?: string;
+            description?: string;
+            status?: string;
+            deadline?: Date | null;
+            employeeId?: number;
+        } = {};
         if (title !== undefined) updateData.title = title;
         if (description !== undefined) updateData.description = description;
         if (status !== undefined) updateData.status = status;
@@ -39,6 +46,19 @@ export async function PATCH(
                 }
             }
         });
+
+        // Trigger automatic email notification to the assigned employee (non-blocking) if assignee is updated
+        if (employeeId !== undefined && task.employee) {
+            sendTaskAssignmentEmail({
+                to: task.employee.email,
+                employeeName: task.employee.name,
+                taskTitle: task.title,
+                taskDescription: task.description ?? undefined,
+                deadline: task.deadline,
+            }).catch(err => {
+                console.error("Failed to send task assignment email asynchronously:", err);
+            });
+        }
 
         return NextResponse.json({
             success: true,
