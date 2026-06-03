@@ -21,14 +21,16 @@ export default function EmployeeLogin() {
   // ── PWA Install ──────────────────────────────────────────────────────────
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
+  const [isInstalled] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(display-mode: standalone)").matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+    }
+    return false;
+  });
   const [installOutcome, setInstallOutcome] = useState<"accepted" | "dismissed" | null>(null);
 
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-      return;
-    }
+    if (isInstalled) return;
     const dismissed = sessionStorage.getItem("pwa-banner-dismissed");
     if (dismissed) return;
 
@@ -39,7 +41,7 @@ export default function EmployeeLogin() {
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+  }, [isInstalled]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
@@ -62,10 +64,11 @@ export default function EmployeeLogin() {
     setError("");
     setSuccessMessage("");
     try {
+      const isPWA = window.matchMedia("(display-mode: standalone)").matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
       const res = await fetch("/api/employee/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, isPWA }),
       });
       const data = await res.json();
       if (data.success) {

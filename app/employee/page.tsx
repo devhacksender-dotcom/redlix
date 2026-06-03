@@ -732,7 +732,7 @@ export default function EmployeePortal() {
         return Math.max(1, diffDays);
     };
 
-    const getStreak = (report: any[]) => {
+    const getStreak = (report: ReturnType<typeof getDailyAttendanceList>) => {
         let streak = 0;
         const sortedReport = [...report].sort((a, b) => b.rawDate.getTime() - a.rawDate.getTime()); // newest first
         
@@ -2157,7 +2157,7 @@ export default function EmployeePortal() {
                                     {/* ── Banner + Identity Header ── */}
                                     <div
                                         id="tour-profile-banner"
-                                        className="relative h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6"
+                                        className="relative min-h-[16rem] sm:min-h-0 sm:h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6"
                                         style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
                                     >
 
@@ -2193,25 +2193,25 @@ export default function EmployeePortal() {
                                         </label>
 
                                         {/* Action buttons — frosted glass, top-right */}
-                                        <div className="absolute top-4 right-4 flex gap-2 z-20">
+                                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-wrap justify-end gap-1.5 sm:gap-2 z-20 max-w-[calc(100%-2rem)]">
                                             <button
                                                 onClick={() => setIsEditingProfile(true)}
-                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[10px] sm:text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
                                             >
                                                 <Pencil className="w-3 h-3" /> Edit Profile
                                             </button>
                                             <button
                                                 onClick={() => setIsChangePasswordModalOpen(true)}
-                                                className="px-3.5 py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[10px] sm:text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
                                             >
                                                 <KeyRound className="w-3 h-3" /> Change Password
                                             </button>
                                         </div>
 
                                         {/* Name + role overlaid at bottom-left of banner */}
-                                        <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 flex items-center gap-5 z-10">
+                                        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 sm:px-6 sm:pb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 z-10 pt-16 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
                                             {/* Avatar with glowing ring */}
-                                            <div className="relative w-20 h-20 rounded-none shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
+                                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-none shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
                                                 <img
                                                     src={employeeInfo?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"}
                                                     alt="Avatar"
@@ -2226,24 +2226,24 @@ export default function EmployeePortal() {
                                             </div>
                                             {/* Name + tags */}
                                             <div className="min-w-0">
-                                                <h2 className="text-2xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">{employeeInfo?.name}</h2>
-                                                <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                                                <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">{employeeInfo?.name}</h2>
+                                                <div className="flex items-center gap-2 flex-wrap mt-2">
                                                     {employeeInfo?.role && (
-                                                        <span className="bg-[#E61E32]/80 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-none tracking-widest uppercase shadow-md">
+                                                        <span className="bg-[#E61E32]/80 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 rounded-none tracking-widest uppercase shadow-md">
                                                             {employeeInfo.role}
                                                         </span>
-                                                    )}
-                                                    {employeeInfo?.division && (
-                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[10px] font-semibold px-2.5 py-0.5 rounded-none border border-white/20 whitespace-nowrap">
-                                                            {employeeInfo.division}
-                                                        </span>
-                                                    )}
-                                                    {employeeInfo?.college && (
-                                                        <span className="flex items-center gap-1 text-[10px] text-white/60 font-semibold whitespace-nowrap drop-shadow">
-                                                            <Building className="w-3 h-3 text-[#E61E32]" />
-                                                            {employeeInfo.college}
-                                                        </span>
-                                                    )}
+                                                     )}
+                                                     {employeeInfo?.division && (
+                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 sm:px-2.5 rounded-none border border-white/20 whitespace-nowrap">
+                                                             {employeeInfo.division}
+                                                         </span>
+                                                     )}
+                                                     {employeeInfo?.college && (
+                                                         <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-white/60 font-semibold whitespace-nowrap drop-shadow">
+                                                             <Building className="w-3 h-3 text-[#E61E32]" />
+                                                             {employeeInfo.college}
+                                                         </span>
+                                                     )}
                                                 </div>
                                             </div>
                                         </div>
@@ -2281,7 +2281,7 @@ export default function EmployeePortal() {
                                     {/* Sub-Tab Contents */}
                                     <div className="flex-1">
                                         {isEditingProfile ? (
-                                            <div className="p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
+                                            <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
                                                 <div className="flex justify-between items-center pb-4 border-b border-white/5">
                                                     <div className="flex items-center gap-2.5">
                                                         <div className="w-8 h-8 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
@@ -2527,7 +2527,7 @@ export default function EmployeePortal() {
 
                                                         {/* Father's Name */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Father's Name</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Father&apos;s Name</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsFatherName}
@@ -2684,9 +2684,9 @@ export default function EmployeePortal() {
                                                     });
                                                     const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
                                                     return (
-                                                    <div className="bg-white/[0.02] border border-white/5 p-6 md:p-8 space-y-6 md:space-y-8 text-left rounded-none">
+                                                    <div className="bg-white/[0.02] border border-white/5 p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8 text-left rounded-none">
                                                         {/* Top Stacked: Bio + Goals */}
-                                                        <div className="flex flex-col gap-6 md:gap-8">
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                                                             {/* Left: Bio, Portfolio, Social */}
                                                             <div className="space-y-4">
                                                                 <div className="space-y-1.5">
@@ -2727,7 +2727,7 @@ export default function EmployeePortal() {
                                                                 </div>
                                                             </div>
                                                             
-                                                            <div className="h-[1px] bg-white/5 w-full" />
+                                                            <div className="h-[1px] bg-white/5 w-full lg:hidden" />
 
                                                             {/* Right: 5 Year Vision */}
                                                             <div className="space-y-1.5">
@@ -2887,10 +2887,10 @@ export default function EmployeePortal() {
 
                                                 {/* STATS TAB */}
                                                 {activeProfileTab === "stats" && (
-                                                    <div className="p-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                                                    <div className="p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
                                                         {/* Left Circular Progress Card */}
                                                         <div className="lg:col-span-1 flex flex-col items-center justify-start">
-                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-none w-full max-w-[240px] flex flex-col items-center justify-center shadow-sm">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-none w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center justify-center shadow-sm">
                                                                 <div className="relative flex items-center justify-center">
                                                                     <svg height="110" width="110" className="transform -rotate-90">
                                                                         <circle stroke="rgba(255,255,255,0.05)" fill="transparent" strokeWidth="8" r="44" cx="55" cy="55" />
@@ -2981,7 +2981,7 @@ export default function EmployeePortal() {
 
                                         {/* WORKED ON TAB */}
                                         {activeProfileTab === "worked-on" && (
-                                            <div className="p-8 space-y-8">
+                                            <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                                                 <div>
                                                     <div className="flex justify-between items-center mb-4">
                                                         <div>
@@ -3035,7 +3035,7 @@ export default function EmployeePortal() {
                                                     <div>
                                                         <h3 className="text-base font-bold text-white mb-4">Works with</h3>
                                                         <div className="flex flex-wrap gap-2.5">
-                                                            {uniqueCollaborators.slice(0, 8).map((collab: any) => (
+                                                            {uniqueCollaborators.slice(0, 8).map((collab) => (
                                                                 <div
                                                                     key={collab.id}
                                                                     className="bg-white/[0.02] border border-white/5 pl-2.5 pr-3 py-1.5 rounded-none flex items-center gap-2 text-xs font-bold text-white/70 shadow-sm"
@@ -3060,7 +3060,7 @@ export default function EmployeePortal() {
 
                                         {/* MY JOURNEY TAB */}
                                         {activeProfileTab === "journey" && (
-                                            <div className="p-8 text-left max-w-xl mx-auto">
+                                            <div className="p-4 sm:p-8 text-left max-w-xl mx-auto">
                                                 <h3 className="text-base font-bold text-white mb-6 flex items-center gap-2">
                                                     <Sparkles className="w-4.5 h-4.5 text-[#E61E32]" />
                                                     My Journey at Redlix Studio
@@ -3101,7 +3101,7 @@ export default function EmployeePortal() {
 
                                         {/* ACTIVITY TAB */}
                                         {activeProfileTab === "activity" && (
-                                            <div className="p-8 text-left max-w-xl mx-auto space-y-6">
+                                            <div className="p-4 sm:p-8 text-left max-w-xl mx-auto space-y-6">
                                                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                                                     <Clock className="w-4.5 h-4.5 text-[#E61E32]" />
                                                     Recent Activity Logs
@@ -3547,7 +3547,7 @@ export default function EmployeePortal() {
                                 {/* Feed of Cards */}
                                 <div id="tour-community-feed" className="bg-white/5 border border-white/5 p-6 flex flex-col rounded-none max-w-2xl mx-auto w-full">
                                     <div className="mb-4 shrink-0 flex justify-between items-center">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today's Standups</h3>
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today&apos;s Standups</h3>
                                         <span className="text-[10px] text-white/30 bg-white/5 px-2 py-0.5 border border-white/5 rounded-none">{communityUpdates.length} updates</span>
                                     </div>
 
@@ -4120,30 +4120,30 @@ export default function EmployeePortal() {
                                                                 <span className="text-[10px] text-white/40">({sub.client?.clientName})</span>
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <div className="flex items-center gap-2 text-xs">
+                                                                <div className="flex items-center gap-2 text-xs min-w-0">
                                                                     <span className="text-white/40 w-16 shrink-0">Website:</span>
                                                                     <a
                                                                         href={sub.websiteLink}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="text-blue-400 hover:underline truncate flex items-center gap-1 min-w-0"
+                                                                        className="text-blue-400 hover:underline flex items-center gap-1 min-w-0 flex-1 overflow-hidden"
                                                                     >
                                                                         <Globe className="w-3.5 h-3.5 shrink-0" />
-                                                                        <span className="truncate">{sub.websiteLink}</span>
-                                                                        <ExternalLink className="w-3 h-3 shrink-0" />
+                                                                        <span className="truncate flex-1">{sub.websiteLink}</span>
+                                                                        <ExternalLink className="w-3 h-3 shrink-0 text-white/30" />
                                                                     </a>
                                                                 </div>
-                                                                <div className="flex items-center gap-2 text-xs">
+                                                                <div className="flex items-center gap-2 text-xs min-w-0">
                                                                     <span className="text-white/40 w-16 shrink-0">Repository:</span>
                                                                     <a
                                                                         href={sub.gitRepoLink}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="text-blue-400 hover:underline truncate flex items-center gap-1 min-w-0"
+                                                                        className="text-blue-400 hover:underline flex items-center gap-1 min-w-0 flex-1 overflow-hidden"
                                                                     >
                                                                         <Building className="w-3.5 h-3.5 shrink-0" />
-                                                                        <span className="truncate">{sub.gitRepoLink}</span>
-                                                                        <ExternalLink className="w-3 h-3 shrink-0" />
+                                                                        <span className="truncate flex-1">{sub.gitRepoLink}</span>
+                                                                        <ExternalLink className="w-3 h-3 shrink-0 text-white/30" />
                                                                     </a>
                                                                 </div>
                                                             </div>

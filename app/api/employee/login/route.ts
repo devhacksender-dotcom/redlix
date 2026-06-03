@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
     try {
-        const { email, password } = await request.json();
+        const { email, password, isPWA } = await request.json();
 
         if (!email || !password) {
             return NextResponse.json(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()
-            .setExpirationTime("24h")
+            .setExpirationTime(isPWA ? "365d" : "24h")
             .sign(secret);
 
         const response = NextResponse.json({
@@ -48,13 +48,15 @@ export async function POST(request: NextRequest) {
             }
         });
 
-        response.cookies.set("employee_token", token, {
+        const cookieOptions = {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            sameSite: "strict",
-            maxAge: 60 * 60 * 24, // 24 hours
+            sameSite: "strict" as const,
             path: "/",
-        });
+            ...(isPWA ? { maxAge: 60 * 60 * 24 * 365 } : {}),
+        };
+
+        response.cookies.set("employee_token", token, cookieOptions);
 
         return response;
     } catch (error) {
