@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         })
             .setProtectedHeader({ alg: "HS256" })
             .setIssuedAt()
-            .setExpirationTime(isPWA ? "365d" : "24h")
+            .setExpirationTime("24h")
             .sign(secret);
 
         const response = NextResponse.json({
@@ -53,7 +53,6 @@ export async function POST(request: NextRequest) {
             secure: process.env.NODE_ENV === "production",
             sameSite: "strict" as const,
             path: "/",
-            ...(isPWA ? { maxAge: 60 * 60 * 24 * 365 } : {}),
         };
 
         response.cookies.set("employee_token", token, cookieOptions);
