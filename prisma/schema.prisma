@@ -69,6 +69,7 @@ model Employee {
   communityUpdates CommunityUpdate[]
   declarations    Declaration[]
   workSubmissions WorkSubmission[]
+  fcmTokens       FcmToken[]
 
   @@map("employees")
 }
@@ -265,4 +266,16 @@ model WorkSubmission {
 
   @@map("work_submissions")
 }
+
+model FcmToken {
+  id         Int       @id @default(autoincrement())
+  token      String    @unique
+  employeeId Int?
+  employee   Employee? @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("fcm_tokens")
+}
+
 

@@ -50,6 +50,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
+import EnableNotifications from "@/components/EnableNotifications";
 
 declare global {
     namespace JSX {
@@ -1746,6 +1747,7 @@ export default function EmployeePortal() {
                                     </div>
                                     <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
                                         <div className="flex items-center gap-2">
+                                            <EnableNotifications employeeId={employeeInfo?.id} />
                                             <button
                                                 onClick={() => {
                                                     setTourStep(0);

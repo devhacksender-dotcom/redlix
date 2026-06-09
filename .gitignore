@@ -48,3 +48,7 @@ node_modules
 animations/
 *.lottie
 public/success_animation.gif
+
+# Firebase admin service account key
+firebase-service-account.json
+
