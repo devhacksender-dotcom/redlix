@@ -1753,16 +1753,16 @@ export default function EmployeePortal() {
                                                     setTourStep(0);
                                                     setTourActive(true);
                                                 }}
-                                                className="flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 rounded-none transition-all cursor-pointer"
+                                                className="hidden sm:flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 rounded-none transition-all cursor-pointer"
                                             >
                                                 Take a Tour
                                             </button>
-                                            <div className="self-start sm:self-auto px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
+                                            <div className="hidden sm:block px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
                                                 {employeeInfo?.role}
                                             </div>
                                         </div>
                                         {employeeInfo?.division && (
-                                            <div className="self-start sm:self-auto px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                            <div className="hidden sm:block px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
                                                 Division: {employeeInfo.division}
                                             </div>
                                         )}
