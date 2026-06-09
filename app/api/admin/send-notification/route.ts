@@ -25,6 +25,18 @@ export async function POST(req: Request) {
         title: title || "Redlix EMS",
         body: msgBody || "Welcome to Redlix EMS",
       },
+      webpush: {
+        notification: {
+          title: title || "Redlix EMS",
+          body: msgBody || "Welcome to Redlix EMS",
+          icon: "/icons/icon-192.png",
+          badge: "/icons/icon-192.png",
+          clickAction: "/employee",
+        },
+        fcmOptions: {
+          link: "/employee",
+        },
+      },
     }));
 
     // Broadcast messages to all tokens

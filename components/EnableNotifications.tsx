@@ -33,8 +33,13 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
         const fetchAndRegisterToken = async () => {
           try {
             if (messaging) {
+              let registration;
+              if ("serviceWorker" in navigator) {
+                registration = await navigator.serviceWorker.ready;
+              }
               const token = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: registration,
               });
               console.log("FCM Token:", token);
               if (token) {
@@ -75,8 +80,13 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
         return;
       }
 
+      let registration;
+      if ("serviceWorker" in navigator) {
+        registration = await navigator.serviceWorker.ready;
+      }
       const token = await getToken(messaging, {
         vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+        serviceWorkerRegistration: registration,
       });
 
       console.log("Firebase Cloud Messaging Token:", token);
