@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getToken } from "firebase/messaging";
+import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "@/lib/firebase-messaging";
 import { Bell, BellOff, Loader2 } from "lucide-react";
 
@@ -40,6 +40,14 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
               if (token) {
                 await registerFcmTokenWithDb(token);
               }
+
+              // Handle foreground push notifications
+              onMessage(messaging, (payload) => {
+                console.log("Foreground push received:", payload);
+                if (payload.notification) {
+                  alert(`[Push Notification]\n\nTitle: ${payload.notification.title}\nMessage: ${payload.notification.body}`);
+                }
+              });
             }
           } catch (error) {
             console.error("Error fetching FCM token:", error);
