@@ -1672,35 +1672,43 @@ export default function EmployeePortal() {
                 <div className="shrink-0 bg-[#E61E32] pt-[env(safe-area-inset-top,0px)]">
                     {/* Red Top Bar */}
                     <div className="flex items-center justify-between px-6 h-[44px]">
-                        <div className="flex items-center gap-2 text-[12px] font-medium text-white">
-                            <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
-                            <span className="opacity-40">/</span>
-                            <span className="font-bold uppercase tracking-wider">
-                                {activeTab === "overview" ? "Overview" :
-                                    activeTab === "tasks" ? "Assigned Tasks" :
-                                        activeTab === "attendance" ? "Attendance" :
-                                            activeTab === "meetings" ? "Meetings" :
-                                                activeTab === "documents" ? "Documents" :
-                                                    activeTab === "payrolls" ? "Payrolls" :
-                                                        activeTab === "leaves" ? "Leaves" :
-                                                            activeTab === "community" ? "Community" :
-                                                                activeTab === "declarations" ? "Declarations" :
-                                                                    activeTab === "submissions" ? "Work Submissions" : "Settings"}
+                        <div className="flex items-center gap-2 text-white">
+                            {/* Logo Wordmark for Mobile View / PWA */}
+                            <span className="text-white text-[17px] font-bold tracking-tight select-none md:hidden">
+                                Redlix
                             </span>
-                            <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
-                                — {activeTab === "overview" ? "your stats and activity" :
-                                    activeTab === "tasks" ? "view and update task progress" :
-                                        activeTab === "attendance" ? "punch in/out to log work hours" :
-                                            activeTab === "meetings" ? "meetings you are invited to" :
-                                                activeTab === "documents" ? "company and client resource files" :
-                                                    activeTab === "payrolls" ? "monthly payments and history" :
-                                                        activeTab === "leaves" ? "submit and track leave requests" :
-                                                            activeTab === "community" ? "what you and others did today" :
-                                                                activeTab === "declarations" ? "upload & submit client declaration documents" :
-                                                                    activeTab === "submissions" ? "submit completed work links for review" : "update personal, payroll and address info"}
-                            </span>
+                            {/* Breadcrumbs for Desktop View */}
+                            <div className="hidden md:flex items-center gap-2 text-[12px] font-medium">
+                                <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
+                                <span className="opacity-40">/</span>
+                                <span className="font-bold uppercase tracking-wider">
+                                    {activeTab === "overview" ? "Overview" :
+                                        activeTab === "tasks" ? "Assigned Tasks" :
+                                            activeTab === "attendance" ? "Attendance" :
+                                                activeTab === "meetings" ? "Meetings" :
+                                                    activeTab === "documents" ? "Documents" :
+                                                        activeTab === "payrolls" ? "Payrolls" :
+                                                            activeTab === "leaves" ? "Leaves" :
+                                                                activeTab === "community" ? "Community" :
+                                                                    activeTab === "declarations" ? "Declarations" :
+                                                                        activeTab === "submissions" ? "Work Submissions" : "Settings"}
+                                </span>
+                                <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
+                                    — {activeTab === "overview" ? "your stats and activity" :
+                                        activeTab === "tasks" ? "view and update task progress" :
+                                            activeTab === "attendance" ? "punch in/out to log work hours" :
+                                                activeTab === "meetings" ? "meetings you are invited to" :
+                                                    activeTab === "documents" ? "company and client resource files" :
+                                                        activeTab === "payrolls" ? "monthly payments and history" :
+                                                            activeTab === "leaves" ? "submit and track leave requests" :
+                                                                activeTab === "community" ? "what you and others did today" :
+                                                                    activeTab === "declarations" ? "upload & submit client declaration documents" :
+                                                                        activeTab === "submissions" ? "submit completed work links for review" : "update personal, payroll and address info"}
+                                </span>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        {/* Raise Hand Button - Hidden on mobile view, visible on desktop */}
+                        <div className="hidden md:flex items-center gap-3">
                             {handRaiseSuccess ? (
                                 <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg">
                                     <CheckCircle2 className="w-3.5 h-3.5" />
