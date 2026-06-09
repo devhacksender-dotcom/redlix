@@ -2177,7 +2177,7 @@ export default function AdminPortal() {
                         {activeTab === "overview" && analyticsData && (
                             <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                     <StatCard
                                         icon={<Users className="w-5 h-5" />}
                                         label="Total Employees"
@@ -2206,13 +2206,15 @@ export default function AdminPortal() {
                                         sublabel="Awaiting approval"
                                         color="text-orange-500"
                                     />
-                                    <StatCard
-                                        icon={<MessageSquare className="w-5 h-5" />}
-                                        label="Support Tickets"
-                                        value={tickets.length}
-                                        sublabel={`${tickets.filter(t => t.status === 'pending').length} open tickets`}
-                                        color="text-[#E61E32]"
-                                    />
+                                    <div className="col-span-2 md:col-span-1 lg:col-span-1">
+                                        <StatCard
+                                            icon={<MessageSquare className="w-5 h-5" />}
+                                            label="Support Tickets"
+                                            value={tickets.length}
+                                            sublabel={`${tickets.filter(t => t.status === 'pending').length} open tickets`}
+                                            color="text-[#E61E32]"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* All Analytics Section */}

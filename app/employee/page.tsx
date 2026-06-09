@@ -1745,8 +1745,8 @@ export default function EmployeePortal() {
                                         <h3 className="text-base md:text-lg font-bold">Welcome back, {employeeInfo?.name}!</h3>
                                         <p className="text-[11px] md:text-xs text-white/40 mt-1">Here is your daily task assignments and logged work hours.</p>
                                     </div>
-                                    <div className="flex flex-col sm:items-end gap-1.5 shrink-0">
-                                        <div className="flex items-center gap-2">
+                                    <div className="flex flex-col sm:items-end gap-1.5 shrink-0 w-full sm:w-auto">
+                                        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                             <EnableNotifications employeeId={employeeInfo?.id} />
                                             <button
                                                 onClick={() => {
@@ -1762,7 +1762,7 @@ export default function EmployeePortal() {
                                             </div>
                                         </div>
                                         {employeeInfo?.division && (
-                                            <div className="px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                            <div className="self-start sm:self-auto px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
                                                 Division: {employeeInfo.division}
                                             </div>
                                         )}
@@ -1770,7 +1770,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div id="tour-overview-stats" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4">
+                                <div id="tour-overview-stats" className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
                                     <StatCard
                                         icon={<ListTodo className="w-5 h-5" />}
                                         label="Total Tasks"
@@ -1799,13 +1799,15 @@ export default function EmployeePortal() {
                                         sublabel="Total logged work duration"
                                         color="text-[#E61E32]"
                                     />
-                                    <StatCard
-                                        icon={<Video className="w-5 h-5" />}
-                                        label="Meetings"
-                                        value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
-                                        sublabel={`${employeeMeetings.length} total meetings`}
-                                        color="text-pink-500"
-                                    />
+                                    <div className="col-span-2 lg:col-span-1">
+                                        <StatCard
+                                            icon={<Video className="w-5 h-5" />}
+                                            label="Meetings"
+                                            value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
+                                            sublabel={`${employeeMeetings.length} total meetings`}
+                                            color="text-pink-500"
+                                        />
+                                    </div>
                                 </div>
 
                                 {/* Main Overview Sections */}
