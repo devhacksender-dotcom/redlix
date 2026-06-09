@@ -1668,68 +1668,71 @@ export default function EmployeePortal() {
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 pb-16 md:pb-0">
-                {/* Red Top Bar */}
-                <div className="shrink-0 bg-[#E61E32] flex items-center justify-between px-6 h-[44px]">
-                    <div className="flex items-center gap-2 text-[12px] font-medium text-white">
-                        <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
-                        <span className="opacity-40">/</span>
-                        <span className="font-bold uppercase tracking-wider">
-                            {activeTab === "overview" ? "Overview" :
-                                activeTab === "tasks" ? "Assigned Tasks" :
-                                    activeTab === "attendance" ? "Attendance" :
-                                        activeTab === "meetings" ? "Meetings" :
-                                            activeTab === "documents" ? "Documents" :
-                                                activeTab === "payrolls" ? "Payrolls" :
-                                                    activeTab === "leaves" ? "Leaves" :
-                                                        activeTab === "community" ? "Community" :
-                                                            activeTab === "declarations" ? "Declarations" :
-                                                                activeTab === "submissions" ? "Work Submissions" : "Settings"}
-                        </span>
-                        <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
-                            — {activeTab === "overview" ? "your stats and activity" :
-                                activeTab === "tasks" ? "view and update task progress" :
-                                    activeTab === "attendance" ? "punch in/out to log work hours" :
-                                        activeTab === "meetings" ? "meetings you are invited to" :
-                                            activeTab === "documents" ? "company and client resource files" :
-                                                activeTab === "payrolls" ? "monthly payments and history" :
-                                                    activeTab === "leaves" ? "submit and track leave requests" :
-                                                        activeTab === "community" ? "what you and others did today" :
-                                                            activeTab === "declarations" ? "upload & submit client declaration documents" :
-                                                                activeTab === "submissions" ? "submit completed work links for review" : "update personal, payroll and address info"}
-                        </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        {handRaiseSuccess ? (
-                            <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg">
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                Admin Notified!
-                            </div>
-                        ) : (
-                            <div className="relative group">
-                                <button
-                                    id="tour-raise-hand"
-                                    onClick={handleRaiseHand}
-                                    disabled={isRaisingHand}
-                                    className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer rounded-lg disabled:opacity-60"
-                                >
-                                    {isRaisingHand ? (
-                                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    ) : (
-                                        <Hand className="w-3.5 h-3.5" />
-                                    )}
-                                    Raise Hand
-                                </button>
-                                
-                                {/* Tooltip */}
-                                <div className="absolute right-0 top-full mt-2 w-56 bg-[#0a0a0a] border border-white/10 p-3 text-[10px] leading-normal text-white/70 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 rounded-lg shadow-xl font-normal tracking-normal normal-case">
-                                    <p className="font-semibold text-white mb-1 uppercase tracking-wider text-[9px] text-[#E61E32] flex items-center gap-1.5">
-                                        <AlertCircle className="w-3 h-3 text-[#E61E32]" />
-                                        Raise Hand Alert
-                                    </p>
-                                    This button instantly alerts the administrator that you need assistance or have a query regarding tasks, attendance, or payrolls.
+                {/* Red Top Bar Wrapper (covers safe area at the top of the PWA) */}
+                <div className="shrink-0 bg-[#E61E32] pt-[env(safe-area-inset-top,0px)]">
+                    {/* Red Top Bar */}
+                    <div className="flex items-center justify-between px-6 h-[44px]">
+                        <div className="flex items-center gap-2 text-[12px] font-medium text-white">
+                            <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
+                            <span className="opacity-40">/</span>
+                            <span className="font-bold uppercase tracking-wider">
+                                {activeTab === "overview" ? "Overview" :
+                                    activeTab === "tasks" ? "Assigned Tasks" :
+                                        activeTab === "attendance" ? "Attendance" :
+                                            activeTab === "meetings" ? "Meetings" :
+                                                activeTab === "documents" ? "Documents" :
+                                                    activeTab === "payrolls" ? "Payrolls" :
+                                                        activeTab === "leaves" ? "Leaves" :
+                                                            activeTab === "community" ? "Community" :
+                                                                activeTab === "declarations" ? "Declarations" :
+                                                                    activeTab === "submissions" ? "Work Submissions" : "Settings"}
+                            </span>
+                            <span className="text-white/50 text-[10px] hidden sm:inline ml-3 border-l border-white/20 pl-3">
+                                — {activeTab === "overview" ? "your stats and activity" :
+                                    activeTab === "tasks" ? "view and update task progress" :
+                                        activeTab === "attendance" ? "punch in/out to log work hours" :
+                                            activeTab === "meetings" ? "meetings you are invited to" :
+                                                activeTab === "documents" ? "company and client resource files" :
+                                                    activeTab === "payrolls" ? "monthly payments and history" :
+                                                        activeTab === "leaves" ? "submit and track leave requests" :
+                                                            activeTab === "community" ? "what you and others did today" :
+                                                                activeTab === "declarations" ? "upload & submit client declaration documents" :
+                                                                    activeTab === "submissions" ? "submit completed work links for review" : "update personal, payroll and address info"}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            {handRaiseSuccess ? (
+                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg">
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    Admin Notified!
                                 </div>
-                            </div>
-                        )}
+                            ) : (
+                                <div className="relative group">
+                                    <button
+                                        id="tour-raise-hand"
+                                        onClick={handleRaiseHand}
+                                        disabled={isRaisingHand}
+                                        className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer rounded-lg disabled:opacity-60"
+                                    >
+                                        {isRaisingHand ? (
+                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                        ) : (
+                                            <Hand className="w-3.5 h-3.5" />
+                                        )}
+                                        Raise Hand
+                                    </button>
+                                    
+                                    {/* Tooltip */}
+                                    <div className="absolute right-0 top-full mt-2 w-56 bg-[#0a0a0a] border border-white/10 p-3 text-[10px] leading-normal text-white/70 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 rounded-lg shadow-xl font-normal tracking-normal normal-case">
+                                        <p className="font-semibold text-white mb-1 uppercase tracking-wider text-[9px] text-[#E61E32] flex items-center gap-1.5">
+                                            <AlertCircle className="w-3 h-3 text-[#E61E32]" />
+                                            Raise Hand Alert
+                                        </p>
+                                        This button instantly alerts the administrator that you need assistance or have a query regarding tasks, attendance, or payrolls.
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
