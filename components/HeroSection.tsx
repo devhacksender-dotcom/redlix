@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function HeroSection() {
     return (
         <section
-            className="w-full bg-white bg-[length:100%_auto] bg-no-repeat font-sans pt-24 pb-8 lg:pt-32 lg:pb-10 bg-[center_-3rem] sm:bg-[center_-4rem] lg:bg-[center_-5rem]"
+            className="hero-section w-full bg-white bg-[length:100%_auto] bg-no-repeat font-sans pt-24 pb-8 lg:pt-32 lg:pb-10 bg-[center_-3rem] sm:bg-[center_-4rem] lg:bg-[center_-5rem]"
             style={{ backgroundImage: "url('/cloud-bg.png')" }}
         >
             <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12">
@@ -37,7 +37,7 @@ export default function HeroSection() {
                                 </svg>
                             </Link>
                         </div>
-                        <h1 className="text-[36px] sm:text-[44px] lg:text-[52px] leading-[1.15] font-semibold text-[#1E2022] tracking-tight mb-4">
+                        <h1 className="text-[36px] sm:text-[44px] lg:text-[52px] leading-[1.15] font-medium text-[#1E2022] tracking-tight mb-4">
                             Sleek IT solutions <br className="hidden lg:block" />
                             for growing brands.
                         </h1>
@@ -49,7 +49,7 @@ export default function HeroSection() {
                                 href="https://cal.com/redlix.co.in"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center justify-center px-6 py-3 bg-[#1E2022] hover:bg-[#2C3036] text-white rounded-xl text-[14px] font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-0.5"
+                                className="flex items-center justify-center px-6 py-3 bg-[#1E2022] hover:bg-[#2C3036] text-white rounded-xl text-[14px] font-medium transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:-translate-y-0.5"
                             >
                                 <img
                                     src="https://www.gstatic.com/images/branding/productlogos/meet_2026/v2/web-96dp/logo_meet_2026_color_2x_web_96dp.png"
@@ -60,7 +60,7 @@ export default function HeroSection() {
                             </a>
                             <Link
                                 href="/portfolio"
-                                className="flex items-center justify-center px-6 py-3 bg-white hover:bg-zinc-50 border border-zinc-200/80 text-[#1E2022] rounded-xl text-[14px] font-semibold transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5"
+                                className="flex items-center justify-center px-6 py-3 bg-white hover:bg-zinc-50 border border-zinc-200/80 text-[#1E2022] rounded-xl text-[14px] font-medium transition-all duration-300 hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:-translate-y-0.5"
                             >
                                 View Work
                             </Link>

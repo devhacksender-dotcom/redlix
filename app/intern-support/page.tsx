@@ -58,11 +58,11 @@ export default function InternSupportPage() {
     <div className="min-h-screen bg-[#0a0a0a] flex flex-col selection:bg-red-500 selection:text-white">
       <div className="flex-grow flex items-center justify-center p-4">
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
         
         body {
           margin: 0;
-          font-family: 'Outfit', sans-serif;
+          font-family: 'Poppins', sans-serif;
           background: #0a0a0a;
           color: white;
         }

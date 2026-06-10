@@ -4,7 +4,7 @@ import CorporateFooter from "@/components/CorporateFooter";
 import BlogsSection from "@/components/BlogsSection";
 
 export const metadata: Metadata = {
-    title: "Resources & Insights | Redlix Studio",
+    title: "Resources",
     description: "Access a comprehensive library of enterprise insights, technical whitepapers, case studies, and open-source documentation from Redlix Studio.",
     keywords: ["IT Whitepapers", "Technical Documentation", "Case Studies Hyderabad", "Enterprise Tech Insights"],
 };

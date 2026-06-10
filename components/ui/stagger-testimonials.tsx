@@ -60,7 +60,7 @@ const testimonials = [
     tempId: 7,
     testimonial: "Paverasa Private Limited sincerely thanks Redlix for developing PicsiDrop. Their technical expertise and commitment transformed our vision into a reliable, user-friendly platform.",
     by: "Pavan Reddy, Paverasa Pvt. Ltd.",
-    imgSrc: "https://ik.imagekit.io/dypkhqxip/Pavan%20Reddy%20Pateel",
+    imgSrc: "https://ik.imagekit.io/dypkhqxip/Pavan%20Reddy%20Pateel?updatedAt=1780238997511",
     bgColor: "#fff7ed", // Soft Peach
     borderColor: "#fed7aa"
   },

@@ -4,7 +4,7 @@ import LegalDocLayout from "@/components/legal/LegalDocLayout";
 import { cookiesSections } from "./cookies-sections";
 
 export const metadata: Metadata = {
-    title: "Cookies Policy | Redlix Studio",
+    title: "Cookies Policy",
     description:
         "Understand how Redlix Studio uses cookies to improve your experience, maintain system security, and provide personalized IT services as an independent freelance studio.",
 };

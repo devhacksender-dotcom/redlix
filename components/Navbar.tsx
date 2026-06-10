@@ -10,11 +10,11 @@ const Navbar = () => {
         { name: "Home", href: "/" },
         { name: "Blog", href: "/blogs" },
         { name: "Work", href: "/portfolio" },
-        { name: "About", href: "/about-us" }
+        { name: "FAQs", href: "/#faq" }
     ];
 
     return (
-        <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[600px] z-50 transition-all duration-300">
+        <header className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[500px] z-50 transition-all duration-300">
             <div className={`w-full bg-[#1E2022]/95 backdrop-blur-md border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-all duration-300 ${isOpen ? "rounded-xl" : "rounded-lg"}`}>
                 <div className="flex items-center justify-between px-5 py-1.5">
 
@@ -22,9 +22,9 @@ const Navbar = () => {
                     <div className="flex-shrink-0 flex items-center">
                         <Link href="/" className="flex items-center group">
                             <img
-                                src="https://ik.imagekit.io/dypkhqxip/redlixlogo?updatedAt=1777318254456"
+                                src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                                 alt="Redlix Logo"
-                                className="h-[24px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.03]"
+                                className="h-[30px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.03]"
                             />
                         </Link>
                     </div>

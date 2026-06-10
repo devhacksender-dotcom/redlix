@@ -76,7 +76,7 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-poppins);
   --font-mono: var(--font-geist-mono);
   
   --animate-highlight: highlight 0.6s ease forwards;
@@ -97,8 +97,14 @@
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-weight: 300;
 }
+
+.font-normal {
+  font-weight: 300;
+}
+
 
 @keyframes marquee {
   0% {

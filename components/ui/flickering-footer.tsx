@@ -865,7 +865,7 @@ export const FlickeringGrid: React.FC<FlickeringGridProps> = ({
         maskCtx.save();
         maskCtx.scale(dpr, dpr);
         maskCtx.fillStyle = "white";
-        maskCtx.font = `${fontWeight} ${fontSize}px "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+        maskCtx.font = `${fontWeight} ${fontSize}px "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
         maskCtx.textAlign = "center";
         maskCtx.textBaseline = "middle";
         maskCtx.fillText(text, width / (2 * dpr), height / (2 * dpr));
@@ -1160,9 +1160,9 @@ export const FlickeringFooter = () => {
         <div className="flex flex-col items-start justify-start gap-y-5 max-w-sm mx-0">
           <Link href="/" className="group w-max inline-block">
             <img
-              src="https://ik.imagekit.io/dypkhqxip/redlixlogo?updatedAt=1777318254456"
+              src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
               alt="Redlix Logo"
-              className="h-[36px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.02]"
+              className="h-[44px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.02]"
             />
           </Link>
           <p className="text-zinc-500 max-w-xs font-mono text-sm text-balance text-left">

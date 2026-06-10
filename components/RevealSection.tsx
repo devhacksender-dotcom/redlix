@@ -44,7 +44,7 @@ export default function RevealSection() {
     return (
         <section
             ref={containerRef}
-            className="w-full bg-[#EBFD75] py-24 sm:py-32 md:py-44 overflow-hidden relative border-b border-zinc-200/50"
+            className="w-full bg-[#EBFD75] py-16 sm:py-24 md:py-32 overflow-hidden relative border-b border-zinc-200/50"
         >
             {/* Background decorative flower outline */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
@@ -62,7 +62,7 @@ export default function RevealSection() {
 
             <div className="max-w-[1200px] mx-auto px-6 sm:px-10 lg:px-16 relative z-10">
                 <div className="max-w-[960px]">
-                    <h3 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-[#3b5e0f] tracking-tight leading-[1.25] sm:leading-[1.2]">
+                    <h3 className="text-[26px] sm:text-[30px] lg:text-[34px] font-medium text-[#3b5e0f] tracking-tight leading-[1.25] sm:leading-[1.2]">
                         {words.map((word, i) => {
                             // Calculate opacity for each individual word based on total progress
                             const wordProgress = progress * words.length;

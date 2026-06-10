@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Poppins, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import SmoothScrolling from "@/components/SmoothScrolling";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const geistMono = Geist_Mono({
@@ -74,9 +75,9 @@ export const metadata: Metadata = {
     images: ["https://res.cloudinary.com/dsqqrpzfl/image/upload/v1772213109/Screenshot_2026-02-27_at_22.49.23-removebg-preview_nn1jee.png"],
   },
   icons: {
-    icon: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776280852/R_tqdbvy.png",
-    shortcut: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776280852/R_tqdbvy.png",
-    apple: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776280852/R_tqdbvy.png",
+    icon: "https://ik.imagekit.io/dypkhqxip/logo.png",
+    shortcut: "https://ik.imagekit.io/dypkhqxip/logo.png",
+    apple: "https://ik.imagekit.io/dypkhqxip/logo.png",
   },
   robots: {
     index: true,
@@ -136,7 +137,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} ${geistMono.variable} antialiased`}
       >
         <SmoothScrolling>
           <ConditionalNav>

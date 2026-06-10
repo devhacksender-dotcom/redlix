@@ -142,7 +142,7 @@ export default function EmployeeLogin() {
           <div className="flex lg:hidden items-center justify-between px-6 pt-8 pb-4">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://ik.imagekit.io/dypkhqxip/R.png"
+              src="https://ik.imagekit.io/dypkhqxip/logo.png"
               alt="Redlix"
               className="h-8 w-auto brightness-0 invert"
             />
@@ -308,7 +308,7 @@ export default function EmployeeLogin() {
           <div className="bg-[#111111] border-t border-white/10 px-5 py-4 flex items-center gap-4 shadow-2xl">
             <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://ik.imagekit.io/dypkhqxip/R.png" alt="Redlix Portal" className="w-full h-full object-cover" />
+              <img src="https://ik.imagekit.io/dypkhqxip/logo.png" alt="Redlix Portal" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white leading-tight">Add to Home Screen</p>

@@ -116,11 +116,9 @@ export default function ServicesSection() {
                         <Sparkles className="w-3.5 h-3.5 text-zinc-500" strokeWidth={2} />
                         Services
                     </span>
-                    <div className="w-full overflow-x-auto scrollbar-none flex justify-center mb-6">
-                        <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-[#202124] tracking-tight leading-none whitespace-nowrap">
-                            Web design, product engineering, and custom software from Redlix Studio
-                        </h2>
-                    </div>
+                    <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-[#202124] tracking-tight leading-tight mb-6">
+                        Web design & product engineering
+                    </h2>
                     <a
                         href="https://cal.com/redlix.co.in"
                         target="_blank"
@@ -165,13 +163,13 @@ export default function ServicesSection() {
                                         <Icon className="w-4.5 h-4.5 text-white" strokeWidth={2.2} />
                                     </div>
                                     <h3
-                                        className="text-[18px] sm:text-[20px] font-semibold tracking-tight leading-snug mb-3 shrink-0"
+                                        className="text-[16px] sm:text-[18px] font-semibold tracking-tight leading-snug mb-3 shrink-0"
                                         style={{ color: service.titleColor }}
                                     >
                                         {service.title}
                                     </h3>
                                     <p
-                                        className="text-[14px] leading-relaxed font-normal line-clamp-4 min-h-[5.5rem] flex-1"
+                                        className="text-[13px] leading-relaxed font-normal line-clamp-4 min-h-[5.5rem] flex-1"
                                         style={{ color: service.textColor }}
                                     >
                                         {service.description}

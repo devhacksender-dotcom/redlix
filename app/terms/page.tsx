@@ -4,7 +4,7 @@ import LegalDocLayout from "@/components/legal/LegalDocLayout";
 import { termsSections } from "./terms-sections";
 
 export const metadata: Metadata = {
-    title: "Terms of Service | Redlix Studio",
+    title: "Terms of Service",
     description:
         "Review the Redlix Studio Terms of Service. Understand the professional engagement guidelines, intellectual property policies, and service standards of our independent freelance studio.",
 };

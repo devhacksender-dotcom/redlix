@@ -4,7 +4,7 @@ import LegalDocLayout from "@/components/legal/LegalDocLayout";
 import { privacySections } from "./privacy-sections";
 
 export const metadata: Metadata = {
-    title: "Privacy Policy | Redlix Studio",
+    title: "Privacy Policy",
     description:
         "Read the Redlix Studio Privacy Policy. Learn how we handle your data, protect your privacy, and comply with the DPDP Act, 2023 in our independent freelance operations.",
 };

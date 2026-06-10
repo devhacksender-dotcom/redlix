@@ -21,11 +21,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
     // Project pages (Hardcoded for now based on current portfolio)
     const projectSlugs = [
+        'piscidrop',
         'dhasha-media',
         'hsga-telangana',
-        'smartfit',
+        'forge-digital',
         'hus-system',
         'nss-cmrit',
+        'stories-at-scale',
         'national-ecommerce'
     ];
 

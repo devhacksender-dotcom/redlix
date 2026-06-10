@@ -4,7 +4,7 @@ import CorporateFooter from "@/components/CorporateFooter";
 import CallToAction from "@/components/CallToAction";
 
 export const metadata: Metadata = {
-    title: "About Us | Redlix Systems",
+    title: "About Us",
     description: "Learn about Redlix Systems, a forward-thinking technology company specializing in intelligent digital solutions, AI, and enterprise software engineered for global scale.",
     keywords: ["Redlix Systems Team", "IT Expertise Hyderabad", "Digital Solutions Architecture", "Innovative Technology Partner"],
 };

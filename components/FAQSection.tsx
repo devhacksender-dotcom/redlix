@@ -41,7 +41,7 @@ export default function FAQSection() {
     };
 
     return (
-        <section className="w-full bg-[#fafafa] py-16 sm:py-24 lg:py-32 border-t border-gray-100 font-sans">
+        <section id="faq" className="w-full bg-[#fafafa] py-16 sm:py-24 lg:py-32 border-t border-gray-100 font-sans">
             <div className="max-w-[1200px] mx-auto px-6 sm:px-10">
                 <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
                     

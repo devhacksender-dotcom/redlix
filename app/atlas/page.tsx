@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-    title: "Kiro | Precision Architectural Management",
+    title: "Kiro",
     description: "Explore Kiro, Redlix Studio's high-performance management architecture designed for distributed development workflows, unified portal collaboration, and enterprise-grade deployment management.",
     keywords: ["Kiro Architecture", "Project Tracking System", "Distributed Development Workflow", "Enterprise Architectural Hub"],
 };
