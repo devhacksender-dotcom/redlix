@@ -1467,7 +1467,7 @@ export default function EmployeePortal() {
                 <div className="px-6 h-[44px] flex items-center shrink-0">
                     <div className="flex items-center gap-2 w-full">
                         <img
-                            src="https://ik.imagekit.io/dypkhqxip/logo.png"
+                            src="https://ik.imagekit.io/dypkhqxip/logo__1_"
                             alt="Redlix Logo"
                             className="h-[24px] w-auto brightness-0 invert opacity-95"
                         />

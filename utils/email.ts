@@ -756,7 +756,7 @@ function baseEmailWrapper(headerLabel: string, body: string): string {
                             </span>
                         </td>
                         <td style="text-align: right; vertical-align: middle; padding-bottom: 16px;">
-                            <img src="https://ik.imagekit.io/dypkhqxip/logo.png" alt="Redlix" style="height: 28px; width: auto; display: inline-block;" />
+                            <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix" style="height: 28px; width: auto; display: inline-block;" />
                         </td>
                     </tr>
                 </table>

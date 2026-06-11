@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     title: "Redlix Portal",
   },
   icons: {
-    apple: "https://ik.imagekit.io/dypkhqxip/logo.png",
+    apple: "/icons/apple-touch-icon.png",
     icon: [
-      { url: "https://ik.imagekit.io/dypkhqxip/logo.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
   },
 };

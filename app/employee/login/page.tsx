@@ -110,7 +110,7 @@ export default function EmployeeLogin() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex flex-col">
+    <main className="min-h-dvh bg-[#0a0a0a] flex flex-col relative overflow-hidden">
 
       {/* ── Install success toast ────────────────────────────────────────── */}
       {installOutcome === "accepted" && (
@@ -136,15 +136,15 @@ export default function EmployeeLogin() {
         </div>
 
         {/* ── RIGHT: Form panel ─────────────────────────────────────────── */}
-        <div className="flex flex-col min-h-screen lg:min-h-0">
+        <div className="flex-1 flex flex-col lg:min-h-0 justify-between overflow-y-auto">
 
           {/* Mobile-only top bar */}
-          <div className="flex lg:hidden items-center justify-between px-6 pt-8 pb-4">
+          <div className="flex lg:hidden items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top,0px))] pb-4 shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="https://ik.imagekit.io/dypkhqxip/logo.png"
+              src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
               alt="Redlix"
-              className="h-8 w-auto brightness-0 invert"
+              className="h-6 w-auto brightness-0 invert opacity-95"
             />
             {!isInstalled && !installPrompt && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
@@ -155,8 +155,18 @@ export default function EmployeeLogin() {
           </div>
 
           {/* Centred form */}
-          <div className="flex-1 flex items-center justify-center px-6 py-10 lg:py-0">
+          <div className="flex-1 flex items-center justify-center px-6 py-8 sm:py-12 lg:py-0">
             <div className="w-full max-w-sm">
+
+              {/* Logo (Visible on desktop/tablet, hidden on mobile since mobile top bar has it) */}
+              <div className="hidden lg:block mb-8">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+                  alt="Redlix"
+                  className="h-8 w-auto brightness-0 invert opacity-95"
+                />
+              </div>
 
               {/* Form header */}
               <div className="mb-8">
@@ -287,7 +297,7 @@ export default function EmployeeLogin() {
           </div>
 
           {/* Right panel bottom bar */}
-          <div className="px-6 py-4 border-t border-white/[0.06] flex items-center justify-between">
+          <div className="px-6 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] border-t border-white/[0.06] flex items-center justify-between shrink-0">
             <p className="text-[11px] text-white/20">© 2026 Redlix Studio</p>
             <div className="flex items-center gap-4 text-[11px] text-white/20">
               <span>Privacy</span>
@@ -305,10 +315,10 @@ export default function EmployeeLogin() {
           role="dialog"
           aria-label="Install Redlix Employee App"
         >
-          <div className="bg-[#111111] border-t border-white/10 px-5 py-4 flex items-center gap-4 shadow-2xl">
+          <div className="bg-[#111111] border-t border-white/10 px-5 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex items-center gap-4 shadow-2xl">
             <div className="w-11 h-11 rounded-xl overflow-hidden shrink-0 border border-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="https://ik.imagekit.io/dypkhqxip/logo.png" alt="Redlix Portal" className="w-full h-full object-cover" />
+              <img src="https://ik.imagekit.io/dypkhqxip/logo__1_" alt="Redlix Portal" className="w-full h-full object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-white leading-tight">Add to Home Screen</p>
