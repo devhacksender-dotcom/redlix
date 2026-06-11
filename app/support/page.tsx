@@ -58,14 +58,16 @@ export default function SupportPage() {
                 <section className="py-16">
                     <div className="max-w-7xl mx-auto px-6">
                         <div className="max-w-xl">
+                            {/* Form card with whitish-grey bg and sharp edges */}
+                            <div style={{ background: '#f0f0f0' }} className="p-8">
                             {status === 'success' ? (
-                                <div className="bg-white/[0.02] border border-white/10 p-10 text-center space-y-6">
-                                    <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
-                                        <CheckCircle2 className="w-8 h-8 text-green-500" />
+                                <div className="p-10 text-center space-y-6">
+                                    <div className="w-16 h-16 bg-green-100 flex items-center justify-center mx-auto border border-green-300">
+                                        <CheckCircle2 className="w-8 h-8 text-green-600" />
                                     </div>
                                     <div className="space-y-2">
-                                        <h3 className="text-2xl font-bold">Ticket submitted</h3>
-                                        <p className="text-white/40">Check your email for a confirmation. Our team is on it.</p>
+                                        <h3 className="text-2xl font-bold text-gray-900">Ticket submitted</h3>
+                                        <p className="text-gray-500">Check your email for a confirmation. Our team is on it.</p>
                                     </div>
                                     <button 
                                         onClick={() => setStatus('idle')}
@@ -75,69 +77,74 @@ export default function SupportPage() {
                                     </button>
                                 </div>
                             ) : (
-                                <form onSubmit={handleSubmit} className="space-y-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-semibold text-white/40">Full Name</label>
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Full Name</label>
                                             <div className="relative">
-                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                 <input 
                                                     required
                                                     type="text"
                                                     placeholder="John Doe"
                                                     value={formData.name}
                                                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                                    className="w-full bg-white/[0.03] border border-white/10 px-12 py-3.5 text-sm focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                                    className="w-full bg-white border border-gray-300 px-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#E61E32] transition-colors"
+                                                    style={{ borderRadius: 0 }}
                                                 />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-semibold text-white/40">Email address</label>
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Email address</label>
                                             <div className="relative">
-                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                 <input 
                                                     required
                                                     type="email"
                                                     placeholder="john@example.com"
                                                     value={formData.email}
                                                     onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                                    className="w-full bg-white/[0.03] border border-white/10 px-12 py-3.5 text-sm focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                                    className="w-full bg-white border border-gray-300 px-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#E61E32] transition-colors"
+                                                    style={{ borderRadius: 0 }}
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-white/40">Subject</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Subject</label>
                                         <div className="relative">
-                                            <MessageSquare className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <MessageSquare className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                             <input 
                                                 required
                                                 type="text"
                                                 placeholder="What can we help with?"
                                                 value={formData.subject}
                                                 onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                                                className="w-full bg-white/[0.03] border border-white/10 px-12 py-3.5 text-sm focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                                className="w-full bg-white border border-gray-300 px-10 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#E61E32] transition-colors"
+                                                style={{ borderRadius: 0 }}
                                             />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-white/40">Message</label>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-gray-600 uppercase tracking-wider">Message</label>
                                         <textarea 
                                             required
                                             rows={6}
                                             placeholder="Describe your issue in detail..."
                                             value={formData.message}
                                             onChange={(e) => setFormData({...formData, message: e.target.value})}
-                                            className="w-full bg-white/[0.03] border border-white/10 p-4 text-sm focus:outline-none focus:border-[#E61E32]/50 transition-colors resize-none"
+                                            className="w-full bg-white border border-gray-300 p-4 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#E61E32] transition-colors resize-none"
+                                            style={{ borderRadius: 0 }}
                                         />
                                     </div>
 
                                     <button 
                                         disabled={status === 'submitting'}
                                         type="submit"
-                                        className="w-full bg-[#E61E32] hover:bg-white hover:text-black py-4 font-bold text-sm transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                        className="w-full bg-[#E61E32] hover:bg-gray-900 text-white py-4 font-bold text-sm transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                        style={{ borderRadius: 0 }}
                                     >
                                         {status === 'submitting' ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -148,12 +155,13 @@ export default function SupportPage() {
                                     </button>
                                     
                                     {status === 'error' && (
-                                        <p className="text-center text-red-500 text-xs font-semibold">
+                                        <p className="text-center text-red-600 text-xs font-semibold">
                                             Submission failed. Please try again.
                                         </p>
                                     )}
                                 </form>
                             )}
+                            </div>
                         </div>
                     </div>
                 </section>

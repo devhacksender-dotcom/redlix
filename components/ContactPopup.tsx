@@ -1,16 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { X, Send, Search } from "lucide-react";
+import { X, Send, Search, ChevronDown } from "lucide-react";
 import { countries } from "@/utils/countries";
 
 const services = [
+    "Web Design & Development",
+    "Web and Mobile App Design",
+    "SaaS & Custom Software",
     "AI & Automation",
-    "Software Engineering",
-    "Web & Mobile Development",
-    "Product Design (UI/UX)",
-    "Enterprise Solutions",
-    "Branding & Strategy"
+    "Enterprise Solutions"
 ];
 
 const ContactPopup = () => {
@@ -111,7 +110,7 @@ const ContactPopup = () => {
             <button
                 onClick={togglePopup}
                 aria-label="Get in touch"
-                className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[100] bg-[#E61E32] hover:bg-[#CC192A] text-white px-6 py-3 flex items-center gap-2.5 rounded-xl text-[14px] font-semibold shadow-[0_4px_12px_rgba(230,30,50,0.25)] hover:shadow-[0_6px_20px_rgba(230,30,50,0.35)] active:scale-[0.98] transition-all duration-300"
+                className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[100] bg-[#E61E32] hover:bg-[#ff1f34] text-white px-6 py-3 flex items-center gap-2.5 rounded-xl text-[14px] font-semibold shadow-[0_4px_16px_rgba(230,30,50,0.3)] hover:shadow-[0_8px_24px_rgba(230,30,50,0.45)] active:scale-[0.97] transition-all duration-300"
             >
                 <Send className="w-4 h-4 shrink-0" />
                 <span>Get in Touch</span>
@@ -119,71 +118,102 @@ const ContactPopup = () => {
 
             {/* Modal Overlay */}
             {isOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-10 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6 md:p-8 animate-in fade-in duration-300">
                     <div
                         className="absolute inset-0 bg-black/80 backdrop-blur-md"
                         onClick={togglePopup}
                     />
 
                     {/* Modal Content */}
-                    <div className="relative w-full max-w-[1100px] h-fit max-h-[92vh] bg-[#1a1a1a] border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                    <div className="relative w-full max-w-[1000px] h-fit max-h-[92vh] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300" style={{ background: '#f0f0f0', borderRadius: 0 }}>
                         {/* Header */}
-                        <div className="p-8 pb-4 flex justify-between items-start">
-                            <h2 className="text-[28px] md:text-[32px] font-bold text-[#E61E32] tracking-tight">
-                                Get in Touch with us
-                            </h2>
+                        <div className="px-8 pt-5 pb-4 flex justify-between items-center border-b border-gray-200">
+                            <div className="flex items-center gap-4">
+                                <img
+                                    src="https://ik.imagekit.io/dypkhqxip/logo__1_?updatedAt=1781048454786"
+                                    alt="Redlix"
+                                    className="h-12 w-auto object-contain"
+                                />
+                                <div className="w-px h-8 bg-gray-300" />
+                                <div>
+                                    <span className="text-[10px] font-semibold text-[#E61E32] mb-0.5 block">Partner With Us</span>
+                                    <h2 className="text-[20px] md:text-[24px] font-bold text-gray-900 tracking-tight leading-tight">
+                                        Let's build something great
+                                    </h2>
+                                </div>
+                            </div>
                             <button
                                 onClick={togglePopup}
-                                className="text-white/40 hover:text-white transition-colors p-2"
+                                className="text-gray-400 hover:text-gray-900 transition-colors p-2 hover:bg-gray-200"
+                                style={{ borderRadius: 0 }}
                             >
-                                <X className="w-8 h-8" />
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
 
                         {/* Scrollable Form Area */}
-                        <div className="flex-grow overflow-y-auto px-8 pb-8 custom-scrollbar">
-                            <form className="space-y-6" onSubmit={handleSubmit}>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-3">
+                        <div className="flex-grow overflow-y-auto px-8 pb-6 pt-5 custom-scrollbar">
+                            <form className="space-y-4" onSubmit={handleSubmit}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
                                     {/* Your Name */}
                                     <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
+                                        <label className="absolute -top-[8px] left-3 z-10 px-1 text-[10px] font-medium text-gray-500 transition-colors group-focus-within:text-[#E61E32]" style={{ background: '#f0f0f0' }}>
                                             Your Name
                                         </label>
                                         <input
                                             name="name"
                                             type="text"
                                             required
-                                            className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
+                                            className="w-full h-9 bg-white border border-gray-300 px-3 text-gray-900 text-[12px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-gray-400"
+                                            style={{ borderRadius: 0 }}
                                             placeholder="Enter your name"
+                                        />
+                                    </div>
+
+                                    {/* Email */}
+                                    <div className="relative group">
+                                        <label className="absolute -top-[8px] left-3 z-10 px-1 text-[10px] font-medium text-gray-500 transition-colors group-focus-within:text-[#E61E32]" style={{ background: '#f0f0f0' }}>
+                                            Email
+                                        </label>
+                                        <input
+                                            name="email"
+                                            type="email"
+                                            required
+                                            className="w-full h-9 bg-white border border-gray-300 px-3 text-gray-900 text-[12px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-gray-400"
+                                            style={{ borderRadius: 0 }}
+                                            placeholder="hello@example.com"
                                         />
                                     </div>
 
                                     {/* Phone Number */}
                                     <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
+                                        <label className="absolute -top-[8px] left-3 z-10 px-1 text-[10px] font-medium text-gray-500 transition-colors group-focus-within:text-[#E61E32]" style={{ background: '#f0f0f0' }}>
                                             Phone Number
                                         </label>
-                                        <div className="flex h-11 relative">
+                                        <div className="flex h-9 relative">
                                             <div
                                                 onClick={() => setShowCountrySelector(!showCountrySelector)}
-                                                className="flex items-center gap-2 border border-r-0 border-white/20 px-3 bg-white/5 shrink-0 cursor-pointer hover:bg-white/10 transition-colors"
+                                                className="flex items-center gap-1.5 border border-r-0 border-gray-300 px-2.5 bg-gray-100 shrink-0 cursor-pointer hover:bg-gray-200 transition-colors"
+                                                style={{ borderRadius: 0 }}
                                             >
                                                 <img src={`https://flagcdn.com/w20/${selectedCountry.flag}.png`} alt={selectedCountry.name} className="w-4 h-auto" />
-                                                <span className="text-[12px] text-white/60">{selectedCountry.code}</span>
+                                                <span className="text-[12px] text-gray-600">{selectedCountry.code}</span>
+                                                <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                                             </div>
 
                                             {showCountrySelector && (
-                                                <div className="absolute top-full left-0 z-[120] w-72 mt-1 bg-[#1a1a1a] border border-white/10 shadow-2xl animate-in fade-in slide-in-from-top-2">
+                                                <div className="absolute top-full left-0 z-[120] w-72 mt-1 bg-white border border-gray-200 shadow-2xl animate-in fade-in slide-in-from-top-2 overflow-hidden" style={{ borderRadius: 0 }}>
                                                     {/* Search Bar */}
-                                                    <div className="sticky top-0 bg-[#1a1a1a] p-3 border-b border-white/10">
+                                                    <div className="sticky top-0 bg-white p-3 border-b border-gray-200">
                                                         <div className="relative">
-                                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                             <input
                                                                 type="text"
                                                                 value={searchQuery}
                                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                                 placeholder="Search country..."
-                                                                className="w-full bg-[#222] border border-white/10 rounded-sm py-2 pl-9 pr-4 text-[13px] text-white focus:outline-none focus:border-[#E61E32] transition-colors"
+                                                                className="w-full bg-gray-50 border border-gray-200 py-2 pl-9 pr-4 text-[13px] text-gray-900 focus:outline-none focus:border-[#E61E32] transition-colors"
+                                                                style={{ borderRadius: 0 }}
                                                             />
                                                         </div>
                                                     </div>
@@ -199,15 +229,15 @@ const ContactPopup = () => {
                                                                         setShowCountrySelector(false);
                                                                         setSearchQuery("");
                                                                     }}
-                                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-[#E61E32]/10 cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0"
                                                                 >
                                                                     <img src={`https://flagcdn.com/w20/${c.flag}.png`} className="w-4 h-auto" alt={c.name} />
-                                                                    <span className="text-[13px] text-white/80 font-medium">{c.name}</span>
-                                                                    <span className="ml-auto text-[11px] text-white/30">{c.code}</span>
+                                                                    <span className="text-[13px] text-gray-800 font-medium">{c.name}</span>
+                                                                    <span className="ml-auto text-[11px] text-gray-400">{c.code}</span>
                                                                 </div>
                                                             ))
                                                         ) : (
-                                                            <div className="px-4 py-6 text-center text-white/20 text-[12px]">No country found</div>
+                                                            <div className="px-4 py-6 text-center text-gray-400 text-[12px]">No country found</div>
                                                         )}
                                                     </div>
                                                 </div>
@@ -216,225 +246,81 @@ const ContactPopup = () => {
                                             <input
                                                 name="phone"
                                                 type="tel"
-                                                className="w-full h-full bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
+                                                required
+                                                className="w-full h-full bg-white border border-gray-300 px-3 text-gray-900 text-[12px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-gray-400"
+                                                style={{ borderRadius: 0 }}
                                                 placeholder="081234 56789"
                                             />
                                         </div>
                                     </div>
 
-                                    {/* Email */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Email
-                                        </label>
-                                        <input
-                                            name="email"
-                                            type="email"
-                                            required
-                                            className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
-                                            placeholder="hello@example.com"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     {/* Company Name */}
                                     <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
+                                        <label className="absolute -top-[8px] left-3 z-10 px-1 text-[10px] font-medium text-gray-500 transition-colors group-focus-within:text-[#E61E32]" style={{ background: '#f0f0f0' }}>
                                             Company Name
                                         </label>
                                         <input
                                             name="company"
                                             type="text"
-                                            className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
+                                            required
+                                            className="w-full h-9 bg-white border border-gray-300 px-3 text-gray-900 text-[12px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-gray-400"
+                                            style={{ borderRadius: 0 }}
                                             placeholder="Your business name"
                                         />
                                     </div>
-
-                                    {/* Website Link */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Website Link (Optional)
-                                        </label>
-                                        <input
-                                            name="website"
-                                            type="url"
-                                            className="w-full h-11 bg-transparent border border-white/20 px-4 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all placeholder:text-white/5"
-                                            placeholder="https://example.com"
-                                        />
-                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    {/* Business Type */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Business Type
-                                        </label>
-                                        <select name="businessType" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="">please select</option>
-                                            <option value="startup">Startup</option>
-                                            <option value="enterprise">Enterprise</option>
-                                            <option value="agency">Agency</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-
-                                    {/* Company Turnover */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Company Turnover (₹)
-                                        </label>
-                                        <select name="turnover" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="">please select</option>
-                                            <option value="<10L">Below 10 Lakhs</option>
-                                            <option value="10L-50L">10 Lakhs - 50 Lakhs</option>
-                                            <option value="50L-1Cr">50 Lakhs - 1 Crore</option>
-                                            <option value=">1Cr">Above 1 Crore</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Services */}
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.25em]">What services are you looking for?</p>
-                                    <div className="flex flex-wrap gap-x-10 gap-y-4">
+                                {/* Services Select - Premium tags style */}
+                                <div className="space-y-3">
+                                    <p className="text-[11px] font-medium text-gray-500">What services are you looking for?</p>
+                                    <div className="flex flex-wrap gap-2.5">
                                         {services.map((service) => (
-                                            <label key={service} className="flex items-center gap-3 cursor-pointer group">
-                                                <div className="relative flex items-center justify-center">
-                                                    <input type="radio" name="service" value={service} className="sr-only peer" />
-                                                    <div className="w-4 h-4 border border-white/20 rounded-full peer-checked:border-[#E61E32] transition-colors" />
-                                                    <div className="absolute w-2 h-2 bg-[#E61E32] rounded-full scale-0 peer-checked:scale-100 transition-transform" />
+                                            <label key={service} className="cursor-pointer">
+                                                <input type="radio" name="service" value={service} className="sr-only peer" />
+                                                <div className="px-3.5 py-1.5 bg-white border border-gray-300 hover:border-gray-400 text-gray-600 text-[12px] font-medium transition-all duration-200 peer-checked:bg-[#E61E32] peer-checked:border-[#E61E32] peer-checked:text-white peer-checked:shadow-[0_4px_12px_rgba(230,30,50,0.25)]" style={{ borderRadius: 0 }}>
+                                                    {service}
                                                 </div>
-                                                <span className="text-[11px] text-white/50 group-hover:text-white transition-colors uppercase tracking-wider">{service}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                    {/* Budget */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Monthly Budget (₹)
-                                        </label>
-                                        <select name="budget" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="">please select</option>
-                                            <option value="<25k">Below 25k</option>
-                                            <option value="25k-50k">25k - 50k</option>
-                                            <option value="50k-1L">50k - 1 Lakh</option>
-                                            <option value=">1L">Above 1 Lakh</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-
-                                    {/* Timeline */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            How soon would you like to get started?
-                                        </label>
-                                        <select name="timeline" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="">please select</option>
-                                            <option value="immediately">Immediately</option>
-                                            <option value="1-2weeks">1-2 Weeks</option>
-                                            <option value="1month">Within 1 Month</option>
-                                            <option value="exploring">Just Exploring</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                    {/* Date/Time */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Preferred Date & Time
-                                        </label>
-                                        <div className="relative flex items-center h-11 border border-white/20 px-4">
-                                            <input
-                                                name="preferredDateTime"
-                                                type="datetime-local"
-                                                className="w-full bg-transparent text-white/30 text-[12px] focus:outline-none [color-scheme:dark]"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Timezone */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Preferred Timezone
-                                        </label>
-                                        <select name="timezone" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="Asia/Kolkata">Asia/Kolkata</option>
-                                            <option value="UTC">UTC</option>
-                                            <option value="US/Eastern">US/Eastern</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-
-                                    {/* Mode */}
-                                    <div className="relative group">
-                                        <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
-                                            Preferred Mode
-                                        </label>
-                                        <select name="preferredMode" className="w-full h-11 bg-[#1a1a1a] border border-white/20 px-4 text-white/50 text-[13px] focus:border-[#E61E32] focus:outline-none transition-all appearance-none cursor-pointer">
-                                            <option value="">please select</option>
-                                            <option value="google-meet">Google Meet</option>
-                                            <option value="zoom">Zoom</option>
-                                            <option value="phone">Phone Call</option>
-                                        </select>
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-white/20">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Message */}
                                 <div className="relative group">
-                                    <label className="absolute -top-[9px] left-3 z-10 bg-[#1a1a1a] px-1.5 text-[10px] font-bold text-white/50 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]">
+                                    <label className="absolute -top-[9px] left-3.5 z-10 px-1.5 text-[9px] font-bold text-gray-500 uppercase tracking-widest transition-colors group-focus-within:text-[#E61E32]" style={{ background: '#f0f0f0' }}>
                                         Message
                                     </label>
                                     <textarea
                                         name="message"
-                                        rows={3}
+                                        rows={2}
                                         required
-                                        className="w-full bg-transparent border border-white/20 px-4 py-3 text-white text-[13px] focus:border-[#E61E32] focus:outline-none transition-all resize-none min-h-[90px] placeholder:text-white/5"
+                                        className="w-full bg-white border border-gray-300 px-3 py-2 text-gray-900 text-[12px] focus:border-[#E61E32] focus:outline-none transition-all resize-none min-h-[70px] placeholder:text-gray-400"
+                                        style={{ borderRadius: 0 }}
                                         placeholder="Enter your message here..."
                                     />
                                 </div>
 
                                 {/* Captcha Verification */}
-                                <div className="space-y-1">
+                                <div className="space-y-1.5">
                                     <div
                                         id="recaptcha-container"
                                         className="g-recaptcha"
                                     ></div>
-                                    <p className="text-[10px] text-white/30 italic">Please complete the verification above.</p>
+                                    <p className="text-[10px] text-gray-400 italic">Please complete the verification above.</p>
                                 </div>
 
                                 {/* Footer & Submit */}
-                                <div className="space-y-3">
-                                    <p className="text-[10px] text-white/20 leading-relaxed max-w-4xl font-light">
-                                        By submitting this form, you acknowledge our <a href="/privacy" className="underline hover:text-white transition-colors">Privacy Policy</a>.
+                                <div className="space-y-3 pt-2">
+                                    <p className="text-[10px] text-gray-400 leading-relaxed max-w-4xl font-light">
+                                        By submitting this form, you acknowledge and agree to our <a href="/privacy" className="text-[#E61E32] underline hover:text-[#ff1f34] transition-colors font-medium">Privacy Policy</a>.
                                     </p>
                                     <button
                                         disabled={isSubmitting}
-                                        className="bg-[#E61E32] text-white px-8 py-2.5 flex items-center gap-3 shadow-xl hover:bg-[#CC192A] transition-all rounded-none group scale-100 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed border border-white/10"
+                                        className="bg-[#E61E32] hover:bg-gray-900 text-white px-8 py-3 flex items-center gap-3 shadow-[0_4px_16px_rgba(230,30,50,0.3)] hover:shadow-[0_6px_22px_rgba(230,30,50,0.45)] transition-all group scale-100 active:scale-95 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                                        style={{ borderRadius: 0 }}
                                     >
-                                        <span className="text-[14px] font-medium">
-                                            {submitStatus === "success" ? "Sent" : isSubmitting ? "Sending..." : "Submit"}
+                                        <span className="text-[13px] font-semibold">
+                                            {submitStatus === "success" ? "Sent" : isSubmitting ? "Sending..." : "Submit Inquiry"}
                                         </span>
                                         <Send className={`w-4 h-4 transition-transform ${isSubmitting ? 'animate-pulse' : 'group-hover:translate-x-1'}`} />
                                     </button>
@@ -454,6 +340,7 @@ const ContactPopup = () => {
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
                     background: rgba(255, 255, 255, 0.1);
+                    border-radius: 9999px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
                     background: rgba(255, 255, 255, 0.2);

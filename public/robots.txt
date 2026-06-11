@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /login/
+Disallow: /api/
+Disallow: /employee/
+Disallow: /department/
+
+Sitemap: https://redlix.co.in/sitemap.xml

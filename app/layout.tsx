@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     description: "Expert IT services and elite digital solutions engineered for high-performance enterprise growth.",
     images: [
       {
-        url: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1772213109/Screenshot_2026-02-27_at_22.49.23-removebg-preview_nn1jee.png",
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Redlix Studio Logo",
@@ -72,13 +72,14 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Redlix Studio | IT Solutions",
     description: "Empowering businesses with elite freelance IT services and digital solutions.",
-    images: ["https://res.cloudinary.com/dsqqrpzfl/image/upload/v1772213109/Screenshot_2026-02-27_at_22.49.23-removebg-preview_nn1jee.png"],
+    images: ["/og-image.png"],
   },
   icons: {
-    icon: "https://ik.imagekit.io/dypkhqxip/logo.png",
-    shortcut: "https://ik.imagekit.io/dypkhqxip/logo.png",
-    apple: "https://ik.imagekit.io/dypkhqxip/logo.png",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
   robots: {
     index: true,
     follow: true,

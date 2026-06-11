@@ -81,7 +81,8 @@ export default function CorporateFooter() {
                             <img
                                 src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                                 alt="Redlix Logo"
-                                className="h-[44px] w-auto object-contain brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.01]"
+                                className="h-[56px] w-auto object-contain opacity-95 transition-transform duration-300 group-hover:scale-[1.01]"
+                                style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
                             />
                         </Link>
 

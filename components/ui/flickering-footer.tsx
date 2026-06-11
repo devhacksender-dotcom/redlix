@@ -1162,7 +1162,8 @@ export const FlickeringFooter = () => {
             <img
               src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
               alt="Redlix Logo"
-              className="h-[44px] w-auto brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.02]"
+              className="h-[56px] w-auto opacity-95 transition-transform duration-300 group-hover:scale-[1.02]"
+              style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
             />
           </Link>
           <p className="text-zinc-500 max-w-xs font-mono text-sm text-balance text-left">

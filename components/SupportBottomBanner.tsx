@@ -19,7 +19,7 @@ const BottomBanner = () => {
                   alt="Support Logo"
                   width={40}
                   height={40}
-                  className="h-9 w-auto brightness-0 invert drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)]"
+                  className="h-9 w-auto brightness-0 invert"
                 />
                 <div className="h-4 w-[1px] bg-white/20" />
                 <Image
@@ -27,7 +27,7 @@ const BottomBanner = () => {
                   alt="Redlix Logo"
                   width={120}
                   height={32}
-                  className="h-8 w-auto brightness-0 invert drop-shadow-[0_2px_8px_rgba(255,255,255,0.2)]"
+                  className="h-8 w-auto brightness-0 invert"
                 />
               </div>
             </div>
