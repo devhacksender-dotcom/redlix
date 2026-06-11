@@ -39,13 +39,24 @@ export default function EmployeeLayout({
           __html: `
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function () {
+                // Clean up any old sub-scoped service workers to prevent conflicts
+                navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                  for (let reg of registrations) {
+                    if (reg.scope.includes('/employee')) {
+                      reg.unregister().then(function() {
+                        console.log('[Redlix PWA] Unregistered sub-scoped service worker:', reg.scope);
+                      });
+                    }
+                  }
+                });
+
                 navigator.serviceWorker
-                  .register('/sw.js', { scope: '/employee' })
+                  .register('/sw.js')
                   .then(function (reg) {
-                    console.log('[Redlix PWA] Service worker registered:', reg.scope);
+                    console.log('[Redlix PWA] Root service worker registered:', reg.scope);
                   })
                   .catch(function (err) {
-                    console.warn('[Redlix PWA] Service worker registration failed:', err);
+                    console.warn('[Redlix PWA] Root service worker registration failed:', err);
                   });
               });
             }

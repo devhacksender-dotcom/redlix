@@ -5,6 +5,8 @@ import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "@/lib/firebase-messaging";
 import { Bell, BellOff, Loader2 } from "lucide-react";
 
+const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || "BLvOB7K4bhEgS8A5ffUYR_5Wd0-IhZYx95D7zD0_OxM-fXB3JVUXhDKAc2JeL4JSm0TzGWroF0PhD80JPYDvX9w";
+
 export default function EnableNotifications({ employeeId }: { employeeId?: number }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<NotificationPermission | "idle">("idle");
@@ -38,7 +40,7 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
                 registration = await navigator.serviceWorker.ready;
               }
               const token = await getToken(messaging, {
-                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                vapidKey: VAPID_KEY,
                 serviceWorkerRegistration: registration,
               });
               console.log("FCM Token:", token);
@@ -64,6 +66,10 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
   }, [employeeId]);
 
   const enableNotifications = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      alert("Push notifications are not supported in this browser/device. If you are on iOS, you must install the PWA (Add to Home Screen) first to enable notifications.");
+      return;
+    }
     setLoading(true);
     try {
       const permission = await Notification.requestPermission();
@@ -76,6 +82,7 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
 
       if (!messaging) {
         console.warn("Firebase Messaging is not initialized or supported in this browser.");
+        alert("Notification permission granted, but Firebase Messaging is not initialized in this browser.");
         setLoading(false);
         return;
       }
@@ -85,17 +92,20 @@ export default function EnableNotifications({ employeeId }: { employeeId?: numbe
         registration = await navigator.serviceWorker.ready;
       }
       const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+        vapidKey: VAPID_KEY,
         serviceWorkerRegistration: registration,
       });
 
       console.log("Firebase Cloud Messaging Token:", token);
       if (token) {
         await registerFcmTokenWithDb(token);
+        alert(`Notifications enabled successfully!\n\n(FCM Token registered in database)`);
+      } else {
+        alert("Could not retrieve notification token.");
       }
-      alert(`Notifications enabled successfully!\n\n(Registration token stored in database)`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error enabling notifications:", error);
+      alert(`Error enabling notifications: ${error.message || error}`);
     } finally {
       setLoading(false);
     }
