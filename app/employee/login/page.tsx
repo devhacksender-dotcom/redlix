@@ -144,7 +144,7 @@ export default function EmployeeLogin() {
             <img
               src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
               alt="Redlix"
-              className="h-6 w-auto brightness-0 invert opacity-95"
+              className="h-10 w-auto brightness-0 invert opacity-95"
             />
             {!isInstalled && !installPrompt && (
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full">
@@ -164,7 +164,7 @@ export default function EmployeeLogin() {
                 <img
                   src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                   alt="Redlix"
-                  className="h-8 w-auto brightness-0 invert opacity-95"
+                  className="h-12 w-auto brightness-0 invert opacity-95"
                 />
               </div>
 
