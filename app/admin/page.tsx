@@ -1705,15 +1705,12 @@ export default function AdminPortal() {
             {/* Simple Sidebar */}
             <aside className="no-print w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
                 <div className="px-4 space-y-4">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                         <img
-                            src="https://ik.imagekit.io/dypkhqxip/logo.png"
+                            src="https://ik.imagekit.io/dypkhqxip/logo__1_?updatedAt=1781048454786"
                             alt="Redlix Logo"
-                            className="h-[24px] w-auto brightness-0 invert opacity-95"
+                            className="h-[42px] w-auto brightness-0 invert opacity-95 object-contain"
                         />
-                        <span className="text-white text-[17px] font-bold tracking-tight select-none">
-                            Redlix
-                        </span>
                         <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20">
                             Admin
                         </span>
