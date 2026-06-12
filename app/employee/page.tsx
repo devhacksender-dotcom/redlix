@@ -1465,16 +1465,13 @@ export default function EmployeePortal() {
             <aside className="hidden md:flex w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
                 {/* Logo */}
                 <div className="px-6 h-[44px] flex items-center shrink-0">
-                    <div className="flex items-center gap-2 w-full">
+                    <div className="flex items-center gap-2.5 w-full">
                         <img
-                            src="https://ik.imagekit.io/dypkhqxip/logo__1_"
+                            src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                             alt="Redlix Logo"
-                            className="h-[24px] w-auto brightness-0 invert opacity-95"
+                            className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain"
                         />
-                        <span className="text-white text-[17px] font-bold tracking-tight select-none">
-                            Redlix
-                        </span>
-                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20">
+                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20 shrink-0">
                             Employee
                         </span>
                     </div>
@@ -1674,9 +1671,11 @@ export default function EmployeePortal() {
                     <div className="flex items-center justify-between px-6 h-[44px]">
                         <div className="flex items-center gap-2 text-white">
                             {/* Logo Wordmark for Mobile View / PWA */}
-                            <span className="text-white text-[17px] font-bold tracking-tight select-none md:hidden">
-                                Redlix
-                            </span>
+                            <img
+                                src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+                                alt="Redlix"
+                                className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain md:hidden"
+                            />
                             {/* Breadcrumbs for Desktop View */}
                             <div className="hidden md:flex items-center gap-2 text-[12px] font-medium">
                                 <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
