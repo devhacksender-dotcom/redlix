@@ -4688,21 +4688,15 @@ export default function AdminPortal() {
                         {/* ===== DECLARATIONS TAB ===== */}
                         {activeTab === "declarations" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white">Employee Declarations</h2>
-                                        <p className="text-xs text-white/40 mt-1">Review client declaration documents submitted by employees.</p>
-                                    </div>
-                                    <div className="flex items-center gap-3 self-start sm:self-auto flex-wrap">
-                                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-full">
-                                            <Hourglass className="w-3 h-3" />
-                                            {adminDeclarations.filter(d => d.status === "pending").length} Pending
-                                        </span>
-                                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-full">
-                                            <CheckCheck className="w-3 h-3" />
-                                            {adminDeclarations.filter(d => d.status === "reviewed").length} Reviewed
-                                        </span>
-                                    </div>
+                                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                                    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-none">
+                                        <Hourglass className="w-3 h-3" />
+                                        {adminDeclarations.filter(d => d.status === "pending").length} Pending
+                                    </span>
+                                    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-none">
+                                        <CheckCheck className="w-3 h-3" />
+                                        {adminDeclarations.filter(d => d.status === "reviewed").length} Reviewed
+                                    </span>
                                 </div>
 
                                 {declarationsLoading ? (
@@ -4715,16 +4709,16 @@ export default function AdminPortal() {
                                 ) : (
                                     <div className="space-y-3">
                                         {adminDeclarations.map(decl => (
-                                            <div key={decl.id} className="bg-white/[0.02] border border-white/8 rounded-xl p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-white/15 transition-all group">
+                                            <div key={decl.id} className="bg-white/[0.02] border border-white/8 rounded-none p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-white/15 transition-all group">
                                                 {/* File icon + info */}
                                                 <div className="flex items-start gap-4 flex-1 min-w-0">
-                                                    <div className="w-10 h-10 rounded-xl bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
                                                         <FileText className="w-5 h-5 text-[#E61E32]" />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <p className="text-sm font-semibold text-white truncate">{decl.fileName}</p>
-                                                            <span className="text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-full">
+                                                            <span className="text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">
                                                                 {decl.fileType.split('/')[1]?.toUpperCase() || decl.fileType}
                                                             </span>
                                                             <span className="text-[9px] text-white/30">{(decl.fileSize / 1024).toFixed(1)} KB</span>
@@ -4734,7 +4728,7 @@ export default function AdminPortal() {
                                                                 <User className="w-3 h-3" />
                                                                 {decl.employee.name}
                                                             </span>
-                                                            <span className="text-[10px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded">{decl.employee.role}</span>
+                                                            <span className="text-[10px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded-none">{decl.employee.role}</span>
                                                             {decl.clientName && (
                                                                 <span className="text-[10px] text-white/50">Client: <span className="text-white/70 font-medium">{decl.clientName}</span></span>
                                                             )}
@@ -4751,7 +4745,7 @@ export default function AdminPortal() {
                                                     {/* Status Badge + Toggle */}
                                                     <button
                                                         onClick={() => handleReviewDeclaration(decl.id, decl.status === "reviewed" ? "pending" : "reviewed")}
-                                                        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all cursor-pointer ${
+                                                        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border transition-all cursor-pointer ${
                                                             decl.status === "reviewed"
                                                                 ? "text-green-400 bg-green-500/10 border-green-500/20 hover:bg-green-500/20"
                                                                 : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20"
@@ -4768,7 +4762,7 @@ export default function AdminPortal() {
                                                     {/* Preview */}
                                                     <button
                                                         onClick={() => setPreviewFile({ name: decl.fileName, type: decl.fileType, data: decl.fileData })}
-                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
                                                         title="Preview document"
                                                     >
                                                         <Eye className="w-3 h-3" /> Preview
@@ -4778,7 +4772,7 @@ export default function AdminPortal() {
                                                     <a
                                                         href={decl.fileData}
                                                         download={decl.fileName}
-                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
                                                         title="Download file"
                                                     >
                                                         <Download className="w-3 h-3" /> Download
@@ -4787,7 +4781,7 @@ export default function AdminPortal() {
                                                     {/* Delete */}
                                                     <button
                                                         onClick={() => handleDeleteDeclaration(decl.id)}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-full bg-[#E61E32]/5 border border-[#E61E32]/10 text-[#E61E32]/50 hover:bg-[#E61E32]/15 hover:text-[#E61E32] hover:border-[#E61E32]/30 transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center rounded-none bg-[#E61E32]/5 border border-[#E61E32]/10 text-[#E61E32]/50 hover:bg-[#E61E32]/15 hover:text-[#E61E32] hover:border-[#E61E32]/30 transition-all"
                                                         title="Delete declaration"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -4803,12 +4797,8 @@ export default function AdminPortal() {
                         {/* ===== WORK SUBMISSIONS TAB ===== */}
                         {activeTab === "submissions" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-                                    <div>
-                                        <h2 className="text-base font-bold text-white">Employee Work Submissions</h2>
-                                        <p className="text-xs text-white/40 mt-1">Review website and repository links submitted by employees.</p>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
+                                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-none self-start sm:self-auto shrink-0">
                                         <Send className="w-3.5 h-3.5" />
                                         <span className="uppercase tracking-wider font-semibold">{filteredSubmissions.length} Submissions</span>
                                     </div>
@@ -4824,12 +4814,12 @@ export default function AdminPortal() {
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {filteredSubmissions.map(sub => (
-                                            <div key={sub.id} className="bg-white/[0.02] border border-white/8 rounded-xl p-5 flex flex-col justify-between gap-4 hover:border-white/15 transition-all group">
+                                            <div key={sub.id} className="bg-white/[0.02] border border-white/8 rounded-none p-5 flex flex-col justify-between gap-4 hover:border-white/15 transition-all group">
                                                 <div className="space-y-4">
                                                     {/* Header with Employee and Client Details */}
                                                     <div className="flex justify-between items-start gap-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                                            <div className="w-10 h-10 rounded-none bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
                                                                 {sub.employee?.avatar ? (
                                                                     <img src={sub.employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
                                                                 ) : (
@@ -4842,7 +4832,7 @@ export default function AdminPortal() {
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-full">
+                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">
                                                                 Client
                                                             </span>
                                                             <p className="text-xs font-semibold text-white/80 mt-1">{sub.client?.companyName}</p>
@@ -4854,7 +4844,7 @@ export default function AdminPortal() {
 
                                                     {/* Website and Git Repo Links */}
                                                     <div className="space-y-2">
-                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-none hover:bg-white/[0.03] transition-all">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <Globe className="w-4 h-4 text-white/40 shrink-0" />
                                                                 <div className="min-w-0">
@@ -4866,14 +4856,14 @@ export default function AdminPortal() {
                                                                 href={sub.websiteLink}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-none bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
                                                                 title="Open Website"
                                                             >
                                                                 <ExternalLink className="w-3.5 h-3.5" />
                                                             </a>
                                                         </div>
 
-                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-none hover:bg-white/[0.03] transition-all">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <Building className="w-4 h-4 text-white/40 shrink-0" />
                                                                 <div className="min-w-0">
@@ -4885,7 +4875,7 @@ export default function AdminPortal() {
                                                                 href={sub.gitRepoLink}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-none bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
                                                                 title="Open Repository"
                                                             >
                                                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -6336,7 +6326,7 @@ export default function AdminPortal() {
             {/* Document Preview Modal */}
             {previewFile && (
                 <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#0f0f0f] border border-white/10 w-full max-w-4xl h-[85vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="bg-[#0f0f0f] border border-white/10 w-full max-w-4xl h-[85vh] flex flex-col rounded-none overflow-hidden shadow-2xl">
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                             <div className="min-w-0">
@@ -6345,7 +6335,7 @@ export default function AdminPortal() {
                             </div>
                             <button
                                 onClick={() => setPreviewFile(null)}
-                                className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                                className="p-1.5 rounded-none bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -6358,13 +6348,13 @@ export default function AdminPortal() {
                                     <img 
                                         src={previewFile.data} 
                                         alt={previewFile.name} 
-                                        className="max-w-full max-h-full object-contain rounded-lg"
+                                        className="max-w-full max-h-full object-contain rounded-none"
                                     />
                                 </div>
                             ) : previewFile.type.includes("pdf") ? (
                                 <iframe 
                                     src={previewFile.data} 
-                                    className="w-full h-full rounded-lg border border-white/5 bg-white"
+                                    className="w-full h-full rounded-none border border-white/5 bg-white"
                                     title={previewFile.name}
                                 />
                             ) : (
@@ -6374,7 +6364,7 @@ export default function AdminPortal() {
                                     <a
                                         href={previewFile.data}
                                         download={previewFile.name}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors"
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
                                     >
                                         <Download className="w-3.5 h-3.5" /> Download File
                                     </a>
