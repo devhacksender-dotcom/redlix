@@ -39,9 +39,9 @@ export async function POST(request: Request) {
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a1a; padding: 20px; border: 1px solid #eee;">
             <div style="margin-bottom: 30px;">
-              <img src="https://ik.imagekit.io/dypkhqxip/logo__1_" alt="Logo" style="height: 40px; width: auto; vertical-align: middle;" />
-              <span style="display: inline-block; width: 1px; height: 25px; background: #eee; margin: 0 15px; vertical-align: middle;"></span>
-              <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix Studio" style="height: 30px; width: auto; vertical-align: middle;" />
+              <img src="https://ik.imagekit.io/dypkhqxip/logo__1_" alt="Logo" style="height: 52px; width: auto; vertical-align: middle;" />
+              <span style="display: inline-block; width: 1px; height: 32px; background: #eee; margin: 0 15px; vertical-align: middle;"></span>
+              <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix Studio" style="height: 38px; width: auto; vertical-align: middle;" />
             </div>
             
             <h2 style="font-weight: 600; font-size: 18px; margin-bottom: 15px; color: #000;">Hello ${name},</h2>

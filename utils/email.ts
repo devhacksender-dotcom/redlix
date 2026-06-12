@@ -25,7 +25,7 @@ export async function sendAutoReply({ to, name }: SendAutoReplyParams) {
         html: `
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #ddd; background-color: #ffffff; color: #333;">
                 <div style="margin-bottom: 40px; text-align: left;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio Logo" style="height: 50px; width: auto;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio Logo" style="height: 58px; width: auto;" />
                 </div>
                 
                 <h2 style="color: #E61E32; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 24px; border-left: 4px solid #E61E32; padding-left: 16px;">
@@ -81,7 +81,7 @@ export async function sendOfferLetter({ to, name, role, offerLetterLink }: SendO
         html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.5;">
                 <div style="margin-bottom: 30px;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 40px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 50px; width: auto;" />
                 </div>
                 
                 <p>Hello ${name},</p>
@@ -131,7 +131,7 @@ export async function sendSupportConfirmation({ to, name, ticketId, subject }: S
         html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.5;">
                 <div style="margin-bottom: 30px;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 40px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 50px; width: auto;" />
                 </div>
                 
                 <p>Hello ${name},</p>
@@ -193,7 +193,7 @@ export async function sendMeetingConfirmation({ to, clientName, companyName, app
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
                 <!-- Header -->
                 <div style="background-color: #ffffff; padding: 20px 40px; text-align: left; border-bottom: 1px solid #eee;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 35px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 46px; width: auto;" />
                 </div>
                 
                 <div style="padding: 40px;">
@@ -305,7 +305,7 @@ export async function sendOnboardingEmail({ to, name, role }: SendOnboardingEmai
         html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; background-color: #ffffff; color: #333;">
                 <div style="padding: 20px; border-bottom: 1px solid #eee;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 30px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 42px; width: auto;" />
                 </div>
                 
                 <div style="padding: 20px;">
@@ -378,7 +378,7 @@ export async function sendPaymentDueEmail({ to, clientName, companyName, amount,
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 650px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
                 <!-- Header -->
                 <div style="background-color: #ffffff; padding: 20px 40px; text-align: left; border-bottom: 1px solid #eee;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 35px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 46px; width: auto;" />
                 </div>
                 
                 <div style="padding: 40px;">
@@ -489,7 +489,7 @@ export async function sendPaymentReceivedEmail({ to, clientName, companyName, am
 
                 <!-- Header: Logo -->
                 <div style="padding: 24px 32px; border-bottom: 1px solid #f0f0f0; background-color: #ffffff;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 36px; width: auto; display: block;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 46px; width: auto; display: block;" />
                 </div>
 
                 <!-- Payment Success Banner Image -->
@@ -598,7 +598,7 @@ export async function sendResetPasswordEmail({ to, name, resetLink }: SendResetP
         html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; line-height: 1.5;">
                 <div style="margin-bottom: 30px;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 40px;" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 50px; width: auto;" />
                 </div>
                 
                 <p>Hello ${name},</p>
@@ -650,7 +650,7 @@ export async function sendHandRaiseNotification({ employeeName, employeeEmail, a
             <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; background-color: #ffffff; color: #1a1a1a;">
                 <!-- Header -->
                 <div style="background-color: #E61E32; padding: 24px 32px;">
-                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 30px; filter: brightness(0) invert(1);" />
+                    <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/e_colorize:100,co_white/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix Studio" style="height: 42px; width: auto; display: inline-block; vertical-align: middle;" />
                 </div>
 
                 <div style="padding: 40px 32px;">
@@ -756,7 +756,7 @@ function baseEmailWrapper(headerLabel: string, body: string): string {
                             </span>
                         </td>
                         <td style="text-align: right; vertical-align: middle; padding-bottom: 16px;">
-                            <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix" style="height: 28px; width: auto; display: inline-block;" />
+                            <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?tr=e-colorize-co-FFFFFF_in-100&updatedAt=1781042212493" alt="Redlix" style="height: 38px; width: auto; display: inline-block; vertical-align: middle;" />
                         </td>
                     </tr>
                 </table>
