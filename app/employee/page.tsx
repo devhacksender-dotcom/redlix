@@ -266,6 +266,7 @@ export default function EmployeePortal() {
     const [attendanceLoading, setAttendanceLoading] = useState(false);
     const [isPunching, setIsPunching] = useState(false);
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [isMounted, setIsMounted] = useState(false);
 
     // Meeting states (read-only for employee)
     interface EmployeeMeetingAttendee {
@@ -749,6 +750,7 @@ export default function EmployeePortal() {
     };
 
     useEffect(() => {
+        setIsMounted(true);
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
@@ -1188,6 +1190,7 @@ export default function EmployeePortal() {
     };
 
     const isWithinPunchInWindow = (() => {
+        if (!isMounted) return false;
         try {
             const formatter = new Intl.DateTimeFormat("en-US", {
                 timeZone: "Asia/Kolkata",
@@ -2141,7 +2144,7 @@ export default function EmployeePortal() {
                                                         <button
                                                             disabled={isPunching}
                                                             onClick={handlePunchOut}
-                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-[#E61E32] font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50"
+                                                            className="bg-white enabled:hover:bg-white/95 enabled:hover:scale-[1.03] enabled:active:scale-[0.97] text-[#E61E32] font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out enabled:cursor-pointer flex items-center justify-center gap-1.5 shadow-md enabled:hover:shadow-lg enabled:hover:shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             {isPunching ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -2149,13 +2152,13 @@ export default function EmployeePortal() {
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            disabled={isPunching || !isWithinPunchInWindow}
+                                                            disabled={!isMounted || isPunching || !isWithinPunchInWindow}
                                                             onClick={handlePunchIn}
-                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-black font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="bg-white enabled:hover:bg-white/95 enabled:hover:scale-[1.03] enabled:active:scale-[0.97] text-black font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out enabled:cursor-pointer flex items-center justify-center gap-1.5 shadow-md enabled:hover:shadow-lg enabled:hover:shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             {isPunching ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                            ) : !isWithinPunchInWindow ? "Closed" : "Punch In"}
+                                                            ) : (!isMounted || isWithinPunchInWindow) ? "Punch In" : "Closed"}
                                                         </button>
                                                     )}
                                                 </div>
