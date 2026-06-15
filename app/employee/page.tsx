@@ -2064,88 +2064,90 @@ export default function EmployeePortal() {
                                 {(() => {
                                     const stats = getAttendanceStats(getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt));
                                     return (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 shrink-0">
-                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-normal text-white/30">Present Days</p>
-                                                <h4 className="text-xl font-bold text-green-400">{stats.presentDays}</h4>
-                                                <p className="text-[9px] text-white/20">Checked in on-time</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-normal text-[#E61E32]">Absent Days</p>
-                                                <h4 className="text-xl font-bold text-[#E61E32]">{stats.absentDays}</h4>
-                                                <p className="text-[9px] text-white/20">Missed / Late check-ins</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-normal text-yellow-500/80">Pending Today</p>
-                                                <h4 className="text-xl font-bold text-yellow-500">{stats.pendingDays}</h4>
-                                                <p className="text-[9px] text-white/20">Before 10:00 AM today</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-normal text-white/30">Total Work Time</p>
-                                                <h4 className="text-xl font-bold text-white/90">{stats.totalHours} hrs</h4>
-                                                <p className="text-[9px] text-white/20">Accrued this period</p>
-                                            </div>
-                                            <div className="bg-white/[0.02] border border-white/5 p-3 sm:p-4 space-y-1.5 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-normal text-white/30">Avg Hours / Day</p>
-                                                <h4 className="text-xl font-bold text-white/95">{stats.avgHours} hrs</h4>
-                                                <p className="text-[9px] text-white/20">Per present day</p>
+                                        <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 shrink-0">
+                                            <StatCard
+                                                icon={<CheckCircle2 className="w-4 h-4" />}
+                                                label="Present Days"
+                                                value={stats.presentDays}
+                                                sublabel="Checked in on-time"
+                                                color="text-green-400"
+                                            />
+                                            <StatCard
+                                                icon={<AlertCircle className="w-4 h-4" />}
+                                                label="Absent Days"
+                                                value={stats.absentDays}
+                                                sublabel="Late / Missed check-ins"
+                                                color="text-[#E61E32]"
+                                            />
+                                            <StatCard
+                                                icon={<Clock className="w-4 h-4" />}
+                                                label="Pending Today"
+                                                value={stats.pendingDays}
+                                                sublabel="Before 10:00 AM"
+                                                color="text-yellow-500"
+                                            />
+                                            <StatCard
+                                                icon={<Briefcase className="w-4 h-4" />}
+                                                label="Total Work Time"
+                                                value={`${stats.totalHours} hrs`}
+                                                sublabel="Accrued this period"
+                                                color="text-white/60"
+                                            />
+                                            <StatCard
+                                                icon={<Globe className="w-4 h-4" />}
+                                                label="Avg Hours / Day"
+                                                value={`${stats.avgHours} hrs`}
+                                                sublabel="Per present day"
+                                                color="text-white/60"
+                                                className="col-span-2 lg:col-span-1"
+                                            />
+                                            {/* Punch Actions Card (inline in stats row) */}
+                                            <div id="tour-punch-controls" className="bg-[#E61E32] text-white p-3 flex items-center justify-between gap-3 col-span-2 rounded-xl shadow-lg border border-transparent shadow-[#E61E32]/5">
+                                                <div className="min-w-0 flex items-center gap-2.5">
+                                                    <div className="w-8 h-8 bg-white/15 flex items-center justify-center border border-white/20 rounded-lg shrink-0">
+                                                        <Clock className="w-4 h-4 text-white" />
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-[10px] font-semibold text-white/80 truncate">Punch Status</p>
+                                                        <p className="text-[11px] font-bold mt-0.5 truncate text-white">
+                                                            {activeAttendanceSession ? (
+                                                                `Session: ${new Date(activeAttendanceSession.punchIn).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}`
+                                                            ) : (
+                                                                "Clocked Out"
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="shrink-0">
+                                                    {activeAttendanceSession ? (
+                                                        <button
+                                                            disabled={isPunching}
+                                                            onClick={handlePunchOut}
+                                                            className="bg-white hover:bg-white/95 text-[#E61E32] font-black py-1.5 px-3.5 text-xs rounded-none transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                                                        >
+                                                            {isPunching ? (
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            ) : "Punch Out"}
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            disabled={isPunching}
+                                                            onClick={handlePunchIn}
+                                                            className="bg-white hover:bg-white/95 text-black font-black py-1.5 px-3.5 text-xs rounded-none transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                                                        >
+                                                            {isPunching ? (
+                                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                            ) : "Punch In"}
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     );
                                 })()}
 
                                 {/* Main Attendance Content */}
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 flex-grow lg:min-h-[400px]">
-                                    {/* Punch Actions Card */}
-                                    <div id="tour-punch-controls" className="bg-white/5 border border-white/5 p-5 sm:p-8 flex flex-col items-center justify-center text-center space-y-6 sm:space-y-8 min-h-[300px] sm:min-h-[350px] rounded-xl">
-                                        <div className="space-y-2">
-                                            <div className="text-4xl font-mono font-bold tracking-widest text-white/90">
-                                                {currentTime.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                                            </div>
-                                            <div className="text-xs text-white/30 uppercase tracking-widest">
-                                                {currentTime.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-4 w-full max-w-sm">
-                                            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-lg">
-                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Current Status</p>
-                                                <p className="text-sm font-semibold mt-1">
-                                                    {activeAttendanceSession ? (
-                                                        <span className="text-[#E61E32] flex items-center justify-center gap-1.5">
-                                                            <span className="w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />
-                                                            Active session started at {new Date(activeAttendanceSession.punchIn).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-white/40">You are clocked out.</span>
-                                                    )}
-                                                </p>
-                                            </div>
-
-                                            {activeAttendanceSession ? (
-                                                <button
-                                                    disabled={isPunching}
-                                                    onClick={handlePunchOut}
-                                                    className="w-full bg-[#E61E32] hover:bg-[#ff1f34] text-white font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
-                                                >
-                                                    {isPunching ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : "Punch Out"}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    disabled={isPunching}
-                                                    onClick={handlePunchIn}
-                                                    className="w-full bg-white hover:bg-white/95 text-black font-bold py-5 text-sm uppercase tracking-widest transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
-                                                >
-                                                    {isPunching ? (
-                                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                                    ) : "Punch In"}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
+                                <div className="w-full flex-grow lg:min-h-[400px]">
                                     {/* Attendance History Table */}
                                     <div className="bg-white/5 border border-white/5 p-4 sm:p-8 flex flex-col lg:overflow-hidden h-auto lg:h-full rounded-xl">
                                         <div className="mb-4 shrink-0 flex justify-between items-center">
