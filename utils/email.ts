@@ -1180,3 +1180,318 @@ export async function sendTaskAssignmentEmail({ to, employeeName, taskTitle, tas
     }
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PINK SLIP EMAILS
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface SendPinkSlipAllocationParams {
+    to: string;
+    name: string;
+    role: string;
+    allocatedAt: Date;
+    deadlineAt: Date;
+    employeePortalUrl: string;
+}
+
+export async function sendPinkSlipAllocationEmail({ to, name, role, allocatedAt, deadlineAt, employeePortalUrl }: SendPinkSlipAllocationParams) {
+    const deadlineStr = deadlineAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
+    const allocatedStr = allocatedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
+
+    const mailOptions = {
+        from: `"Redlix HR — Confidential" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `Employment Review Notice — Action Required | Redlix Studio`,
+        html: `
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d4d4d4;">
+
+            <!-- Logo row -->
+            <div style="padding:32px 40px 24px 40px;border-bottom:1px solid #e0e0e0;">
+                <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix Studio" style="height:28px;width:auto;display:block;filter:brightness(0) saturate(100%) invert(16%) sepia(89%) saturate(4000%) hue-rotate(345deg) brightness(90%) contrast(100%);" />
+            </div>
+
+            <!-- Document label -->
+            <div style="padding:28px 40px 0 40px;">
+                <p style="margin:0 0 4px 0;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.18em;text-transform:uppercase;">Human Resources — Confidential</p>
+                <h1 style="margin:0 0 6px 0;font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:-0.02em;line-height:1.2;">Employment Review Notice</h1>
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:20px 0 0 0;"></div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px 40px;">
+
+                <p style="margin:0 0 18px 0;font-size:14px;color:#1a1a1a;line-height:1.7;">Dear <strong>${name}</strong>,</p>
+
+                <p style="margin:0 0 16px 0;font-size:14px;color:#444;line-height:1.8;">
+                    Following an internal review by the Redlix Studio management team, we regret to inform you that a formal <strong>Pink Slip</strong> has been issued to your employment record, effective <strong>${allocatedStr} IST</strong>.
+                </p>
+
+                <p style="margin:0 0 24px 0;font-size:14px;color:#444;line-height:1.8;">
+                    This determination has been made on the grounds that you have not met the performance standards and Company policies applicable to your role of <strong>${role}</strong> at Redlix Studio.
+                </p>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <!-- Appeal notice table -->
+                <table style="width:100%;border-collapse:collapse;border:1px solid #d4d4d4;margin:0 0 24px 0;">
+                    <tr style="background:#f7f7f7;border-bottom:1px solid #e0e0e0;">
+                        <td colspan="2" style="padding:12px 18px;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.14em;text-transform:uppercase;">Appeal Window</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;width:38%;vertical-align:top;">Notice Issued</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">${allocatedStr} IST</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;vertical-align:top;">Appeal Deadline</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:700;color:#E61E32;">${deadlineStr} IST</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:13px 18px;font-size:12px;color:#777;vertical-align:top;">Window Duration</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">32 Hours from notice</td>
+                    </tr>
+                </table>
+
+                <p style="margin:0 0 16px 0;font-size:14px;color:#444;line-height:1.8;">
+                    If you believe this decision was made in error, you must submit a formal appeal request through your Employee Dashboard before the deadline stated above. Failure to respond within the allotted window will result in the automatic and permanent deactivation of your account and all associated access.
+                </p>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <!-- CTA -->
+                <div style="margin:0 0 28px 0;">
+                    <a href="${employeePortalUrl}" target="_blank" style="display:inline-block;background:#E61E32;color:#ffffff;font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:14px 36px;">
+                        Submit Appeal via Employee Dashboard
+                    </a>
+                </div>
+
+                <p style="margin:0;font-size:12px;color:#999;line-height:1.7;">
+                    This is a formal and confidential HR communication from Redlix Studio. If you have received this notice in error or require clarification, please contact the HR department immediately at <a href="mailto:${process.env.SMTP_EMAIL}" style="color:#1a1a1a;font-weight:600;text-decoration:none;">${process.env.SMTP_EMAIL}</a>.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:20px 40px;border-top:1px solid #e0e0e0;background:#f7f7f7;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <tr>
+                        <td style="font-size:11px;color:#aaa;line-height:1.8;">
+                            Redlix Studio &nbsp;&middot;&nbsp; Human Resources Department<br/>
+                            www.redlix.co.in &nbsp;&middot;&nbsp; This is an automated notification. Do not reply.
+                        </td>
+                        <td style="text-align:right;font-size:10px;font-weight:700;color:#d4d4d4;letter-spacing:0.12em;text-transform:uppercase;vertical-align:top;">
+                            Confidential
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Pink slip allocation email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending pink slip allocation email:", error);
+        return { success: false, error };
+    }
+}
+
+
+interface SendPinkSlipRequestReceivedParams {
+    to: string;
+    name: string;
+    requestSummary: string;
+    submittedAt: Date;
+}
+
+export async function sendPinkSlipRequestReceivedEmail({ to, name, requestSummary, submittedAt }: SendPinkSlipRequestReceivedParams) {
+    const submittedStr = submittedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
+
+    const mailOptions = {
+        from: `"Redlix HR" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `Appeal Request Received — Under Review | Redlix Studio`,
+        html: `
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d4d4d4;">
+
+            <!-- Logo row -->
+            <div style="padding:32px 40px 24px 40px;border-bottom:1px solid #e0e0e0;">
+                <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix Studio" style="height:28px;width:auto;display:block;filter:brightness(0) saturate(100%) invert(16%) sepia(89%) saturate(4000%) hue-rotate(345deg) brightness(90%) contrast(100%);" />
+            </div>
+
+            <!-- Document label -->
+            <div style="padding:28px 40px 0 40px;">
+                <p style="margin:0 0 4px 0;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.18em;text-transform:uppercase;">Human Resources</p>
+                <h1 style="margin:0 0 6px 0;font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:-0.02em;line-height:1.2;">Appeal Request Received</h1>
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:20px 0 0 0;"></div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px 40px;">
+
+                <p style="margin:0 0 18px 0;font-size:14px;color:#1a1a1a;line-height:1.7;">Dear <strong>${name}</strong>,</p>
+
+                <p style="margin:0 0 16px 0;font-size:14px;color:#444;line-height:1.8;">
+                    This is to confirm that your appeal request in response to the Pink Slip notice has been successfully received and logged in our system on <strong>${submittedStr} IST</strong>.
+                </p>
+
+                <p style="margin:0 0 24px 0;font-size:14px;color:#444;line-height:1.8;">
+                    Your submission has been forwarded to the Redlix Studio HR team for review. You will be contacted directly at this email address with the outcome of the review.
+                </p>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <!-- Submitted request block -->
+                <p style="margin:0 0 10px 0;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.14em;text-transform:uppercase;">Your Submitted Appeal</p>
+                <div style="border:1px solid #d4d4d4;padding:18px 20px;background:#f7f7f7;margin:0 0 24px 0;">
+                    <p style="margin:0;font-size:13px;color:#444;line-height:1.8;white-space:pre-wrap;">${requestSummary}</p>
+                </div>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <!-- Reference table -->
+                <table style="width:100%;border-collapse:collapse;border:1px solid #d4d4d4;margin:0 0 24px 0;">
+                    <tr style="background:#f7f7f7;border-bottom:1px solid #e0e0e0;">
+                        <td colspan="2" style="padding:12px 18px;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.14em;text-transform:uppercase;">Submission Record</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;width:38%;">Date Submitted</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">${submittedStr} IST</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:13px 18px;font-size:12px;color:#777;">Status</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:700;color:#1a7a40;">Under Review</td>
+                    </tr>
+                </table>
+
+                <p style="margin:0;font-size:12px;color:#999;line-height:1.7;">
+                    No further action is required from you at this time. If you have additional information to provide, please contact HR directly at <a href="mailto:${process.env.SMTP_EMAIL}" style="color:#1a1a1a;font-weight:600;text-decoration:none;">${process.env.SMTP_EMAIL}</a>.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:20px 40px;border-top:1px solid #e0e0e0;background:#f7f7f7;">
+                <p style="margin:0;font-size:11px;color:#aaa;line-height:1.8;">
+                    Redlix Studio &nbsp;&middot;&nbsp; Human Resources Department<br/>
+                    www.redlix.co.in &nbsp;&middot;&nbsp; This is an automated notification. Do not reply.
+                </p>
+            </div>
+
+        </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Pink slip request received email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending pink slip request received email:", error);
+        return { success: false, error };
+    }
+}
+
+
+interface SendPinkSlipTerminationParams {
+    to: string;
+    name: string;
+    role: string;
+    terminatedAt: Date;
+}
+
+export async function sendPinkSlipTerminationEmail({ to, name, role, terminatedAt }: SendPinkSlipTerminationParams) {
+    const terminatedStr = terminatedAt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
+
+    const mailOptions = {
+        from: `"Redlix HR" <${process.env.SMTP_EMAIL}>`,
+        to,
+        subject: `End of Employment — Redlix Studio`,
+        html: `
+        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #d4d4d4;">
+
+            <!-- Logo row -->
+            <div style="padding:32px 40px 24px 40px;border-bottom:1px solid #e0e0e0;">
+                <img src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493" alt="Redlix Studio" style="height:28px;width:auto;display:block;filter:brightness(0) saturate(100%) invert(16%) sepia(89%) saturate(4000%) hue-rotate(345deg) brightness(90%) contrast(100%);" />
+            </div>
+
+            <!-- Document label -->
+            <div style="padding:28px 40px 0 40px;">
+                <p style="margin:0 0 4px 0;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.18em;text-transform:uppercase;">Human Resources — Employment Notice</p>
+                <h1 style="margin:0 0 6px 0;font-size:22px;font-weight:700;color:#1a1a1a;letter-spacing:-0.02em;line-height:1.2;">End of Employment</h1>
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:20px 0 0 0;"></div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:28px 40px;">
+
+                <p style="margin:0 0 18px 0;font-size:14px;color:#1a1a1a;line-height:1.7;">Dear <strong>${name}</strong>,</p>
+
+                <p style="margin:0 0 16px 0;font-size:14px;color:#444;line-height:1.8;">
+                    This letter serves as formal confirmation that your employment as <strong>${role}</strong> at Redlix Studio has been concluded, effective <strong>${terminatedStr} IST</strong>.
+                </p>
+
+                <p style="margin:0 0 24px 0;font-size:14px;color:#444;line-height:1.8;">
+                    As the 32-hour appeal window allocated to your Pink Slip notice elapsed without a submitted response, the system has automatically processed the termination of your account and access credentials in accordance with company policy.
+                </p>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <!-- Termination details table -->
+                <table style="width:100%;border-collapse:collapse;border:1px solid #d4d4d4;margin:0 0 24px 0;">
+                    <tr style="background:#f7f7f7;border-bottom:1px solid #e0e0e0;">
+                        <td colspan="2" style="padding:12px 18px;font-size:10px;font-weight:700;color:#9a9a9a;letter-spacing:0.14em;text-transform:uppercase;">Termination Record</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;width:38%;">Employee</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">${name}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;">Role</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">${role}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #e8e8e8;">
+                        <td style="padding:13px 18px;font-size:12px;color:#777;">Effective Date</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:600;color:#1a1a1a;">${terminatedStr} IST</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:13px 18px;font-size:12px;color:#777;">Access Status</td>
+                        <td style="padding:13px 18px;font-size:13px;font-weight:700;color:#E61E32;">Permanently Revoked</td>
+                    </tr>
+                </table>
+
+                <div style="border:1px solid #d4d4d4;padding:20px;background:#f7f7f7;margin:0 0 24px 0;">
+                    <p style="margin:0;font-size:13px;color:#555;line-height:1.8;">
+                        We sincerely thank you for the time and effort you invested during your engagement with Redlix Studio. We wish you well in your future endeavours.
+                    </p>
+                </div>
+
+                <div style="width:100%;height:1px;background:#e0e0e0;margin:0 0 24px 0;"></div>
+
+                <p style="margin:0;font-size:12px;color:#999;line-height:1.7;">
+                    If you believe this termination was processed in error, please write to us at <a href="mailto:${process.env.SMTP_EMAIL}" style="color:#1a1a1a;font-weight:600;text-decoration:none;">${process.env.SMTP_EMAIL}</a> within 7 business days. Claims submitted after this period will not be considered.
+                </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="padding:20px 40px;border-top:1px solid #e0e0e0;background:#f7f7f7;">
+                <p style="margin:0;font-size:11px;color:#aaa;line-height:1.8;">
+                    Redlix Studio &nbsp;&middot;&nbsp; Human Resources Department<br/>
+                    www.redlix.co.in &nbsp;&middot;&nbsp; This is an automated notification. Do not reply.
+                </p>
+            </div>
+
+        </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`Pink slip termination email sent to ${to}`);
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending pink slip termination email:", error);
+        return { success: false, error };
+    }
+}

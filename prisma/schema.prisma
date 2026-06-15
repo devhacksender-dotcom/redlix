@@ -57,9 +57,13 @@ model Employee {
   mobile          String?
   altEmail        String?
   address         String?
-  joinedAt        DateTime @default(now())
-  createdAt       DateTime @default(now())
-  isDeptAdmin     Boolean  @default(false)
+  joinedAt              DateTime @default(now())
+  createdAt             DateTime @default(now())
+  isDeptAdmin           Boolean  @default(false)
+  pinkSlipAllocatedAt   DateTime?
+  pinkSlipRequest       String?  @db.Text
+  pinkSlipRequestAt     DateTime?
+  pinkSlipRevoked       Boolean  @default(false)
 
   tasks           Task[]
   attendance      Attendance[]

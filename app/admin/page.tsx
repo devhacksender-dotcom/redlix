@@ -101,6 +101,10 @@ interface Employee {
     address?: string;
     isDeptAdmin?: boolean;
     division?: string;
+    pinkSlipAllocatedAt?: string | null;
+    pinkSlipRequest?: string | null;
+    pinkSlipRequestAt?: string | null;
+    pinkSlipRevoked?: boolean;
 }
 
 interface SupportTicket {
@@ -309,6 +313,11 @@ export default function AdminPortal() {
     const [isSupportOpen, setIsSupportOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [attendanceSubView, setAttendanceSubView] = useState<"logs" | "today">("logs");
+
+    // Pink Slip state
+    const [pinkSlipModalEmployeeId, setPinkSlipModalEmployeeId] = useState<number | null>(null);
+    const [isPinkSlipAllocating, setIsPinkSlipAllocating] = useState(false);
+    const [showPinkSlipModal, setShowPinkSlipModal] = useState(false);
 
     // Employee Form State
     const [showAddForm, setShowAddForm] = useState(false);
@@ -1353,6 +1362,57 @@ export default function AdminPortal() {
             }
         } catch (error) {
             console.error("Failed to delete employee:", error);
+        }
+    };
+
+    const handleAllocatePinkSlip = async (employeeId: number) => {
+        setIsPinkSlipAllocating(true);
+        try {
+            const res = await fetch(`/api/admin/employees/${employeeId}/pink-slip`, { method: "POST" });
+            const data = await res.json();
+            if (data.success) {
+                // Update local employee state to reflect the pink slip
+                setEmployees(prev => prev.map(emp =>
+                    emp.id === employeeId
+                        ? { ...emp, pinkSlipAllocatedAt: new Date().toISOString(), pinkSlipRevoked: false }
+                        : emp
+                ));
+                if (selectedEmployee?.id === employeeId) {
+                    setSelectedEmployee(prev => prev ? { ...prev, pinkSlipAllocatedAt: new Date().toISOString(), pinkSlipRevoked: false } : prev);
+                }
+                setShowPinkSlipModal(false);
+                alert(`✅ Pink Slip allocated successfully. Notification email sent to the employee.`);
+            } else {
+                alert(data.message || "Failed to allocate pink slip");
+            }
+        } catch (error) {
+            console.error("Failed to allocate pink slip:", error);
+            alert("An error occurred. Please try again.");
+        } finally {
+            setIsPinkSlipAllocating(false);
+        }
+    };
+
+    const handleRevokePinkSlip = async (employeeId: number) => {
+        if (!confirm("Are you sure you want to REVOKE the pink slip for this employee? This will restore their full access.")) return;
+        try {
+            const res = await fetch(`/api/admin/employees/${employeeId}/pink-slip`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setEmployees(prev => prev.map(emp =>
+                    emp.id === employeeId
+                        ? { ...emp, pinkSlipAllocatedAt: null, pinkSlipRevoked: true }
+                        : emp
+                ));
+                if (selectedEmployee?.id === employeeId) {
+                    setSelectedEmployee(prev => prev ? { ...prev, pinkSlipAllocatedAt: null, pinkSlipRevoked: true } : prev);
+                }
+                alert("✅ Pink slip revoked. Employee access has been restored.");
+            } else {
+                alert(data.message || "Failed to revoke pink slip");
+            }
+        } catch (error) {
+            console.error("Failed to revoke pink slip:", error);
         }
     };
 
@@ -2919,7 +2979,12 @@ export default function AdminPortal() {
                                                     >
                                                         <div className="flex justify-between items-start">
                                                             <div>
-                                                                <h3 className="font-bold text-white truncate max-w-[200px]">{emp.name}</h3>
+                                                                <div className="flex items-center gap-2">
+                                                                    <h3 className="font-bold text-white truncate max-w-[160px]">{emp.name}</h3>
+                                                                    {emp.pinkSlipAllocatedAt && !emp.pinkSlipRevoked && (
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest bg-[#E61E32]/15 border border-[#E61E32]/40 text-[#E61E32] px-1.5 py-0.5 flex-shrink-0">PINK SLIP</span>
+                                                                    )}
+                                                                </div>
                                                                 <p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-wider">{emp.role}</p>
                                                             </div>
                                                             <div className="flex flex-col items-end">
@@ -2992,6 +3057,24 @@ export default function AdminPortal() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
+                                                    {/* Pink Slip Button */}
+                                                    {selectedEmployee.pinkSlipAllocatedAt && !selectedEmployee.pinkSlipRevoked ? (
+                                                        <button
+                                                            onClick={() => handleRevokePinkSlip(selectedEmployee.id)}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                                            title="Revoke Pink Slip"
+                                                        >
+                                                            <span>⚠</span> Revoke Pink Slip
+                                                        </button>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => { setPinkSlipModalEmployeeId(selectedEmployee.id); setShowPinkSlipModal(true); }}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E61E32]/10 hover:bg-[#E61E32]/20 text-[#E61E32] border border-[#E61E32]/30 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                                            title="Allocate Pink Slip"
+                                                        >
+                                                            <span>🗂</span> Pink Slip
+                                                        </button>
+                                                    )}
                                                     <button
                                                         onClick={() => setIsEditingEmployee(!isEditingEmployee)}
                                                         className={`p-2 transition-colors ${isEditingEmployee ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
@@ -6373,7 +6456,82 @@ export default function AdminPortal() {
                         </div>
                     </div>
                 </div>
-            )}
+            )}\n
+            {/* ─── PINK SLIP CONFIRMATION MODAL ─── */}
+            {showPinkSlipModal && pinkSlipModalEmployeeId && (() => {
+                const emp = employees.find(e => e.id === pinkSlipModalEmployeeId);
+                if (!emp) return null;
+                const deadline = new Date(Date.now() + 32 * 60 * 60 * 1000);
+                return (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+                        <div className="relative w-full max-w-lg bg-[#0d0d0d] border border-[#E61E32]/40 shadow-2xl animate-in zoom-in-95 duration-200">
+                            {/* Red top bar */}
+                            <div className="h-1 w-full bg-[#E61E32]" />
+
+                            <div className="p-8">
+                                {/* Header */}
+                                <div className="flex items-start justify-between mb-6">
+                                    <div>
+                                        <p className="text-[10px] font-black text-[#E61E32] tracking-[0.2em] uppercase mb-1">HR — Confidential Action</p>
+                                        <h2 className="text-2xl font-black text-white tracking-tight">Allocate Pink Slip</h2>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowPinkSlipModal(false)}
+                                        className="p-1.5 text-white/30 hover:text-white transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+
+                                {/* Employee Info */}
+                                <div className="bg-white/[0.03] border border-white/5 p-4 mb-6 flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-[#E61E32]/20 border border-[#E61E32]/30 flex items-center justify-center text-[#E61E32] font-black text-sm flex-shrink-0">
+                                        {emp.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-white text-sm">{emp.name}</p>
+                                        <p className="text-[11px] text-white/40">{emp.role} · {emp.email}</p>
+                                    </div>
+                                </div>
+
+                                {/* Warning content */}
+                                <div className="bg-[#E61E32]/5 border border-[#E61E32]/20 p-5 mb-6 space-y-3">
+                                    <p className="text-xs font-black text-[#E61E32] uppercase tracking-widest">⚠ This action will immediately:</p>
+                                    <ul className="space-y-2 text-sm text-white/70">
+                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Send a formal employment review notice to <strong className="text-white">{emp.email}</strong></li>
+                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Freeze the employee portal with only the appeal window visible</li>
+                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Start a <strong className="text-white">32-hour countdown</strong> for the employee to submit an appeal</li>
+                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Automatically <strong className="text-white">delete the account</strong> if no appeal is submitted by <strong className="text-white">{deadline.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} IST</strong></li>
+                                    </ul>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowPinkSlipModal(false)}
+                                        className="flex-1 py-3 text-sm font-bold text-white/50 border border-white/10 hover:border-white/20 hover:text-white/70 transition-all uppercase tracking-wider"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => handleAllocatePinkSlip(pinkSlipModalEmployeeId)}
+                                        disabled={isPinkSlipAllocating}
+                                        className="flex-1 py-3 text-sm font-black text-white bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest"
+                                    >
+                                        {isPinkSlipAllocating ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                Sending...
+                                            </span>
+                                        ) : "Confirm & Send Pink Slip"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
+
         </main>
     );
 }
