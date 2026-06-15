@@ -14,7 +14,8 @@
     },
     {
       "path": "/api/cron/auto-terminate-pink-slip",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     }
   ]
 }
+
