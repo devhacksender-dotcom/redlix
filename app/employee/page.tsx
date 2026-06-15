@@ -1468,15 +1468,15 @@ export default function EmployeePortal() {
                 <div className="h-[1px] bg-white/5 mx-0" />
 
                 <nav className="flex-grow space-y-1.5 px-3 pt-4 overflow-y-auto min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    {/* Category 1: Workspace */}
+                    {/* Category 1: My Work */}
                     <div className="space-y-1">
                         <button
                             type="button"
                             onClick={() => setOpenWorkspace(!openWorkspace)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
                         >
-                            <span>Core Workspace</span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
+                            <span>My Work</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openWorkspace && (
                             <div className="space-y-1 pl-1">
@@ -1523,15 +1523,15 @@ export default function EmployeePortal() {
 
                     <div className="h-[1px] bg-white/5 my-2" />
 
-                    {/* Category 2: Operations & Time */}
+                    {/* Category 2: My Time */}
                     <div className="space-y-1">
                         <button
                             type="button"
                             onClick={() => setOpenPresence(!openPresence)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
                         >
-                            <span>Operations & Time</span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
+                            <span>My Time</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openPresence && (
                             <div className="space-y-1 pl-1">
@@ -1576,15 +1576,15 @@ export default function EmployeePortal() {
 
                     <div className="h-[1px] bg-white/5 my-2" />
 
-                    {/* Category 3: Finance & Documents */}
+                    {/* Category 3: Documents & Pay */}
                     <div className="space-y-1">
                         <button
                             type="button"
                             onClick={() => setOpenFinanceDocs(!openFinanceDocs)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
                         >
-                            <span>Finance & Documents</span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
+                            <span>Documents & Pay</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openFinanceDocs && (
                             <div className="space-y-1 pl-1">
@@ -1629,15 +1629,15 @@ export default function EmployeePortal() {
 
                     <div className="h-[1px] bg-white/5 my-2" />
 
-                    {/* Category 4: Collaboration & Account */}
+                    {/* Category 4: Community & Profile */}
                     <div className="space-y-1">
                         <button
                             type="button"
                             onClick={() => setOpenAccount(!openAccount)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
                         >
-                            <span>Collaboration & Account</span>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
+                            <span>Community & Profile</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openAccount && (
                             <div className="space-y-1 pl-1">
@@ -1717,11 +1717,15 @@ export default function EmployeePortal() {
                     <div className="flex items-center justify-between px-6 h-[44px]">
                         <div className="flex items-center gap-2 text-white">
                             {/* Logo Wordmark for Mobile View / PWA */}
-                            <img
-                                src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
-                                alt="Redlix"
-                                className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain md:hidden"
-                            />
+                            <div className="flex items-center gap-2 md:hidden">
+                                <img
+                                    src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+                                    alt="Redlix"
+                                    className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain"
+                                />
+                                <div className="w-[1px] h-3 bg-white/30" />
+                                <span className="text-[11px] font-semibold uppercase tracking-wider text-white/90">Employee</span>
+                            </div>
                             {/* Breadcrumbs for Desktop View */}
                             <div className="hidden md:flex items-center gap-2 text-[12px] font-medium">
                                 <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
