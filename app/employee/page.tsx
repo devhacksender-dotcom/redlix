@@ -2123,7 +2123,7 @@ export default function EmployeePortal() {
                                                         <button
                                                             disabled={isPunching}
                                                             onClick={handlePunchOut}
-                                                            className="bg-white hover:bg-white/95 text-[#E61E32] font-black py-1.5 px-3.5 text-xs rounded-none transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-[#E61E32] font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50"
                                                         >
                                                             {isPunching ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -2133,7 +2133,7 @@ export default function EmployeePortal() {
                                                         <button
                                                             disabled={isPunching}
                                                             onClick={handlePunchIn}
-                                                            className="bg-white hover:bg-white/95 text-black font-black py-1.5 px-3.5 text-xs rounded-none transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-black font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50"
                                                         >
                                                             {isPunching ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
