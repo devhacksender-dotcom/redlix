@@ -1453,14 +1453,16 @@ export default function EmployeePortal() {
             {/* Sidebar (Desktop only) */}
             <aside className="hidden md:flex w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
                 {/* Logo */}
-                <div className="px-6 h-[54px] flex items-center shrink-0">
-                    <div className="flex items-center w-full">
+                <div className="px-6 h-[44px] flex items-center shrink-0">
+                    <div className="flex items-center gap-2 w-full">
                         <img
                             src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                             alt="Redlix Logo"
-                            className="h-[28px] w-auto object-contain"
+                            className="h-[24px] w-auto object-contain"
                             style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
                         />
+                        <div className="w-[1px] h-3 bg-white/10" />
+                        <span className="text-[12px] font-semibold text-white/90">Employee</span>
                     </div>
                 </div>
 
@@ -1724,13 +1726,13 @@ export default function EmployeePortal() {
                                     className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain"
                                 />
                                 <div className="w-[1px] h-3 bg-white/30" />
-                                <span className="text-[11px] font-semibold uppercase tracking-wider text-white/90">Employee</span>
+                                <span className="text-[11px] font-semibold text-white/90">Employee</span>
                             </div>
                             {/* Breadcrumbs for Desktop View */}
                             <div className="hidden md:flex items-center gap-2 text-[12px] font-medium">
-                                <span className="opacity-60 uppercase tracking-wider text-[11px]">Portal</span>
+                                <span className="opacity-60 text-[11px]">Portal</span>
                                 <span className="opacity-40">/</span>
-                                <span className="font-bold uppercase tracking-wider">
+                                <span className="font-bold">
                                     {activeTab === "overview" ? "Overview" :
                                         activeTab === "tasks" ? "Assigned Tasks" :
                                             activeTab === "attendance" ? "Attendance" :
@@ -1759,7 +1761,7 @@ export default function EmployeePortal() {
                         {/* Raise Hand Button - Hidden on mobile view, visible on desktop */}
                         <div className="hidden md:flex items-center gap-3">
                             {handRaiseSuccess ? (
-                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg">
+                                <div className="flex items-center gap-2 bg-white/20 px-3 py-1.5 text-white text-[11px] font-bold rounded-lg">
                                     <CheckCircle2 className="w-3.5 h-3.5" />
                                     Admin Notified!
                                 </div>
@@ -1769,7 +1771,7 @@ export default function EmployeePortal() {
                                         id="tour-raise-hand"
                                         onClick={handleRaiseHand}
                                         disabled={isRaisingHand}
-                                        className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer rounded-lg disabled:opacity-60"
+                                        className="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 px-3 py-1.5 text-white text-[11px] font-bold transition-all cursor-pointer rounded-lg disabled:opacity-60"
                                     >
                                         {isRaisingHand ? (
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1781,7 +1783,7 @@ export default function EmployeePortal() {
                                     
                                     {/* Tooltip */}
                                     <div className="absolute right-0 top-full mt-2 w-56 bg-[#0a0a0a] border border-white/10 p-3 text-[10px] leading-normal text-white/70 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 rounded-lg shadow-xl font-normal tracking-normal normal-case">
-                                        <p className="font-semibold text-white mb-1 uppercase tracking-wider text-[9px] text-[#E61E32] flex items-center gap-1.5">
+                                        <p className="font-semibold text-white mb-1 text-[9px] text-[#E61E32] flex items-center gap-1.5">
                                             <AlertCircle className="w-3 h-3 text-[#E61E32]" />
                                             Raise Hand Alert
                                         </p>
