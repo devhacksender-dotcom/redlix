@@ -1809,22 +1809,12 @@ export default function EmployeePortal() {
                                     </div>
                                     <div className="flex flex-col sm:items-end gap-1.5 shrink-0 w-full sm:w-auto">
                                         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                                            <EnableNotifications employeeId={employeeInfo?.id} />
-                                            <button
-                                                onClick={() => {
-                                                    setTourStep(0);
-                                                    setTourActive(true);
-                                                }}
-                                                className="hidden sm:flex items-center gap-1.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-[10px] font-bold uppercase tracking-wider px-3.5 py-2 rounded-none transition-all cursor-pointer"
-                                            >
-                                                Take a Tour
-                                            </button>
-                                            <div className="hidden sm:block px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold uppercase tracking-wider rounded-md">
+                                            <div className="hidden sm:block px-4 py-2 border border-[#E61E32]/25 bg-[#E61E32]/5 text-[#E61E32] text-xs font-bold rounded-md">
                                                 {employeeInfo?.role}
                                             </div>
                                         </div>
                                         {employeeInfo?.division && (
-                                            <div className="hidden sm:block px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                            <div className="hidden sm:block px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold rounded-md">
                                                 Division: {employeeInfo.division}
                                             </div>
                                         )}
