@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import {
+    Activity,
     Search,
     Mail,
     Phone,
@@ -1822,45 +1823,67 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Stats Grid */}
-                                <div id="tour-overview-stats" className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
-                                    <StatCard
-                                        icon={<ListTodo className="w-5 h-5" />}
-                                        label="Total Tasks"
-                                        value={employeeTasks.length}
-                                        sublabel={`${employeeTasks.filter(t => t.status === 'completed').length} completed`}
-                                        color="text-blue-500"
-                                    />
-                                    <StatCard
-                                        icon={<Clock className="w-5 h-5" />}
-                                        label="Pending Tasks"
-                                        value={employeeTasks.filter(t => t.status === 'pending' || t.status === 'in_progress').length}
-                                        sublabel="Awaiting action or in progress"
-                                        color="text-yellow-500"
-                                    />
-                                    <StatCard
-                                        icon={<CheckCircle2 className="w-5 h-5" />}
-                                        label="Completed Tasks"
-                                        value={employeeTasks.filter(t => t.status === 'completed').length}
-                                        sublabel="All closed duties"
-                                        color="text-green-500"
-                                    />
-                                    <StatCard
-                                        icon={<Briefcase className="w-5 h-5" />}
-                                        label="Hours Worked"
-                                        value={Number((attendanceHistory.reduce((sum, r) => sum + r.workMinutes, 0) / 60).toFixed(1))}
-                                        sublabel="Total logged work duration"
-                                        color="text-[#E61E32]"
-                                    />
-                                    <div className="col-span-2 lg:col-span-1">
-                                        <StatCard
-                                            icon={<Video className="w-5 h-5" />}
-                                            label="Meetings"
-                                            value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
-                                            sublabel={`${employeeMeetings.length} total meetings`}
-                                            color="text-pink-500"
-                                        />
-                                    </div>
-                                </div>
+                                {(() => {
+                                    const completedTasksCount = employeeTasks.filter(t => t.status === 'completed').length;
+                                    const totalTasksCount = employeeTasks.length;
+                                    const taskCompletionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 100;
+
+                                    const totalDaysCount = getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length;
+                                    const presentDaysCount = attendanceHistory.filter(r => r.workMinutes > 0).length;
+                                    const attendanceRate = totalDaysCount > 0 ? Math.round((presentDaysCount / totalDaysCount) * 100) : 100;
+
+                                    const activenessPercentage = Math.round((taskCompletionRate * 0.7) + (attendanceRate * 0.3));
+
+                                    return (
+                                        <div id="tour-overview-stats" className="grid grid-cols-2 lg:grid-cols-7 gap-3 md:gap-4">
+                                            <div className="col-span-2">
+                                                <MainStatCard
+                                                    icon={<Activity className="w-5 h-5" />}
+                                                    label="Overall Activeness"
+                                                    value={`${activenessPercentage}%`}
+                                                    sublabel={`${taskCompletionRate}% tasks | ${attendanceRate}% attendance`}
+                                                />
+                                            </div>
+                                            <StatCard
+                                                icon={<ListTodo className="w-5 h-5" />}
+                                                label="Total Tasks"
+                                                value={totalTasksCount}
+                                                sublabel={`${completedTasksCount} completed`}
+                                                color="text-blue-500"
+                                            />
+                                            <StatCard
+                                                icon={<Clock className="w-5 h-5" />}
+                                                label="Pending Tasks"
+                                                value={employeeTasks.filter(t => t.status === 'pending' || t.status === 'in_progress').length}
+                                                sublabel="Awaiting action"
+                                                color="text-yellow-500"
+                                            />
+                                            <StatCard
+                                                icon={<CheckCircle2 className="w-5 h-5" />}
+                                                label="Completed Tasks"
+                                                value={completedTasksCount}
+                                                sublabel="All closed duties"
+                                                color="text-green-500"
+                                            />
+                                            <StatCard
+                                                icon={<Briefcase className="w-5 h-5" />}
+                                                label="Hours Worked"
+                                                value={Number((attendanceHistory.reduce((sum, r) => sum + r.workMinutes, 0) / 60).toFixed(1))}
+                                                sublabel="Total duration"
+                                                color="text-[#E61E32]"
+                                            />
+                                            <div className="col-span-2 lg:col-span-1">
+                                                <StatCard
+                                                    icon={<Video className="w-5 h-5" />}
+                                                    label="Meetings"
+                                                    value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
+                                                    sublabel={`${employeeMeetings.length} total`}
+                                                    color="text-pink-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Main Overview Sections */}
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -4669,18 +4692,35 @@ export default function EmployeePortal() {
     );
 }
 
-function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNode, label: string, value: number, sublabel: string, color: string }) {
+function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, color: string }) {
     return (
-        <div className="bg-white/[0.02] border border-white/5 p-4 space-y-3 hover:border-white/10 transition-colors group rounded-xl">
-            <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 rounded-lg ${color}`}>
+        <div className="bg-white/[0.02] border border-white/5 p-3 flex items-center gap-3 hover:border-white/10 transition-colors group rounded-xl">
+            <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 rounded-lg ${color} shrink-0`}>
                 <div className="w-4 h-4 flex items-center justify-center">
                     {icon}
                 </div>
             </div>
-            <div>
-                <p className="text-[11px] font-medium text-white/40">{label}</p>
-                <h4 className="text-xl font-semibold mt-0.5">{value}</h4>
-                <p className="text-[10px] text-white/20 mt-0.5">{sublabel}</p>
+            <div className="min-w-0">
+                <p className="text-[10px] font-medium text-white/40 truncate">{label}</p>
+                <h4 className="text-base font-semibold mt-0.5 text-white">{value}</h4>
+                <p className="text-[9px] text-white/20 truncate mt-0.5">{sublabel}</p>
+            </div>
+        </div>
+    );
+}
+
+function MainStatCard({ icon, label, value, sublabel }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string }) {
+    return (
+        <div className="bg-[#E61E32] text-white p-3 flex items-center gap-3 hover:bg-[#C81428] transition-colors group rounded-xl border border-transparent shadow-lg shadow-[#E61E32]/5">
+            <div className="w-8 h-8 bg-white/15 flex items-center justify-center border border-white/20 rounded-lg shrink-0">
+                <div className="w-4 h-4 flex items-center justify-center text-white">
+                    {icon}
+                </div>
+            </div>
+            <div className="min-w-0">
+                <p className="text-[10px] font-semibold text-white/80 truncate">{label}</p>
+                <h4 className="text-base font-bold mt-0.5 text-white">{value}</h4>
+                <p className="text-[9px] text-white/70 truncate mt-0.5">{sublabel}</p>
             </div>
         </div>
     );
