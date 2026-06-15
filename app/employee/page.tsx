@@ -1477,10 +1477,10 @@ export default function EmployeePortal() {
                         <button
                             type="button"
                             onClick={() => setOpenWorkspace(!openWorkspace)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>My Work</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openWorkspace && (
                             <div className="space-y-1 pl-1">
@@ -1532,10 +1532,10 @@ export default function EmployeePortal() {
                         <button
                             type="button"
                             onClick={() => setOpenPresence(!openPresence)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>My Time</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openPresence && (
                             <div className="space-y-1 pl-1">
@@ -1585,10 +1585,10 @@ export default function EmployeePortal() {
                         <button
                             type="button"
                             onClick={() => setOpenFinanceDocs(!openFinanceDocs)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>Documents & Pay</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openFinanceDocs && (
                             <div className="space-y-1 pl-1">
@@ -1638,10 +1638,10 @@ export default function EmployeePortal() {
                         <button
                             type="button"
                             onClick={() => setOpenAccount(!openAccount)}
-                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-[#E61E32] hover:text-[#ff1f34] cursor-pointer select-none"
+                            className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>Community & Profile</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-[#E61E32] hover:text-[#ff1f34] transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
                         </button>
                         {openAccount && (
                             <div className="space-y-1 pl-1">
