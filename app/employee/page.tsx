@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Activity,
+    Zap,
     Search,
     Mail,
     Phone,
@@ -1836,14 +1837,13 @@ export default function EmployeePortal() {
 
                                     return (
                                         <div id="tour-overview-stats" className="grid grid-cols-2 lg:grid-cols-7 gap-3 md:gap-4">
-                                            <div className="col-span-2">
-                                                <MainStatCard
-                                                    icon={<Activity className="w-5 h-5" />}
-                                                    label="Overall Activeness"
-                                                    value={`${activenessPercentage}%`}
-                                                    sublabel={`${taskCompletionRate}% tasks | ${attendanceRate}% attendance`}
-                                                />
-                                            </div>
+                                            <MainStatCard
+                                                icon={<Zap className="w-5 h-5" />}
+                                                label="Overall Activeness"
+                                                value={`${activenessPercentage}%`}
+                                                sublabel={`${taskCompletionRate}% tasks | ${attendanceRate}% attendance`}
+                                                className="col-span-2"
+                                            />
                                             <StatCard
                                                 icon={<ListTodo className="w-5 h-5" />}
                                                 label="Total Tasks"
@@ -1872,15 +1872,14 @@ export default function EmployeePortal() {
                                                 sublabel="Total duration"
                                                 color="text-[#E61E32]"
                                             />
-                                            <div className="col-span-2 lg:col-span-1">
-                                                <StatCard
-                                                    icon={<Video className="w-5 h-5" />}
-                                                    label="Meetings"
-                                                    value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
-                                                    sublabel={`${employeeMeetings.length} total`}
-                                                    color="text-pink-500"
-                                                />
-                                            </div>
+                                            <StatCard
+                                                icon={<Video className="w-5 h-5" />}
+                                                label="Meetings"
+                                                value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
+                                                sublabel={`${employeeMeetings.length} total`}
+                                                color="text-pink-500"
+                                                className="col-span-2 lg:col-span-1"
+                                            />
                                         </div>
                                     );
                                 })()}
@@ -4692,9 +4691,9 @@ export default function EmployeePortal() {
     );
 }
 
-function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, color: string }) {
+function StatCard({ icon, label, value, sublabel, color, className }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, color: string, className?: string }) {
     return (
-        <div className="bg-white/[0.02] border border-white/5 p-3 flex items-center gap-3 hover:border-white/10 transition-colors group rounded-xl">
+        <div className={`bg-white/[0.02] border border-white/5 p-3 flex items-center gap-3 hover:border-white/10 transition-colors group rounded-xl ${className || ""}`}>
             <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 rounded-lg ${color} shrink-0`}>
                 <div className="w-4 h-4 flex items-center justify-center">
                     {icon}
@@ -4709,9 +4708,9 @@ function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNo
     );
 }
 
-function MainStatCard({ icon, label, value, sublabel }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string }) {
+function MainStatCard({ icon, label, value, sublabel, className }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, className?: string }) {
     return (
-        <div className="bg-[#E61E32] text-white p-3 flex items-center gap-3 hover:bg-[#C81428] transition-colors group rounded-xl border border-transparent shadow-lg shadow-[#E61E32]/5">
+        <div className={`bg-[#E61E32] text-white p-3 flex items-center gap-3 hover:bg-[#C81428] transition-colors group rounded-xl border border-transparent shadow-lg shadow-[#E61E32]/5 ${className || ""}`}>
             <div className="w-8 h-8 bg-white/15 flex items-center justify-center border border-white/20 rounded-lg shrink-0">
                 <div className="w-4 h-4 flex items-center justify-center text-white">
                     {icon}
