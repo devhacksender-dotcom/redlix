@@ -268,6 +268,8 @@ export default function EmployeePortal() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [isMounted, setIsMounted] = useState(false);
 
+    const combinedHistory = activeAttendanceSession ? [activeAttendanceSession, ...attendanceHistory] : attendanceHistory;
+
     // Meeting states (read-only for employee)
     interface EmployeeMeetingAttendee {
         id: number;
@@ -634,7 +636,15 @@ export default function EmployeePortal() {
                     ? pOut.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) 
                     : (lastLog.punchOut === null ? "Active" : "-");
                 
-                const dayWorkMinutes = logsForDay.reduce((sum, r) => sum + r.workMinutes, 0);
+                const dayWorkMinutes = logsForDay.reduce((sum, r) => {
+                    if (!r.punchOut) {
+                        const pIn = new Date(r.punchIn);
+                        const diffMs = currentTime.getTime() - pIn.getTime();
+                        const elapsed = Math.max(0, Math.floor(diffMs / 1000 / 60));
+                        return sum + elapsed;
+                    }
+                    return sum + r.workMinutes;
+                }, 0);
                 
                 report.push({
                     dateStr: dateStrKey,
@@ -1837,7 +1847,7 @@ export default function EmployeePortal() {
                                             </div>
                                         </div>
                                         {employeeInfo?.division && (
-                                            <div className="hidden sm:block px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold rounded-md">
+                                    <div className="hidden sm:block px-3 py-1 bg-white/5 border border-white/10 text-white/60 text-[10px] font-bold rounded-md">
                                                 Division: {employeeInfo.division}
                                             </div>
                                         )}
@@ -1850,20 +1860,35 @@ export default function EmployeePortal() {
                                     const totalTasksCount = employeeTasks.length;
                                     const taskCompletionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 100;
 
-                                    const totalDaysCount = getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length;
-                                    const presentDaysCount = attendanceHistory.filter(r => r.workMinutes > 0).length;
+                                    const totalDaysCount = getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).length;
+                                    const presentDaysCount = combinedHistory.filter(r => r.workMinutes > 0 || r.punchOut === null).length;
                                     const attendanceRate = totalDaysCount > 0 ? Math.round((presentDaysCount / totalDaysCount) * 100) : 100;
 
-                                    const activenessPercentage = Math.round((taskCompletionRate * 0.7) + (attendanceRate * 0.3));
+                                    // Realtime session progress calculation (target is 8 hours / 480 minutes)
+                                    let elapsedMinutes = 0;
+                                    if (activeAttendanceSession) {
+                                        const punchInTime = new Date(activeAttendanceSession.punchIn);
+                                        const diffMs = currentTime.getTime() - punchInTime.getTime();
+                                        elapsedMinutes = Math.max(0, Math.floor(diffMs / 1000 / 60));
+                                    }
+                                    const sessionProgress = Math.min(100, Math.round((elapsedMinutes / 480) * 100));
+
+                                    // Real-time activeness percentage
+                                    const activenessPercentage = activeAttendanceSession
+                                        ? Math.round((taskCompletionRate * 0.6) + (attendanceRate * 0.3) + (sessionProgress * 0.1))
+                                        : Math.round((taskCompletionRate * 0.7) + (attendanceRate * 0.3));
 
                                     return (
-                                        <div id="tour-overview-stats" className="grid grid-cols-2 lg:grid-cols-7 gap-3 md:gap-4">
+                                        <div id="tour-overview-stats" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
                                             <MainStatCard
-                                                icon={<Zap className="w-5 h-5" />}
+                                                icon={<Activity className={`w-5 h-5 ${activeAttendanceSession ? 'animate-pulse text-red-400' : 'text-white'}`} />}
                                                 label="Overall Activeness"
                                                 value={`${activenessPercentage}%`}
-                                                sublabel={`${taskCompletionRate}% tasks | ${attendanceRate}% attendance`}
-                                                className="col-span-2"
+                                                sublabel={activeAttendanceSession 
+                                                    ? `Live: ${taskCompletionRate}% tasks | ${attendanceRate}% attendance (${Math.floor(elapsedMinutes / 60)}h ${elapsedMinutes % 60}m)`
+                                                    : `${taskCompletionRate}% tasks | ${attendanceRate}% attendance`
+                                                }
+                                                className="col-span-2 lg:col-span-2"
                                             />
                                             <StatCard
                                                 icon={<ListTodo className="w-5 h-5" />}
@@ -1899,7 +1924,7 @@ export default function EmployeePortal() {
                                                 value={employeeMeetings.filter(m => new Date(m.scheduledAt) > new Date()).length}
                                                 sublabel={`${employeeMeetings.length} total`}
                                                 color="text-pink-500"
-                                                className="col-span-2 lg:col-span-1"
+                                                className="col-span-2 md:col-span-2 lg:col-span-1"
                                             />
                                         </div>
                                     );
@@ -1948,7 +1973,7 @@ export default function EmployeePortal() {
                                             Recent Attendance Logs (Cutoff: 10:00 AM)
                                         </h3>
                                         <div className="space-y-4">
-                                            {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).slice(0, 5).map(att => (
+                                            {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).slice(0, 5).map(att => (
                                                 <div key={att.dateStr} className="flex justify-between items-center p-3 bg-white/5 border border-white/5 rounded-lg">
                                                     <div>
                                                         <p className="text-sm font-semibold">{att.dateStr}</p>
@@ -2083,9 +2108,9 @@ export default function EmployeePortal() {
                             <div className="space-y-6 h-auto lg:h-full flex flex-col overflow-visible lg:overflow-y-auto pr-2 pb-6">
                                 {/* Attendance Statistics */}
                                 {(() => {
-                                    const stats = getAttendanceStats(getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt));
+                                    const stats = getAttendanceStats(getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt));
                                     return (
-                                        <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 shrink-0">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4 shrink-0">
                                             <StatCard
                                                 icon={<CheckCircle2 className="w-4 h-4" />}
                                                 label="Present Days"
@@ -2120,10 +2145,10 @@ export default function EmployeePortal() {
                                                 value={`${stats.avgHours} hrs`}
                                                 sublabel="Per present day"
                                                 color="text-white/60"
-                                                className="col-span-2 lg:col-span-1"
+                                                className="col-span-2 md:col-span-2 lg:col-span-1"
                                             />
                                             {/* Punch Actions Card (inline in stats row) */}
-                                            <div id="tour-punch-controls" className="bg-[#E61E32] text-white p-3 flex items-center justify-between gap-3 col-span-2 rounded-xl shadow-lg border border-transparent shadow-[#E61E32]/5">
+                                            <div id="tour-punch-controls" className="bg-[#E61E32] text-white p-3 flex items-center justify-between gap-3 col-span-2 md:col-span-2 lg:col-span-2 rounded-xl shadow-lg border border-transparent shadow-[#E61E32]/5">
                                                 <div className="min-w-0 flex items-center gap-2.5">
                                                     <div className="w-8 h-8 bg-white/15 flex items-center justify-center border border-white/20 rounded-lg shrink-0">
                                                         <Clock className="w-4 h-4 text-white" />
@@ -2176,10 +2201,10 @@ export default function EmployeePortal() {
                                             {/* Summary badges */}
                                             <div className="flex gap-2">
                                                 <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-widest rounded-md">
-                                                    Present: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
+                                                    Present: {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
                                                 </div>
                                                 <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold uppercase tracking-widest rounded-md">
-                                                    Absent: {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
+                                                    Absent: {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
                                                 </div>
                                             </div>
                                         </div>
@@ -2187,7 +2212,7 @@ export default function EmployeePortal() {
                                         <div className="overflow-visible lg:overflow-y-auto pr-1 flex-grow scrollbar-thin">
                                             {attendanceLoading ? (
                                                 <p className="text-white/20 text-center py-10 animate-pulse">Loading logs...</p>
-                                            ) : getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).length > 0 ? (
+                                            ) : getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).length > 0 ? (
                                                 <div className="overflow-x-auto scrollbar-thin">
                                                     <table className="w-full text-left text-xs min-w-[500px] md:min-w-0">
                                                         <thead>
@@ -2200,7 +2225,7 @@ export default function EmployeePortal() {
                                                             </tr>
                                                         </thead>
                                                         <tbody>
-                                                            {getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt).map((att) => {
+                                                            {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).map((att) => {
                                                                 const hours = Math.floor(att.workMinutes / 60);
                                                                 const mins = att.workMinutes % 60;
                                                                 const durationStr = att.punchIn !== "-" 
@@ -2234,9 +2259,11 @@ export default function EmployeePortal() {
                                     </div>
                                 </div>
                             </div>
-                        )}                        {activeTab === "settings" && (() => {
+                        )}
+
+                        {activeTab === "settings" && (() => {
                             // Local calculations for stats
-                            const report = getDailyAttendanceList(attendanceHistory, employeeInfo?.joinedAt);
+                            const report = getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt);
                             const presentCount = report.filter(r => r.status === "Present").length;
                             const workingCount = getWorkingDays();
                             const attendancePercent = workingCount > 0 ? Math.min(100, Math.round((presentCount / workingCount) * 100)) : 0;
