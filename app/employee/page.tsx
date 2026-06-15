@@ -2234,20 +2234,16 @@ export default function EmployeePortal() {
 
                             return (
                                 <div className="bg-transparent border-0 shadow-none overflow-y-auto h-full flex flex-col text-left animate-in fade-in duration-300 relative text-white scrollbar-thin pr-1 pb-10">
-                                    {/* ── Banner + Identity Header ── */}
+                                    {/* Sleek Minimal Header */}
                                     <div
                                         id="tour-profile-banner"
-                                        className="relative min-h-[16rem] sm:min-h-0 sm:h-52 w-full bg-cover bg-center shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6"
-                                        style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg") : (employeeInfo?.banner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg")}')` }}
+                                        className="relative h-28 sm:h-32 w-full shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6 bg-gradient-to-r from-neutral-950 via-neutral-900 to-[#E61E32]/10"
+                                        style={(!isEditingProfile && employeeInfo?.banner) ? { backgroundImage: `url('${employeeInfo.banner}')` } : (isEditingProfile && settingsBanner) ? { backgroundImage: `url('${settingsBanner}')` } : {}}
                                     >
-
-
                                         {/* Hover Edit Overlay */}
-                                        <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
-                                            <div className="w-10 h-10 rounded-none bg-white/10 border border-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                <Pencil className="w-4 h-4 text-white" />
-                                            </div>
-                                            <span className="tracking-widest uppercase text-[10px]">{isEditingProfile ? "Upload Custom Banner" : "Edit Profile Banner"}</span>
+                                        <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
+                                            <Pencil className="w-3.5 h-3.5 text-white" />
+                                            <span className="text-[9px] uppercase tracking-wider text-white/70">Change Cover Photo</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -2272,26 +2268,26 @@ export default function EmployeePortal() {
                                             />
                                         </label>
 
-                                        {/* Action buttons — frosted glass, top-right */}
-                                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-wrap justify-end gap-1.5 sm:gap-2 z-20 max-w-[calc(100%-2rem)]">
+                                        {/* Action buttons */}
+                                        <div className="absolute top-3 right-3 flex gap-2 z-20">
                                             <button
                                                 onClick={() => setIsEditingProfile(true)}
-                                                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[10px] sm:text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-3 py-1.5 bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 text-[10px] font-medium rounded-none transition-all flex items-center gap-1.5 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
                                             >
                                                 <Pencil className="w-3 h-3" /> Edit Profile
                                             </button>
                                             <button
                                                 onClick={() => setIsChangePasswordModalOpen(true)}
-                                                className="px-2.5 py-1.5 sm:px-3.5 sm:py-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/15 text-white font-bold text-[10px] sm:text-[11px] rounded-none transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap shadow-lg"
+                                                className="px-3 py-1.5 bg-black/40 hover:bg-black/60 border border-white/10 text-white/90 text-[10px] font-medium rounded-none transition-all flex items-center gap-1.5 cursor-pointer shadow-md hover:scale-[1.02] active:scale-[0.98]"
                                             >
                                                 <KeyRound className="w-3 h-3" /> Change Password
                                             </button>
                                         </div>
 
-                                        {/* Name + role overlaid at bottom-left of banner */}
-                                        <div className="absolute bottom-0 left-0 right-0 px-4 pb-4 sm:px-6 sm:pb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-5 z-10 pt-16 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
-                                            {/* Avatar with glowing ring */}
-                                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-none shrink-0 ring-4 ring-black/60 bg-black overflow-hidden shadow-2xl group">
+                                        {/* Profile identity info */}
+                                        <div className="absolute inset-0 px-4 sm:px-6 flex items-center gap-4 sm:gap-5 z-10 bg-gradient-to-r from-black/50 to-transparent">
+                                            {/* Avatar with simple border */}
+                                            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-none shrink-0 border border-white/10 bg-black overflow-hidden shadow-xl group">
                                                 <img
                                                     src={employeeInfo?.avatar || "https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver"}
                                                     alt="Avatar"
@@ -2301,67 +2297,38 @@ export default function EmployeePortal() {
                                                     onClick={() => setIsEditingProfile(true)}
                                                     className="absolute inset-0 bg-black/55 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white cursor-pointer rounded-none"
                                                 >
-                                                    <Pencil className="w-3.5 h-3.5" />
+                                                    <Pencil className="w-3 h-3" />
                                                 </button>
                                             </div>
                                             {/* Name + tags */}
                                             <div className="min-w-0">
-                                                <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-none drop-shadow-md">{employeeInfo?.name}</h2>
-                                                <div className="flex items-center gap-2 flex-wrap mt-2">
+                                                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">{employeeInfo?.name}</h2>
+                                                <div className="flex items-center gap-2 flex-wrap mt-1.5">
                                                     {employeeInfo?.role && (
-                                                        <span className="bg-[#E61E32]/80 text-white text-[9px] sm:text-[10px] font-bold px-2 py-0.5 sm:px-2.5 rounded-none tracking-widest uppercase shadow-md">
+                                                        <span className="bg-[#E61E32] text-white text-[8px] font-semibold px-2 py-0.5 rounded-none tracking-widest uppercase">
                                                             {employeeInfo.role}
                                                         </span>
-                                                     )}
-                                                     {employeeInfo?.division && (
-                                                        <span className="bg-white/10 backdrop-blur-sm text-white/80 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 sm:px-2.5 rounded-none border border-white/20 whitespace-nowrap">
-                                                             {employeeInfo.division}
-                                                         </span>
-                                                     )}
-                                                     {employeeInfo?.college && (
-                                                         <span className="flex items-center gap-1 text-[9px] sm:text-[10px] text-white/60 font-semibold whitespace-nowrap drop-shadow">
-                                                             <Building className="w-3 h-3 text-[#E61E32]" />
-                                                             {employeeInfo.college}
-                                                         </span>
-                                                     )}
+                                                    )}
+                                                    {employeeInfo?.division && (
+                                                        <span className="bg-white/5 text-white/70 text-[8px] font-semibold px-2 py-0.5 rounded-none border border-white/10">
+                                                            {employeeInfo.division}
+                                                        </span>
+                                                    )}
+                                                    {employeeInfo?.college && (
+                                                        <span className="flex items-center gap-1 text-[8px] text-white/50 font-medium whitespace-nowrap">
+                                                            <Building className="w-2.5 h-2.5 text-[#E61E32]" />
+                                                            {employeeInfo.college}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-
-
-
-                                    {/* Navigation Sub-Tabs */}
-                                    <div className="border border-white/5 bg-white/[0.02] backdrop-blur-md px-4 py-2 flex gap-2 shrink-0 rounded-none mb-4 items-center overflow-x-auto scrollbar-none">
-                                        {[
-                                            { id: "summary", label: "Summary" },
-                                            { id: "stats", label: "Stats" },
-                                            { id: "worked-on", label: "Worked on" },
-                                            { id: "journey", label: "My Journey" },
-                                            { id: "activity", label: "Activity" }
-                                        ].map((t) => (
-                                            <button
-                                                key={t.id}
-                                                onClick={() => {
-                                                    setActiveProfileTab(t.id);
-                                                    setIsEditingProfile(false);
-                                                }}
-                                                className={`px-4 py-2 text-xs font-bold rounded-none transition-all cursor-pointer ${
-                                                    activeProfileTab === t.id && !isEditingProfile
-                                                        ? "bg-[#E61E32] text-white shadow-md shadow-[#E61E32]/10"
-                                                        : "text-white/40 hover:text-white hover:bg-white/5"
-                                                }`}
-                                            >
-                                                {t.label}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    {/* Sub-Tab Contents */}
+                                    {/* Main Profile Content Panel */}
                                     <div className="flex-1">
                                         {isEditingProfile ? (
-                                            <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 text-slate-200">
+                                            <div className="p-4 sm:p-8 max-w-4xl mx-auto space-y-6 text-slate-200 bg-white/[0.01] border border-white/5">
                                                 <div className="flex justify-between items-center pb-4 border-b border-white/5">
                                                     <div className="flex items-center gap-2.5">
                                                         <div className="w-8 h-8 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
@@ -2391,7 +2358,7 @@ export default function EmployeePortal() {
                                                 <form onSubmit={handleSaveSettings} className="space-y-6 text-left">
                                                     {/* Avatar System */}
                                                     <div className="space-y-3">
-                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Avatar Selection</label>
+                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Profile Avatar Selection</label>
                                                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none">
                                                             {/* Large Preview */}
                                                             <div className="relative w-20 h-20 rounded-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
@@ -2496,7 +2463,7 @@ export default function EmployeePortal() {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setSettingsBanner("")}
-                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent"
+                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent border-none"
                                                                     >
                                                                         Reset Default
                                                                     </button>
@@ -2510,154 +2477,153 @@ export default function EmployeePortal() {
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {/* Name */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Full Name</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsName}
                                                                 onChange={(e) => setSettingsName(e.target.value)}
                                                                 required
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="John Doe"
                                                             />
                                                         </div>
 
                                                         {/* Bio */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Bio / Role Description</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Bio / Role Description</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsBio}
                                                                 onChange={(e) => setSettingsBio(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="Senior UI Designer & Developer"
                                                             />
                                                         </div>
 
                                                         {/* College */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">College / Institution</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">College / Institution</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsCollege}
                                                                 onChange={(e) => setSettingsCollege(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="Indian Institute of Technology"
                                                             />
                                                         </div>
 
-                                                        {/* Division (Read-only, given by Admin directly) */}
+                                                        {/* Division */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Division</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={employeeInfo?.division || ""} 
                                                                 disabled
-                                                                className="w-full bg-[#121212]/50 border border-white/5 px-3.5 py-2.5 text-xs text-white/40 cursor-not-allowed rounded-none"
+                                                                className="w-full bg-[#121212]/50 border border-white/5 px-3.5 py-2.5 text-xs text-white/40 cursor-not-allowed rounded-none font-sans"
                                                                 placeholder="Not Assigned"
                                                             />
                                                         </div>
 
                                                         {/* Phone */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Phone Number</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsPhone}
                                                                 onChange={(e) => setSettingsPhone(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="+91 98765 43210"
                                                             />
                                                         </div>
 
                                                         {/* Alternate Email */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Alternate Email</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Alternate Email</label>
                                                             <input 
                                                                 type="email" 
                                                                 value={settingsAltEmail}
                                                                 onChange={(e) => setSettingsAltEmail(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="alt@example.com"
                                                             />
                                                         </div>
 
                                                         {/* Mobile */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Emergency Mobile</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Emergency Mobile</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsMobile}
                                                                 onChange={(e) => setSettingsMobile(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="Emergency contact"
                                                             />
                                                         </div>
 
                                                         {/* UPI ID */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">UPI ID (for payments)</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">UPI ID (for payments)</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsUpiId}
                                                                 onChange={(e) => setSettingsUpiId(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="upi@bank"
                                                             />
                                                         </div>
 
                                                         {/* Father's Name */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Father&apos;s Name</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Father&apos;s Name</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsFatherName}
                                                                 onChange={(e) => setSettingsFatherName(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="Father's Full Name"
                                                             />
                                                         </div>
 
                                                         {/* Address */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Permanent Address</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Permanent Address</label>
                                                             <textarea 
                                                                 value={settingsAddress}
                                                                 onChange={(e) => setSettingsAddress(e.target.value)}
                                                                 rows={2}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed font-sans"
                                                                 placeholder="123 Studio Street, Creative District, City"
                                                             />
                                                         </div>
 
                                                         {/* Portfolio Link */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Portfolio Link</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Portfolio Link</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsPortfolioLink}
                                                                 onChange={(e) => setSettingsPortfolioLink(e.target.value)}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none font-sans"
                                                                 placeholder="https://myportfolio.com"
                                                             />
                                                         </div>
 
                                                         {/* 5-Year Vision Statement */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Where you want to see yourself in the next 5 years?</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Where you want to see yourself in the next 5 years?</label>
                                                             <textarea 
                                                                 value={settingsFutureGoals}
                                                                 onChange={(e) => setSettingsFutureGoals(e.target.value)}
                                                                 rows={3}
-                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed"
+                                                                className="w-full bg-[#121212] border border-white/10 px-3.5 py-2.5 text-xs text-white placeholder-white/20 focus:outline-none focus:border-[#E61E32] transition-colors rounded-none resize-none leading-relaxed font-sans"
                                                                 placeholder="Describe your career goals, next steps, and what you aim to master..."
                                                             />
                                                         </div>
 
                                                         {/* Social Media Links */}
-                                                        <div className="space-y-2 md:col-span-2 text-left">
+                                                        <div className="space-y-2 md:col-span-2 text-left font-sans">
                                                             <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Social Media Links</label>
                                                             <div className="space-y-2">
-                                                                {/* Existing links list */}
                                                                 {settingsSocialLinks.map((link, idx) => (
                                                                     <div key={idx} className="flex items-center gap-2 bg-[#121212] border border-white/5 px-3 py-2 rounded-none">
                                                                         <Globe className="w-3.5 h-3.5 text-white/40" />
@@ -2673,7 +2639,6 @@ export default function EmployeePortal() {
                                                                     </div>
                                                                 ))}
                                                                 
-                                                                {/* Add new link input */}
                                                                 <div className="flex gap-2">
                                                                     <input
                                                                         type="text"
@@ -2730,490 +2695,201 @@ export default function EmployeePortal() {
                                                 </form>
                                             </div>
                                         ) : (
-                                            <>
-                                                {/* SUMMARY TAB */}
-                                                {activeProfileTab === "summary" && (() => {
-                                                    // Build heatmap data for the complete year 2026
-                                                    const heatmapReport = getDailyAttendanceList(
-                                                        attendanceHistory,
-                                                        employeeInfo?.joinedAt,
-                                                        new Date(2026, 0, 1),
-                                                        new Date(2026, 11, 31)
-                                                    );
-                                                    // Sort oldest → newest for left-to-right display
-                                                    const sortedReport = [...heatmapReport].sort((a, b) => a.rawDate.getTime() - b.rawDate.getTime());
-                                                    // Group by week (columns)
-                                                    const weeks: typeof sortedReport[] = [];
-                                                    let week: typeof sortedReport = [];
-                                                    sortedReport.forEach((day, i) => {
-                                                        const dow = day.rawDate.getDay(); // 0=Sun
-                                                        if (i === 0 && dow !== 0) {
-                                                            // pad start of first week with nulls
-                                                            for (let p = 0; p < dow; p++) week.push(null as unknown as (typeof sortedReport)[0]);
-                                                        }
-                                                        week.push(day);
-                                                        if (day.rawDate.getDay() === 6 || i === sortedReport.length - 1) {
-                                                            if (i === sortedReport.length - 1 && day.rawDate.getDay() !== 6) {
-                                                                // pad end of last week with nulls
-                                                                const remaining = 6 - day.rawDate.getDay();
-                                                                for (let p = 0; p < remaining; p++) week.push(null as unknown as (typeof sortedReport)[0]);
-                                                            }
-                                                            weeks.push(week);
-                                                            week = [];
-                                                        }
-                                                    });
-                                                    const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                                                    return (
-                                                    <div className="bg-white/[0.02] border border-white/5 p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8 text-left rounded-none">
-                                                        {/* Top Stacked: Bio + Goals */}
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-                                                            {/* Left: Bio, Portfolio, Social */}
-                                                            <div className="space-y-4">
-                                                                <div className="space-y-1.5">
-                                                                    <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                                                                        <User className="w-4 h-4 text-[#E61E32]" />
-                                                                        About Me & Professional Bio
-                                                                    </h3>
-                                                                    <p className="text-xs text-white/60 leading-relaxed bg-white/[0.01] border border-white/5 p-3 rounded-none">
-                                                                        {employeeInfo?.bio || "No profile bio has been written yet. Edit your profile to introduce yourself!"}
-                                                                    </p>
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Portfolio Website</p>
-                                                                    {employeeInfo?.portfolioLink ? (
-                                                                        <a href={employeeInfo.portfolioLink.startsWith("http") ? employeeInfo.portfolioLink : `https://${employeeInfo.portfolioLink}`} target="_blank" rel="noopener noreferrer" className="text-[#E61E32] hover:underline flex items-center gap-1 mt-1 text-xs font-semibold">
-                                                                            <Globe className="w-3.5 h-3.5" />{employeeInfo.portfolioLink}<ExternalLink className="w-3 h-3" />
-                                                                        </a>
-                                                                    ) : <p className="text-xs text-white/30 italic mt-0.5">No portfolio link configured.</p>}
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Social Media Networks</p>
-                                                                    {(() => {
-                                                                        let links: string[] = [];
-                                                                        try { if (employeeInfo?.socialLinks) links = JSON.parse(employeeInfo.socialLinks); } catch (e) {}
-                                                                        return (
-                                                                            <div className="flex flex-wrap gap-2 mt-1">
-                                                                                {links.map((link, idx) => (
-                                                                                    <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-white/20 px-2.5 py-1 rounded-none text-xs text-white/80 hover:text-white flex items-center gap-1.5 transition-all">
-                                                                                        <Globe className="w-3.5 h-3.5 text-white/50" />
-                                                                                        <span>{link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</span>
-                                                                                        <ExternalLink className="w-3 h-3 text-white/30" />
-                                                                                    </a>
-                                                                                ))}
-                                                                                {links.length === 0 && <p className="text-xs text-white/30 italic mt-0.5">No social links configured.</p>}
-                                                                            </div>
-                                                                        );
-                                                                    })()}
-                                                                </div>
+                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+                                                
+                                                {/* LEFT COLUMN: BIO, CONTACT & PERSONAL DETAILS */}
+                                                <div className="lg:col-span-2 space-y-5">
+                                                    {/* Bio & Vision */}
+                                                    <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
+                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                            <User className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                            About Me & Vision
+                                                        </h3>
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-1">
+                                                                <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider">Bio</p>
+                                                                <p className="text-xs text-white/80 leading-relaxed">
+                                                                    {employeeInfo?.bio || "No profile bio has been written yet."}
+                                                                </p>
                                                             </div>
-                                                            
-                                                            <div className="h-[1px] bg-white/5 w-full lg:hidden" />
+                                                            <div className="space-y-1 pt-2 border-t border-white/5">
+                                                                <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider">5-Year Career Vision</p>
+                                                                <p className="text-xs text-white/70 leading-relaxed italic">
+                                                                    {employeeInfo?.futureGoals || "No vision goals declared yet."}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                                            {/* Right: 5 Year Vision */}
-                                                            <div className="space-y-1.5">
-                                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                                                                    <Rocket className="w-4 h-4 text-[#E61E32]" />
-                                                                    Where I Want to See Myself in Next 5 Years
-                                                                </h3>
-                                                                <div className="bg-white/[0.01] border border-white/5 p-3.5 rounded-none shadow-sm space-y-3">
-                                                                    <p className="text-xs text-white/60 leading-relaxed italic">
-                                                                        &ldquo;{employeeInfo?.futureGoals || "No vision goals declared yet. Edit your profile details to document your future milestones!"}&rdquo;
-                                                                    </p>
-                                                                    <div className="border-t border-white/5 pt-2 flex items-center gap-2 text-[9px] text-white/30">
-                                                                        <span className="w-1.5 h-1.5 bg-[#E61E32]" />
-                                                                        <span>Career Path Vision Statement</span>
-                                                                    </div>
-                                                                </div>
+                                                    {/* Profile Metadata & Contact */}
+                                                    <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
+                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                            <Building className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                            Information & Contact
+                                                        </h3>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Email Address</p>
+                                                                <p className="text-xs text-white/80 mt-0.5 truncate">{employeeInfo?.email || "-"}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Alternate Email</p>
+                                                                <p className="text-xs text-white/80 mt-0.5 truncate">{employeeInfo?.altEmail || "-"}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Phone Number</p>
+                                                                <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.phone || employeeInfo?.mobile || "-"}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">UPI ID (Payments)</p>
+                                                                <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.upiId || "-"}</p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Date Joined</p>
+                                                                <p className="text-xs text-white/80 mt-0.5">
+                                                                    {employeeInfo?.joinedAt ? new Date(employeeInfo.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : "-"}
+                                                                </p>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Father's Name</p>
+                                                                <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.fatherName || "-"}</p>
+                                                            </div>
+                                                            <div className="sm:col-span-2">
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Permanent Address</p>
+                                                                <p className="text-xs text-white/80 mt-0.5 leading-relaxed">{employeeInfo?.address || "-"}</p>
                                                             </div>
                                                         </div>
 
-                                                        <div className="h-[1px] bg-white/5 w-full" />
-
-                                                        {/* Attendance Heatmap */}
-                                                        <div className="space-y-3">
-                                                            <div className="flex items-center justify-between">
-                                                                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                                                                    <BarChart3 className="w-4 h-4 text-[#E61E32]" />
-                                                                    Attendance Heatmap — 2026
-                                                                </h3>
-                                                                <div className="flex items-center gap-3 text-[10px] text-white/40">
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none bg-emerald-500/80"></span>Present</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none bg-red-500/70"></span>Absent</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none bg-yellow-500/60"></span>Pending</span>
-                                                                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-none bg-white/5 border border-white/10"></span>No data</span>
-                                                                </div>
+                                                        {/* Portfolio & Socials */}
+                                                        <div className="mt-5 pt-4 border-t border-white/5 space-y-3">
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider mb-1.5">Portfolio Website</p>
+                                                                {employeeInfo?.portfolioLink ? (
+                                                                    <a href={employeeInfo.portfolioLink.startsWith("http") ? employeeInfo.portfolioLink : `https://${employeeInfo.portfolioLink}`} target="_blank" rel="noopener noreferrer" className="text-[#E61E32] hover:underline inline-flex items-center gap-1 text-xs font-medium">
+                                                                        <Globe className="w-3 h-3" />{employeeInfo.portfolioLink}
+                                                                    </a>
+                                                                ) : <span className="text-xs text-white/35 italic">None</span>}
                                                             </div>
-                                                            <div className="bg-white/[0.01] border border-white/5 rounded-none p-3.5 overflow-x-auto">
+                                                            <div>
+                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider mb-2">Connected Networks</p>
                                                                 {(() => {
-                                                                    const CELL = 16;
-                                                                    const GAP = 3;
-                                                                    const STEP = CELL + GAP;
-                                                                    const LABEL_W = 28;
-                                                                    const LABEL_H = 18;
-                                                                    const svgW = LABEL_W + weeks.length * STEP;
-                                                                    const svgH = LABEL_H + 7 * STEP;
-
-                                                                    const cellColor = (status: string) => {
-                                                                        if (status === 'Present') return '#22c55e';   // green
-                                                                        if (status === 'Absent')  return '#ef4444';   // red
-                                                                        if (status === 'Pending') return '#eab308';   // yellow
-                                                                        return 'rgba(255,255,255,0.04)';
-                                                                    };
-
+                                                                    let links: string[] = [];
+                                                                    try { if (employeeInfo?.socialLinks) links = JSON.parse(employeeInfo.socialLinks); } catch (e) {}
                                                                     return (
-                                                                        <svg
-                                                                            width={svgW}
-                                                                            height={svgH}
-                                                                            viewBox={`0 0 ${svgW} ${svgH}`}
-                                                                            className="overflow-visible"
-                                                                            style={{ minWidth: svgW }}
-                                                                        >
-                                                                            {/* ── Grid lines (horizontal rows) ── */}
-                                                                            {Array.from({ length: 8 }).map((_, ri) => (
-                                                                                <line
-                                                                                    key={`hr-${ri}`}
-                                                                                    x1={LABEL_W}
-                                                                                    y1={LABEL_H + ri * STEP - 1}
-                                                                                    x2={LABEL_W + weeks.length * STEP}
-                                                                                    y2={LABEL_H + ri * STEP - 1}
-                                                                                    stroke="rgba(255,255,255,0.06)"
-                                                                                    strokeWidth="1"
-                                                                                />
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            {links.map((link, idx) => (
+                                                                                <a key={idx} href={link.startsWith("http") ? link : `https://${link}`} target="_blank" rel="noopener noreferrer" className="bg-white/5 border border-white/10 hover:border-white/20 px-2.5 py-1 rounded-none text-[10px] text-white/80 hover:text-white flex items-center gap-1.5 transition-all">
+                                                                                    <Globe className="w-3 h-3 text-white/40" />
+                                                                                    <span>{link.replace(/^https?:\/\/(www\.)?/, "").split("/")[0]}</span>
+                                                                                </a>
                                                                             ))}
-                                                                            {/* ── Grid lines (vertical columns) ── */}
-                                                                            {Array.from({ length: weeks.length + 1 }).map((_, ci) => (
-                                                                                <line
-                                                                                    key={`vr-${ci}`}
-                                                                                    x1={LABEL_W + ci * STEP - 1}
-                                                                                    y1={LABEL_H}
-                                                                                    x2={LABEL_W + ci * STEP - 1}
-                                                                                    y2={LABEL_H + 7 * STEP}
-                                                                                    stroke="rgba(255,255,255,0.06)"
-                                                                                    strokeWidth="1"
-                                                                                />
-                                                                            ))}
-
-                                                                            {/* ── Day labels (left column) ── */}
-                                                                            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((d, di) => (
-                                                                                di % 2 !== 0 && (
-                                                                                    <text
-                                                                                        key={d}
-                                                                                        x={LABEL_W - 4}
-                                                                                        y={LABEL_H + di * STEP + CELL * 0.78}
-                                                                                        textAnchor="end"
-                                                                                        fontSize="9"
-                                                                                        fill="rgba(255,255,255,0.25)"
-                                                                                        fontFamily="monospace"
-                                                                                    >{d}</text>
-                                                                                )
-                                                                            ))}
-
-                                                                            {/* ── Week columns: month label + cells ── */}
-                                                                            {weeks.map((wk, wi) => {
-                                                                                const firstReal = wk.find(d => d != null);
-                                                                                const monthLabel = wk.find(d => d && d.rawDate.getDate() === 1);
-                                                                                const showLabel = wi === 0 ? firstReal : monthLabel;
-                                                                                const labelDate = wi === 0 ? firstReal : monthLabel;
-                                                                                return (
-                                                                                    <g key={wi}>
-                                                                                        {/* Month label */}
-                                                                                        {showLabel && labelDate && (
-                                                                                            <text
-                                                                                                x={LABEL_W + wi * STEP}
-                                                                                                y={LABEL_H - 4}
-                                                                                                fontSize="9"
-                                                                                                fill="rgba(255,255,255,0.25)"
-                                                                                                fontFamily="monospace"
-                                                                                            >
-                                                                                                {labelDate.rawDate.toLocaleString('default', { month: 'short' })}
-                                                                                            </text>
-                                                                                        )}
-                                                                                        {/* 7 day cells */}
-                                                                                        {Array.from({ length: 7 }).map((_, di) => {
-                                                                                            const cell = wk[di];
-                                                                                            const x = LABEL_W + wi * STEP;
-                                                                                            const y = LABEL_H + di * STEP;
-                                                                                            const fill = cell ? cellColor(cell.status) : 'rgba(255,255,255,0.04)';
-                                                                                            const opacity = cell?.status === 'Present' ? 0.85 : cell?.status === 'Absent' ? 0.75 : cell?.status === 'Pending' ? 0.7 : 1;
-                                                                                            return (
-                                                                                                <rect
-                                                                                                    key={di}
-                                                                                                    x={x}
-                                                                                                    y={y}
-                                                                                                    width={CELL}
-                                                                                                    height={CELL}
-                                                                                                    rx="2"
-                                                                                                    fill={fill}
-                                                                                                    opacity={opacity}
-                                                                                                    className="cursor-default transition-opacity hover:opacity-100"
-                                                                                                >
-                                                                                                    {cell && (
-                                                                                                        <title>{cell.dateStr} — {cell.status}{cell.punchIn !== '-' ? ` · In: ${cell.punchIn}` : ''}</title>
-                                                                                                    )}
-                                                                                                </rect>
-                                                                                            );
-                                                                                        })}
-                                                                                    </g>
-                                                                                );
-                                                                            })}
-                                                                        </svg>
+                                                                            {links.length === 0 && <span className="text-xs text-white/35 italic">No social profiles added</span>}
+                                                                        </div>
                                                                     );
                                                                 })()}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    );
-                                                })()}
+                                                </div>
 
-                                                {/* STATS TAB */}
-                                                {activeProfileTab === "stats" && (
-                                                    <div className="p-4 sm:p-8 grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-                                                        {/* Left Circular Progress Card */}
-                                                        <div className="lg:col-span-1 flex flex-col items-center justify-start">
-                                                            <div className="bg-white/[0.02] border border-white/5 p-6 rounded-none w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center justify-center shadow-sm">
-                                                                <div className="relative flex items-center justify-center">
-                                                                    <svg height="110" width="110" className="transform -rotate-90">
-                                                                        <circle stroke="rgba(255,255,255,0.05)" fill="transparent" strokeWidth="8" r="44" cx="55" cy="55" />
-                                                                        <circle
-                                                                            stroke="#E61E32"
-                                                                            fill="transparent"
-                                                                            strokeWidth="8"
-                                                                            strokeDasharray={`${2 * Math.PI * 44}`}
-                                                                            style={{
-                                                                                strokeDashoffset: `${2 * Math.PI * 44 - (attendancePercent / 100) * 2 * Math.PI * 44}`,
-                                                                                transition: 'stroke-dashoffset 0.35s'
-                                                                            }}
-                                                                            strokeLinecap="round"
-                                                                            r="44"
-                                                                            cx="55"
-                                                                            cy="55"
-                                                                        />
-                                                                    </svg>
-                                                                    <div className="absolute text-2xl font-bold text-white">{attendancePercent}%</div>
-                                                                </div>
-                                                                <div className="text-center mt-4 space-y-0.5">
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Attendance</p>
-                                                                    <p className="text-xs font-semibold text-white/70">My progress</p>
-                                                                </div>
+                                                {/* RIGHT COLUMN: ATTENDANCE STATS & RECENT TASKS */}
+                                                <div className="lg:col-span-1 space-y-5">
+                                                    {/* Work & Attendance Stats */}
+                                                    <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
+                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                            <BarChart3 className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                            Work & Attendance
+                                                        </h3>
+                                                        
+                                                        <div className="flex items-center gap-4 mb-5 pb-4 border-b border-white/5">
+                                                            <div className="relative flex items-center justify-center shrink-0">
+                                                                <svg height="70" width="70" className="transform -rotate-90">
+                                                                    <circle stroke="rgba(255,255,255,0.05)" fill="transparent" strokeWidth="5" r="28" cx="35" cy="35" />
+                                                                    <circle
+                                                                        stroke="#E61E32"
+                                                                        fill="transparent"
+                                                                        strokeWidth="5"
+                                                                        strokeDasharray={`${2 * Math.PI * 28}`}
+                                                                        style={{
+                                                                            strokeDashoffset: `${2 * Math.PI * 28 - (attendancePercent / 100) * 2 * Math.PI * 28}`,
+                                                                            transition: 'stroke-dashoffset 0.35s'
+                                                                        }}
+                                                                        strokeLinecap="round"
+                                                                        r="28"
+                                                                        cx="35"
+                                                                        cy="35"
+                                                                    />
+                                                                </svg>
+                                                                <div className="absolute text-sm font-bold text-white">{attendancePercent}%</div>
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-bold text-white">Attendance Rate</p>
+                                                                <p className="text-[10px] text-white/50 mt-0.5">Tracked over {workingCount} business days</p>
                                                             </div>
                                                         </div>
 
-                                                        {/* Right Stats Grid */}
-                                                        <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                            {/* Streak */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-none bg-orange-500/10 flex items-center justify-center border border-orange-500/20 text-orange-400">
-                                                                    <Flame className="w-4 h-4 fill-current" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Current Streak</p>
-                                                                    <h4 className="text-2xl font-bold text-white mt-1">{streakCount} days</h4>
-                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Consecutive login</p>
-                                                                </div>
+                                                        {/* Mini Stats Grid */}
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
+                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Active Streak</p>
+                                                                <p className="text-sm font-bold text-white mt-0.5 flex items-center gap-1">
+                                                                    <Flame className="w-3.5 h-3.5 text-orange-500 fill-current" />
+                                                                    {streakCount} d
+                                                                </p>
                                                             </div>
-                                                            {/* Working Days */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-none bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
-                                                                    <Calendar className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Working Days</p>
-                                                                    <h4 className="text-2xl font-bold text-white mt-1">{workingCount}</h4>
-                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Tracked days</p>
-                                                                </div>
+                                                            <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
+                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Days Present</p>
+                                                                <p className="text-sm font-bold text-white mt-0.5">{presentCount} d</p>
                                                             </div>
-                                                            {/* Days Present */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-none bg-green-500/10 flex items-center justify-center border border-green-500/20 text-green-400">
-                                                                    <CheckCircle2 className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Days Present</p>
-                                                                    <h4 className="text-2xl font-bold text-white mt-1">{presentCount}</h4>
-                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Present days</p>
-                                                                </div>
+                                                            <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
+                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Late Arrivals</p>
+                                                                <p className="text-sm font-bold text-white mt-0.5">{lateCount} d</p>
                                                             </div>
-                                                            {/* Leaves */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-none bg-pink-500/10 flex items-center justify-center border border-pink-500/20 text-pink-400">
-                                                                    <Clock className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Leaves</p>
-                                                                    <h4 className="text-2xl font-bold text-white mt-1">{approvedLeavesCount}</h4>
-                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Official leaves</p>
-                                                                </div>
-                                                            </div>
-                                                            {/* Late Arrivals */}
-                                                            <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none space-y-3 shadow-sm hover:border-white/10 transition-colors">
-                                                                <div className="w-8 h-8 rounded-none bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 text-yellow-400">
-                                                                    <Clock className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-bold text-white/40 tracking-wider">Late Arrivals</p>
-                                                                    <h4 className="text-2xl font-bold text-white mt-1">{lateCount}</h4>
-                                                                    <p className="text-[10px] text-white/30 font-medium mt-0.5">Late days</p>
-                                                                </div>
+                                                            <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
+                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Leaves Taken</p>
+                                                                <p className="text-sm font-bold text-white mt-0.5">{approvedLeavesCount}</p>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                )}
 
-                                        {/* WORKED ON TAB */}
-                                        {activeProfileTab === "worked-on" && (
-                                            <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
-                                                <div>
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <div>
-                                                            <h3 className="text-base font-bold text-white">Worked on</h3>
-                                                            <p className="text-xs text-white/40 mt-0.5">Others will only see what they can access.</p>
+                                                    {/* Recent Deliverables */}
+                                                    <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
+                                                        <div className="flex justify-between items-center mb-3">
+                                                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                                                <FileText className="w-3.5 h-3.5 text-[#E61E32]" />
+                                                                Recent Tasks
+                                                            </h3>
+                                                            <button 
+                                                                onClick={() => setActiveTab("tasks")} 
+                                                                className="text-[10px] font-bold text-[#E61E32] hover:underline cursor-pointer bg-transparent border-none"
+                                                            >
+                                                                All Tasks
+                                                            </button>
                                                         </div>
-                                                        <button 
-                                                            onClick={() => setActiveTab("tasks")} 
-                                                            className="text-xs font-bold text-[#E61E32] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-none"
-                                                        >
-                                                            View all <ExternalLink className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    <div className="bg-white/[0.01] border border-white/5 rounded-none overflow-hidden shadow-sm">
-                                                        <div className="divide-y divide-white/5">
-                                                            {employeeTasks.slice(0, 5).map((task) => (
-                                                                <div key={task.id} className="p-4 flex items-center gap-4 hover:bg-white/[0.02] transition-colors">
-                                                                    <div className="w-9 h-9 rounded-none bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400 shrink-0">
-                                                                        <FileText className="w-4.5 h-4.5" />
-                                                                    </div>
-                                                                    <div className="min-w-0 flex-1 text-left">
-                                                                        <p className="text-xs font-bold text-white/90 truncate">{task.title}</p>
-                                                                        <p className="text-[10px] text-white/35 font-semibold mt-0.5">
-                                                                            {task.status.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase())} • {task.deadline ? `Due ${new Date(task.deadline).toLocaleDateString()}` : "No deadline"}
-                                                                        </p>
+                                                        <div className="space-y-2">
+                                                            {employeeTasks.slice(0, 3).map((task) => (
+                                                                <div key={task.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-none hover:bg-white/[0.04] transition-colors">
+                                                                    <p className="text-xs font-bold text-white/90 truncate">{task.title}</p>
+                                                                    <div className="flex justify-between items-center mt-1.5">
+                                                                        <span className="text-[8px] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/60">
+                                                                            {task.status.replace("_", " ")}
+                                                                        </span>
+                                                                        {task.deadline && (
+                                                                            <span className="text-[8px] text-white/35 font-medium">
+                                                                                {new Date(task.deadline).toLocaleDateString()}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             ))}
                                                             {employeeTasks.length === 0 && (
-                                                                <div className="p-8 text-center text-white/40 text-xs font-medium">No assigned tasks found.</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div>
-                                                        <h3 className="text-base font-bold text-white mb-4">Places you work in</h3>
-                                                        <div className="bg-white/[0.02] border border-white/5 p-5 rounded-none shadow-sm flex items-center gap-4 hover:border-white/10 transition-all">
-                                                            <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center text-[#E61E32] font-black text-xs shrink-0">
-                                                                RX
-                                                            </div>
-                                                            <div className="text-left">
-                                                                <p className="text-[10px] text-white/40 font-bold tracking-wider">Workspace</p>
-                                                                <p className="text-xs font-bold text-white/90 mt-0.5">Redlix Studio Portal</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div>
-                                                        <h3 className="text-base font-bold text-white mb-4">Works with</h3>
-                                                        <div className="flex flex-wrap gap-2.5">
-                                                            {uniqueCollaborators.slice(0, 8).map((collab) => (
-                                                                <div
-                                                                    key={collab.id}
-                                                                    className="bg-white/[0.02] border border-white/5 pl-2.5 pr-3 py-1.5 rounded-none flex items-center gap-2 text-xs font-bold text-white/70 shadow-sm"
-                                                                    title={collab.role}
-                                                                >
-                                                                    <div className="w-5.5 h-5.5 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] text-[9px] font-black shrink-0">
-                                                                        {collab.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
-                                                                    </div>
-                                                                    <span>{collab.name}</span>
-                                                                </div>
-                                                            ))}
-                                                            {uniqueCollaborators.length === 0 && (
-                                                                <div className="bg-white/[0.02] border border-white/5 px-4 py-2.5 rounded-none text-xs text-white/40 font-semibold w-full text-center">
-                                                                    No team collaborators found.
-                                                                </div>
+                                                                <div className="text-center text-white/30 py-6 text-xs italic">No assigned deliverables</div>
                                                             )}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
-
-                                        {/* MY JOURNEY TAB */}
-                                        {activeProfileTab === "journey" && (
-                                            <div className="p-4 sm:p-8 text-left max-w-xl mx-auto">
-                                                <h3 className="text-base font-bold text-white mb-6 flex items-center gap-2">
-                                                    <Sparkles className="w-4.5 h-4.5 text-[#E61E32]" />
-                                                    My Journey at Redlix Studio
-                                                </h3>
-                                                
-                                                <div className="relative border-l-2 border-white/5 pl-6 space-y-8 ml-3">
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none bg-[#0b0b0b] border-4 border-[#E61E32] shadow-sm flex items-center justify-center" />
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">
-                                                                {employeeInfo?.joinedAt ? new Date(employeeInfo.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : "June 2026"}
-                                                            </p>
-                                                            <p className="text-xs font-bold text-white/90">Joined Redlix Studio</p>
-                                                            <p className="text-xs text-white/50">Began career journey as a {employeeInfo?.role || "Team Member"}.</p>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">Onboarding Milestone</p>
-                                                            <p className="text-xs font-bold text-white/90">Onboarding & Setup Complete</p>
-                                                            <p className="text-xs text-white/50">Completed portal registration, set up profile details, and verified credentials.</p>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="relative">
-                                                        <div className="absolute -left-[31px] top-0.5 w-4.5 h-4.5 rounded-none bg-[#0b0b0b] border-4 border-white/10 shadow-sm flex items-center justify-center" />
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-white/40 tracking-wider">Active Contributions</p>
-                                                            <p className="text-xs font-bold text-white/90">Assigned Gigs Progress</p>
-                                                            <p className="text-xs text-white/50">Successfully contributed to active projects and closed {employeeTasks.filter(t => t.status === 'completed').length} client deliverables.</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* ACTIVITY TAB */}
-                                        {activeProfileTab === "activity" && (
-                                            <div className="p-4 sm:p-8 text-left max-w-xl mx-auto space-y-6">
-                                                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                                                    <Clock className="w-4.5 h-4.5 text-[#E61E32]" />
-                                                    Recent Activity Logs
-                                                </h3>
-                                                
-                                                <div className="space-y-4">
-                                                    {report.slice(0, 10).map((att, idx) => (
-                                                        <div key={idx} className="flex gap-4 items-start p-4 bg-white/[0.02] border border-white/5 rounded-none shadow-sm">
-                                                            <div className={`w-8 h-8 rounded-none flex items-center justify-center shrink-0 border ${
-                                                                att.status === "Present" ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-red-500/10 text-red-600 border-red-500/20"
-                                                            }`}>
-                                                                <Clock className="w-4 h-4" />
-                                                            </div>
-                                                            <div className="min-w-0 flex-1">
-                                                                <p className="text-xs font-bold text-white/90">{att.dateStr}</p>
-                                                                <p className="text-[10px] text-white/50 mt-0.5">
-                                                                    Status: <span className="font-bold">{att.status}</span> ({att.statusReason})
-                                                                </p>
-                                                                <p className="text-[10px] text-white/35 font-semibold">
-                                                                    Logged check-in: {att.punchIn} | check-out: {att.punchOut}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                    {report.length === 0 && (
-                                                        <div className="py-8 text-center text-white/40 text-xs font-medium">No recent activities recorded.</div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </>
-                                )}
                                     </div>
                                 </div>
                             );
