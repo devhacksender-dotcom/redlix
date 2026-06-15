@@ -5,7 +5,6 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || "default_secret");
 
-    // 1. Process requests starting with /admin
     if (pathname.startsWith("/admin")) {
         if (pathname === "/admin/login") {
             return NextResponse.next();
@@ -26,7 +25,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 2. Process requests starting with /employee
     if (pathname.startsWith("/employee")) {
         if (pathname === "/employee/login" || pathname === "/employee/reset-password") {
             return NextResponse.next();
@@ -47,7 +45,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 3. Protect employee APIs
     if (pathname.startsWith("/api/employee")) {
         if (
             pathname === "/api/employee/login" ||
@@ -70,7 +67,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 4. Protect administrative APIs (Permit either admin_token or employee_token)
     if (pathname.startsWith("/api/admin")) {
         if (pathname === "/api/admin/login") {
             return NextResponse.next();
@@ -78,22 +74,21 @@ export async function middleware(request: NextRequest) {
 
         const adminToken = request.cookies.get("admin_token")?.value;
         const employeeToken = request.cookies.get("employee_token")?.value;
+        const isInternSupportApi = pathname.startsWith("/api/admin/intern-support");
 
         if (adminToken) {
             try {
                 await jwtVerify(adminToken, secret);
                 return NextResponse.next();
             } catch (error) {
-                // fall through to check employee token if admin token failed
             }
         }
 
-        if (employeeToken) {
+        if (isInternSupportApi && employeeToken) {
             try {
                 await jwtVerify(employeeToken, secret);
                 return NextResponse.next();
             } catch (error) {
-                // both tokens invalid
             }
         }
 
@@ -103,7 +98,6 @@ export async function middleware(request: NextRequest) {
         );
     }
 
-    // 5. Process requests starting with /department
     if (pathname.startsWith("/department")) {
         if (pathname === "/department/login") {
             return NextResponse.next();
@@ -124,7 +118,6 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 6. Protect department APIs
     if (pathname.startsWith("/api/department")) {
         if (pathname === "/api/department/login") {
             return NextResponse.next();
@@ -148,10 +141,13 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
+        "/admin",
         "/admin/:path*",
         "/api/admin/:path*",
+        "/employee",
         "/employee/:path*",
         "/api/employee/:path*",
+        "/department",
         "/department/:path*",
         "/api/department/:path*",
     ],

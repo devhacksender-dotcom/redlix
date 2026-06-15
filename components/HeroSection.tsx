@@ -4,14 +4,14 @@ import Link from "next/link";
 export default function HeroSection() {
     return (
         <section
-            className="hero-section w-full bg-white bg-[length:100%_auto] bg-no-repeat font-sans pt-24 pb-8 lg:pt-32 lg:pb-10 bg-[center_-3rem] sm:bg-[center_-4rem] lg:bg-[center_-5rem]"
+            className="hero-section w-full bg-white bg-[length:100%_auto] bg-no-repeat font-sans pt-20 pb-4 lg:pt-26 lg:pb-6 bg-[center_-3rem] sm:bg-[center_-4rem] lg:bg-[center_-5rem]"
             style={{ backgroundImage: "url('/cloud-bg.png')" }}
         >
             <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-12">
-                <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-8 min-h-[420px]">
+                <div className="flex flex-col-reverse lg:flex-row items-center justify-between gap-12 lg:gap-8 min-h-[360px]">
                     <div className="w-full lg:w-[45%] flex flex-col justify-center text-center lg:text-left">
                         {/* Interactive Badge Pill */}
-                        <div className="flex justify-center lg:justify-start mb-5">
+                        <div className="flex justify-center lg:justify-start mb-4">
                             <Link
                                 href="/portfolio"
                                 className="inline-flex items-center gap-2 px-4 py-1.5 bg-white hover:bg-zinc-50 border border-zinc-200/80 rounded-full text-zinc-800 text-[13px] font-medium transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 group"
@@ -41,7 +41,7 @@ export default function HeroSection() {
                             Sleek IT solutions <br className="hidden lg:block" />
                             for growing brands.
                         </h1>
-                        <p className="text-[15px] lg:text-[16px] text-[#5f6368] leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-normal font-sans">
+                        <p className="text-[15px] lg:text-[16px] text-[#5f6368] leading-relaxed mb-6 max-w-md mx-auto lg:mx-0 font-normal font-sans">
                             We design, build, and scale high-performance digital products and custom software.
                         </p>
                         <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4">
