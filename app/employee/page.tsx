@@ -1482,7 +1482,7 @@ export default function EmployeePortal() {
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("overview")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Globe className="w-4 h-4 text-white/60" />
                                     <span>Overview</span>
@@ -1490,7 +1490,7 @@ export default function EmployeePortal() {
                                 <button
                                     id="tour-sidebar-tasks"
                                     onClick={() => setActiveTab("tasks")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <ListTodo className="w-4 h-4 text-white/60" />
@@ -1505,7 +1505,7 @@ export default function EmployeePortal() {
                                 <button
                                     id="tour-sidebar-submissions"
                                     onClick={() => setActiveTab("submissions")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Send className="w-4 h-4 text-white/60" />
@@ -1537,14 +1537,14 @@ export default function EmployeePortal() {
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("attendance")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Clock className="w-4 h-4 text-white/60" />
                                     <span>Attendance</span>
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("meetings")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Video className="w-4 h-4 text-white/60" />
@@ -1558,7 +1558,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("leaves")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4 text-white/60" />
@@ -1590,7 +1590,7 @@ export default function EmployeePortal() {
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("documents")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-4 h-4 text-white/60" />
@@ -1604,7 +1604,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("declarations")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FolderUp className="w-4 h-4 text-white/60" />
@@ -1618,7 +1618,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payrolls")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <CreditCard className="w-4 h-4 text-white/60" />
                                     <span>Payrolls</span>
@@ -1644,7 +1644,7 @@ export default function EmployeePortal() {
                                 <button
                                     id="tour-sidebar-community"
                                     onClick={() => setActiveTab("community")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <MessageSquare className="w-4 h-4 text-white/60" />
@@ -1658,7 +1658,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("settings")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <User className="w-4 h-4 text-white/60" />
                                     <span>Profile & Settings</span>
