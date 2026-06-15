@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Mail, Loader2, ArrowLeft, Download, X, Smartphone, ShieldAlert } from "lucide-react";
+import { getAuth, signInWithPopup, GoogleAuthProvider, OAuthProvider } from "firebase/auth";
+import { app } from "@/lib/firebase";
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -22,26 +24,84 @@ export default function EmployeeLogin() {
     const [socialModal, setSocialModal] = useState<"none" | "google" | "apple">("none");
     const [socialEmail, setSocialEmail] = useState("");
     const [socialChecking, setSocialChecking] = useState(false);
-    const [socialStatus, setSocialStatus] = useState<"input" | "error">("input");
+    const [socialStatus, setSocialStatus] = useState<"checking" | "error">("checking");
 
-    const handleSocialLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!socialEmail) return;
+    const handleGoogleLogin = async () => {
         setSocialChecking(true);
+        setError("");
+        setSocialEmail("");
+        setSocialStatus("checking");
         try {
+            const auth = getAuth(app);
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: "select_account" });
+            const result = await signInWithPopup(auth, provider);
+            const userEmail = result.user?.email;
+            if (!userEmail) {
+                setError("Could not retrieve email from Google account.");
+                return;
+            }
+            setSocialEmail(userEmail);
+            setSocialModal("google");
+
             const res = await fetch("/api/employee/social-login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: socialEmail }),
+                body: JSON.stringify({ email: userEmail }),
             });
             const data = await res.json();
             if (res.ok && data.success) {
+                setSocialModal("none");
                 router.push("/employee");
             } else {
                 setSocialStatus("error");
             }
-        } catch {
-            setSocialStatus("error");
+        } catch (err: any) {
+            console.error("Google Login Error:", err);
+            if (err.code !== "auth/popup-closed-by-user") {
+                setError(err.message || "Google login failed.");
+            }
+            setSocialModal("none");
+        } finally {
+            setSocialChecking(false);
+        }
+    };
+
+    const handleAppleLogin = async () => {
+        setSocialChecking(true);
+        setError("");
+        setSocialEmail("");
+        setSocialStatus("checking");
+        try {
+            const auth = getAuth(app);
+            const provider = new OAuthProvider("apple.com");
+            const result = await signInWithPopup(auth, provider);
+            const userEmail = result.user?.email;
+            if (!userEmail) {
+                setError("Could not retrieve email from Apple account.");
+                return;
+            }
+            setSocialEmail(userEmail);
+            setSocialModal("apple");
+
+            const res = await fetch("/api/employee/social-login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: userEmail }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setSocialModal("none");
+                router.push("/employee");
+            } else {
+                setSocialStatus("error");
+            }
+        } catch (err: any) {
+            console.error("Apple Login Error:", err);
+            if (err.code !== "auth/popup-closed-by-user") {
+                setError(err.message || "Apple login failed.");
+            }
+            setSocialModal("none");
         } finally {
             setSocialChecking(false);
         }
@@ -269,8 +329,9 @@ export default function EmployeeLogin() {
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     type="button"
-                                    onClick={() => { setSocialModal("google"); setSocialEmail(""); setSocialStatus("input"); }}
-                                    className="flex items-center justify-center gap-2 border border-white/10 bg-[#151515] hover:bg-[#1d1d1d] hover:border-white/20 transition-all py-2 cursor-pointer"
+                                    disabled={socialChecking}
+                                    onClick={handleGoogleLogin}
+                                    className="flex items-center justify-center gap-2 border border-white/10 bg-[#151515] hover:bg-[#1d1d1d] hover:border-white/20 transition-all py-2 cursor-pointer disabled:opacity-50"
                                 >
                                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
                                         <path
@@ -294,8 +355,9 @@ export default function EmployeeLogin() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => { setSocialModal("apple"); setSocialEmail(""); setSocialStatus("input"); }}
-                                    className="flex items-center justify-center gap-2 border border-white/10 bg-[#151515] hover:bg-[#1d1d1d] hover:border-white/20 transition-all py-2 cursor-pointer"
+                                    disabled={socialChecking}
+                                    onClick={handleAppleLogin}
+                                    className="flex items-center justify-center gap-2 border border-white/10 bg-[#151515] hover:bg-[#1d1d1d] hover:border-white/20 transition-all py-2 cursor-pointer disabled:opacity-50"
                                 >
                                     <svg className="w-3.5 h-3.5 fill-white" viewBox="0 0 16 16">
                                         <path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/>
@@ -438,70 +500,18 @@ export default function EmployeeLogin() {
                             <X className="w-4 h-4" />
                         </button>
 
-                        {socialStatus === "input" ? (
-                            <form onSubmit={handleSocialLogin} className="space-y-4">
-                                <div className="flex flex-col items-center text-center gap-2 mb-2">
-                                    <div className="p-3 bg-white/5 border border-white/10">
-                                        {socialModal === "google" ? (
-                                            <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                                <path
-                                                    fill="#EA4335"
-                                                    d="M12 5.04c1.66 0 3.2.57 4.38 1.69l3.27-3.27C17.67 1.47 15.01 1 12 1 7.24 1 3.23 3.65 1.12 7.54l3.85 2.99C5.9 7.42 8.7 5.04 12 5.04z"
-                                                />
-                                                <path
-                                                    fill="#4285F4"
-                                                    d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.75-4.88 3.75-8.52z"
-                                                />
-                                                <path
-                                                    fill="#FBBC05"
-                                                    d="M5.87 14.53A6.98 6.98 0 015.5 12c0-.88.16-1.73.44-2.52L2.09 6.49A11.94 11.94 0 001 12c0 2.05.52 4.02 1.44 5.76l3.43-3.23z"
-                                                />
-                                                <path
-                                                    fill="#34A853"
-                                                    d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.1.74-2.51 1.18-4.3 1.18-3.3 0-6.1-2.38-7.03-5.49L1.12 15.93C3.23 19.82 7.24 23 12 23z"
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <svg className="w-6 h-6 fill-white" viewBox="0 0 16 16">
-                                                <path d="M11.182.008C11.148-.03 9.923.023 8.857 1.18c-1.066 1.156-.902 2.482-.878 2.516s1.52.087 2.475-1.258.762-2.391.728-2.43m3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422s1.675-2.789 1.698-2.854-.597-.79-1.254-1.157a3.7 3.7 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56s.625 1.924 1.273 2.796c.576.984 1.34 1.667 1.659 1.899s1.219.386 1.843.067c.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758q.52-1.185.473-1.282"/>
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <h3 className="text-md font-semibold tracking-tight text-white mt-1">
-                                        Sign in with {socialModal === "google" ? "Google" : "Apple"}
+                        {socialStatus === "checking" ? (
+                            <div className="flex flex-col items-center text-center gap-4 py-8 animate-in fade-in duration-200">
+                                <Loader2 className="w-8 h-8 text-[#E61E32] animate-spin" />
+                                <div className="space-y-1">
+                                    <h3 className="text-md font-semibold tracking-tight text-white">
+                                        Verifying Account
                                     </h3>
-                                    <p className="text-[11px] text-white/50 leading-relaxed">
-                                        Please enter your {socialModal === "google" ? "Google" : "Apple"} email address to verify your account registration.
+                                    <p className="text-xs text-white/50 leading-relaxed">
+                                        Checking registration details for <span className="text-white font-medium">{socialEmail || "your social account"}</span>...
                                     </p>
                                 </div>
-
-                                <div className="space-y-1 text-left">
-                                    <label className="text-[10px] font-medium uppercase tracking-wider text-white/50 block">Email Address</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-                                        <input
-                                            type="email"
-                                            required
-                                            value={socialEmail}
-                                            onChange={(e) => setSocialEmail(e.target.value)}
-                                            placeholder="name@redlix.com"
-                                            className="w-full bg-[#151515] border border-white/10 px-10 py-2.5 text-xs text-white focus:outline-none focus:border-[#E61E32] transition-colors"
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={socialChecking}
-                                    className="w-full bg-[#E61E32] hover:bg-[#ff1f34] disabled:opacity-50 py-2.5 transition-all flex items-center justify-center gap-2 group cursor-pointer mt-2"
-                                >
-                                    {socialChecking ? (
-                                        <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
-                                    ) : (
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-white">Continue</span>
-                                    )}
-                                </button>
-                            </form>
+                            </div>
                         ) : (
                             /* Pretty Screen: Lock / Error Screen */
                             <div className="flex flex-col items-center text-center gap-4 py-4 animate-in fade-in duration-200">
@@ -520,10 +530,10 @@ export default function EmployeeLogin() {
                                     </p>
                                 </div>
                                 <button
-                                    onClick={() => setSocialStatus("input")}
+                                    onClick={() => setSocialModal("none")}
                                     className="w-full border border-white/10 bg-[#151515] hover:bg-[#1d1d1d] hover:border-white/20 text-white text-xs font-medium py-2.5 transition-all cursor-pointer mt-2"
                                 >
-                                    Try Another Account
+                                    Close Window
                                 </button>
                             </div>
                         )}

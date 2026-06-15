@@ -424,24 +424,7 @@ export default function EmployeePortal() {
     };
 
     useEffect(() => {
-        if (employeeInfo) {
-            if (employeeInfo.division) {
-                const seen = localStorage.getItem(`redlix_division_modal_seen_${employeeInfo.id}`);
-                if (!seen) {
-                    setShowDivisionModal(true);
-                    return; // Hold off on tour until congratulations are closed
-                }
-            }
-
-            const completed = localStorage.getItem("redlix_portal_tour_completed");
-            if (!completed) {
-                const timer = setTimeout(() => {
-                    setTourStep(0);
-                    setTourActive(true);
-                }, 1500);
-                return () => clearTimeout(timer);
-            }
-        }
+        // Automatically opening of tour and congratulations division modal have been removed.
     }, [employeeInfo]);
 
     useEffect(() => {
@@ -4457,54 +4440,7 @@ export default function EmployeePortal() {
                 strategy="afterInteractive"
             />
 
-            {/* PORTAL UPDATES POPUP MODAL */}
-            {showDivisionModal && employeeInfo?.division && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                    {/* Backdrop */}
-                    <div 
-                        className="absolute inset-0 bg-black/85 transition-opacity" 
-                        onClick={handleCloseDivisionModal} 
-                    />
-                    
-                    {/* Modal Body */}
-                    <div className="relative bg-[#0b0b0b] border border-white/10 w-full max-w-sm p-8 text-center space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 z-10 rounded-none">
-                        {/* Lottie Animation at Top */}
-                        <div className="flex justify-center -mt-8">
-                            <dotlottie-wc
-                                src="https://lottie.host/3075f240-62a5-46db-8d64-5dda79afd538/4FE24H0UXC.lottie"
-                                style={{ width: "200px", height: "200px" }}
-                                autoplay
-                                loop
-                            />
-                        </div>
-
-                        {/* Congratulations Header */}
-                        <div className="space-y-1">
-                            <h2 className="text-xl font-black text-[#E61E32] tracking-wide">Congratulations!</h2>
-                            <p className="text-[10px] text-white/40 font-bold tracking-wide">New division assignment</p>
-                        </div>
-
-                        {/* Allotted Division Info */}
-                        <div className="border border-white/10 bg-white/[0.02] p-4 text-center rounded-none">
-                            <p className="text-[9px] font-bold text-white/30 tracking-wide">Your allotted division</p>
-                            <h3 className="text-base font-black text-white tracking-wide mt-1">{employeeInfo.division}</h3>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-xs text-white/50 leading-relaxed font-medium">
-                            The respective division lead will be assigned and let you know the things of this division.
-                        </p>
-
-                        {/* Action Button */}
-                        <button
-                            onClick={handleCloseDivisionModal}
-                            className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-2.5 text-xs font-black tracking-wide transition-colors rounded-none cursor-pointer"
-                        >
-                            Acknowledge & Continue
-                        </button>
-                    </div>
-                </div>
-            )}
+            {/* PORTAL UPDATES POPUP MODAL (removed) */}
 
             {/* Document Preview Modal */}
             {previewFile && (
@@ -4669,71 +4605,7 @@ export default function EmployeePortal() {
                 </div>
             )}
 
-            {/* Tour Overlay */}
-            {tourActive && currentTourStepData && (
-                <div className="fixed inset-0 z-50 pointer-events-none">
-                    {/* Backdrop focusing on targeted element */}
-                    <div 
-                        className="absolute inset-0 bg-black/75 pointer-events-auto transition-all duration-300"
-                        style={{
-                            clipPath: highlightClipPath
-                        }}
-                    />
-
-                    {/* Popover Card */}
-                    <div 
-                        ref={tourCardRef}
-                        className="absolute bg-[#0f0f0f] border border-white/10 w-72 sm:w-80 p-5 rounded-none shadow-2xl space-y-4 pointer-events-auto text-left transition-all duration-300 z-50 select-none animate-in zoom-in-95 duration-200"
-                        style={{
-                            left: `${tourPosition.x}px`,
-                            top: `${tourPosition.y}px`
-                        }}
-                    >
-                        <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#E61E32] bg-[#E61E32]/10 border border-[#E61E32]/25 px-2 py-0.5 rounded-none">
-                                Guide: Step {tourStep + 1} of {TOUR_STEPS.length}
-                            </span>
-                            <button
-                                onClick={handleEndTour}
-                                className="text-white/40 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-1 rounded-none cursor-pointer"
-                                title="Skip Tour"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <h4 className="text-sm font-bold text-white tracking-tight">{currentTourStepData.title}</h4>
-                            <p className="text-xs text-white/50 leading-relaxed font-normal">{currentTourStepData.description}</p>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                            <button
-                                onClick={handleEndTour}
-                                className="text-white/40 hover:text-white text-[10px] uppercase font-bold tracking-wider hover:underline cursor-pointer"
-                            >
-                                Skip
-                            </button>
-                            <div className="flex items-center gap-2">
-                                {tourStep > 0 && (
-                                    <button
-                                        onClick={handlePrevTourStep}
-                                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white font-bold text-[10px] uppercase tracking-wider rounded-none transition-colors border border-white/10 cursor-pointer"
-                                    >
-                                        Back
-                                    </button>
-                                )}
-                                <button
-                                    onClick={handleNextTourStep}
-                                    className="px-3 py-1.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white font-bold text-[10px] uppercase tracking-wider rounded-none transition-colors cursor-pointer flex items-center gap-1"
-                                >
-                                    {tourStep === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* Tour Overlay (removed) */}
         </main>
     );
 }
