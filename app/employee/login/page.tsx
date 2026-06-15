@@ -165,7 +165,7 @@ export default function EmployeeLogin() {
                 <div className="w-[12rem] h-[12rem] bg-[#E61E32]/10 absolute z-0 rounded-full bottom-0 left-0 blur-3xl pointer-events-none"></div>
 
                 {/* Left Panel: Branding & Slogan & Background Image */}
-                <div className="bg-[#070809] text-white p-6 md:p-10 md:w-1/2 relative overflow-hidden flex flex-col justify-between min-h-[360px] md:min-h-[520px]">
+                <div className="hidden md:flex bg-[#070809] text-white p-6 md:p-10 md:w-1/2 relative overflow-hidden flex-col justify-between min-h-[360px] md:min-h-[520px]">
                     {/* Background Image filling the container */}
                     <div className="absolute inset-0 w-full h-full z-0">
                         <img
@@ -196,7 +196,7 @@ export default function EmployeeLogin() {
                 </div>
 
                 {/* Right Panel: Content Form */}
-                <div className="p-6 md:p-10 md:w-1/2 flex flex-col justify-center bg-[#111111] z-10 text-white relative border-t md:border-t-0 md:border-l border-white/5">
+                <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center bg-[#111111] z-10 text-white relative md:border-l border-white/5">
                     <div className="flex flex-col items-left mb-4 text-left">
                         <h2 className="text-lg md:text-xl font-semibold mb-1 tracking-tight text-white">
                             {view === "login" ? "Get Started" : "Reset Password"}
