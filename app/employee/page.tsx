@@ -388,6 +388,12 @@ export default function EmployeePortal() {
     // Division congratulate modal state
     const [showDivisionModal, setShowDivisionModal] = useState(false);
 
+    // Sidebar dropdown category states
+    const [openWorkspace, setOpenWorkspace] = useState(true);
+    const [openPresence, setOpenPresence] = useState(true);
+    const [openFinanceDocs, setOpenFinanceDocs] = useState(true);
+    const [openAccount, setOpenAccount] = useState(true);
+
     const currentTourStepData = TOUR_STEPS[tourStep];
 
     const handleEndTour = () => {
@@ -1447,162 +1453,219 @@ export default function EmployeePortal() {
             {/* Sidebar (Desktop only) */}
             <aside className="hidden md:flex w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
                 {/* Logo */}
-                <div className="px-6 h-[44px] flex items-center shrink-0">
-                    <div className="flex items-center gap-2.5 w-full">
+                <div className="px-6 h-[54px] flex items-center shrink-0">
+                    <div className="flex items-center w-full">
                         <img
                             src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                             alt="Redlix Logo"
-                            className="h-[22px] w-auto brightness-0 invert opacity-95 object-contain"
+                            className="h-[28px] w-auto object-contain"
+                            style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
                         />
-                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20 shrink-0">
-                            Employee
-                        </span>
                     </div>
                 </div>
 
                 {/* Separator between logo and nav */}
                 <div className="h-[1px] bg-white/5 mx-0" />
 
-                <nav className="flex-grow space-y-1 px-3 pt-4 overflow-y-auto min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                    <button
-                        onClick={() => setActiveTab("overview")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <Globe className="w-4 h-4" />
-                        Overview
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        id="tour-sidebar-tasks"
-                        onClick={() => setActiveTab("tasks")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <ListTodo className="w-4 h-4" />
-                            <span>Tasks</span>
-                        </div>
-                        {activeTasksCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
-                                {activeTasksCount}
-                            </span>
+                <nav className="flex-grow space-y-1.5 px-3 pt-4 overflow-y-auto min-h-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {/* Category 1: Workspace */}
+                    <div className="space-y-1">
+                        <button
+                            type="button"
+                            onClick={() => setOpenWorkspace(!openWorkspace)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                        >
+                            <span>Core Workspace</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
+                        </button>
+                        {openWorkspace && (
+                            <div className="space-y-1 pl-1">
+                                <button
+                                    onClick={() => setActiveTab("overview")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <Globe className="w-4 h-4 text-white/60" />
+                                    <span>Overview</span>
+                                </button>
+                                <button
+                                    id="tour-sidebar-tasks"
+                                    onClick={() => setActiveTab("tasks")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <ListTodo className="w-4 h-4 text-white/60" />
+                                        <span>Tasks</span>
+                                    </div>
+                                    {activeTasksCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {activeTasksCount}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    id="tour-sidebar-submissions"
+                                    onClick={() => setActiveTab("submissions")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Send className="w-4 h-4 text-white/60" />
+                                        <span>Work Submission</span>
+                                    </div>
+                                    {submissions.length > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                            {submissions.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
                         )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("attendance")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <Clock className="w-4 h-4" />
-                        Attendance
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("meetings")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Video className="w-4 h-4" />
-                            <span>Meetings</span>
-                        </div>
-                        {upcomingMeetingsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
-                                {upcomingMeetingsCount}
-                            </span>
+                    </div>
+
+                    <div className="h-[1px] bg-white/5 my-2" />
+
+                    {/* Category 2: Operations & Time */}
+                    <div className="space-y-1">
+                        <button
+                            type="button"
+                            onClick={() => setOpenPresence(!openPresence)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                        >
+                            <span>Operations & Time</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
+                        </button>
+                        {openPresence && (
+                            <div className="space-y-1 pl-1">
+                                <button
+                                    onClick={() => setActiveTab("attendance")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <Clock className="w-4 h-4 text-white/60" />
+                                    <span>Attendance</span>
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("meetings")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Video className="w-4 h-4 text-white/60" />
+                                        <span>Meetings</span>
+                                    </div>
+                                    {upcomingMeetingsCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
+                                            {upcomingMeetingsCount}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("leaves")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Calendar className="w-4 h-4 text-white/60" />
+                                        <span>Leaves</span>
+                                    </div>
+                                    {pendingLeavesCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                            {pendingLeavesCount}
+                                        </span>
+                                    )}
+                                </button>
+                            </div>
                         )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("documents")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <FileText className="w-4 h-4" />
-                            <span>Documents</span>
-                        </div>
-                        {documentsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
-                                {documentsCount}
-                            </span>
+                    </div>
+
+                    <div className="h-[1px] bg-white/5 my-2" />
+
+                    {/* Category 3: Finance & Documents */}
+                    <div className="space-y-1">
+                        <button
+                            type="button"
+                            onClick={() => setOpenFinanceDocs(!openFinanceDocs)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                        >
+                            <span>Finance & Documents</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
+                        </button>
+                        {openFinanceDocs && (
+                            <div className="space-y-1 pl-1">
+                                <button
+                                    onClick={() => setActiveTab("documents")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FileText className="w-4 h-4 text-white/60" />
+                                        <span>Documents</span>
+                                    </div>
+                                    {documentsCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                                            {documentsCount}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("declarations")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <FolderUp className="w-4 h-4 text-white/60" />
+                                        <span>Declarations</span>
+                                    </div>
+                                    {pendingDeclarationsCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                            {pendingDeclarationsCount}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("payrolls")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <CreditCard className="w-4 h-4 text-white/60" />
+                                    <span>Payrolls</span>
+                                </button>
+                            </div>
                         )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("payrolls")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <CreditCard className="w-4 h-4" />
-                        Payrolls
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("leaves")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Calendar className="w-4 h-4" />
-                            <span>Leaves</span>
-                        </div>
-                        {pendingLeavesCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
-                                {pendingLeavesCount}
-                            </span>
+                    </div>
+
+                    <div className="h-[1px] bg-white/5 my-2" />
+
+                    {/* Category 4: Collaboration & Account */}
+                    <div className="space-y-1">
+                        <button
+                            type="button"
+                            onClick={() => setOpenAccount(!openAccount)}
+                            className="w-full flex items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/40 hover:text-white cursor-pointer select-none"
+                        >
+                            <span>Collaboration & Account</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
+                        </button>
+                        {openAccount && (
+                            <div className="space-y-1 pl-1">
+                                <button
+                                    id="tour-sidebar-community"
+                                    onClick={() => setActiveTab("community")}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <MessageSquare className="w-4 h-4 text-white/60" />
+                                        <span>Community</span>
+                                    </div>
+                                    {communityCount > 0 && (
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
+                                            {communityCount}
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab("settings")}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                                >
+                                    <User className="w-4 h-4 text-white/60" />
+                                    <span>Profile & Settings</span>
+                                </button>
+                            </div>
                         )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        id="tour-sidebar-community"
-                        onClick={() => setActiveTab("community")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <MessageSquare className="w-4 h-4" />
-                            <span>Community</span>
-                        </div>
-                        {communityCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
-                                {communityCount}
-                            </span>
-                        )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("declarations")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <FolderUp className="w-4 h-4" />
-                            <span>Declarations</span>
-                        </div>
-                        {pendingDeclarationsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
-                                {pendingDeclarationsCount}
-                            </span>
-                        )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        id="tour-sidebar-submissions"
-                        onClick={() => setActiveTab("submissions")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <div className="flex items-center gap-3">
-                            <Send className="w-4 h-4" />
-                            <span>Work Submission</span>
-                        </div>
-                        {submissions.length > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/10 border border-white/15 text-white/60 rounded-full shrink-0">
-                                {submissions.length}
-                            </span>
-                        )}
-                    </button>
-                    <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
-                    <button
-                        onClick={() => setActiveTab("settings")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white border-l-2 border-white pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
-                    >
-                        <User className="w-4 h-4" />
-                        Profile & Settings
-                    </button>
+                    </div>
                 </nav>
 
                 {/* Profile card at bottom */}
