@@ -1569,142 +1569,144 @@ export default function EmployeePortal() {
 
             {/* ─── PINK SLIP FREEZE OVERLAY ─── */}
             {pinkSlipStatus?.isActive && (
-                <div className="fixed inset-0 z-[999] bg-[#080808] flex items-center justify-center p-4 overflow-y-auto">
-                    {/* Animated background */}
+                <div className="fixed inset-0 z-[999] bg-[#080808] flex items-center justify-center p-6 overflow-y-auto">
+                    {/* Subtle background glow */}
                     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#E61E32] opacity-[0.04] rounded-full blur-3xl" />
-                        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-[#E61E32] opacity-[0.03] rounded-full blur-3xl" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-[#E61E32] opacity-[0.03] rounded-full blur-3xl" />
                     </div>
 
-                    <div className="relative w-full max-w-2xl my-8">
-                        {/* Header badge */}
-                        <div className="flex items-center justify-center mb-8">
-                            <div className="flex items-center gap-3 bg-[#E61E32]/10 border border-[#E61E32]/30 px-5 py-2.5 rounded-none">
-                                <span className="w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />
-                                <span className="text-[11px] font-black text-[#E61E32] tracking-[0.2em] uppercase">Employment Review — Action Required</span>
-                            </div>
-                        </div>
+                    <div className="relative w-full max-w-3xl my-8">
 
                         {/* Logo */}
-                        <div className="text-center mb-8">
+                        <div className="text-center mb-10">
                             <img
                                 src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                                 alt="Redlix"
-                                className="h-8 w-auto mx-auto"
+                                className="h-7 w-auto mx-auto"
                                 style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
                             />
                         </div>
 
                         {pinkSlipStatus.hasSubmittedRequest || pinkSlipSubmitSuccess ? (
                             /* ─ Appeal Submitted State ─ */
-                            <div className="bg-[#0f0f0f] border border-white/5 p-10 text-center">
-                                <div className="w-16 h-16 bg-green-500/10 border border-green-500/30 rounded-full flex items-center justify-center mx-auto mb-6">
-                                    <svg className="w-8 h-8 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            <div className="bg-[#0f0f0f] border border-white/5 p-12 text-center">
+                                <div className="w-14 h-14 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-7 h-7 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>
                                 </div>
-                                <h2 className="text-2xl font-black text-white mb-3">Appeal Submitted</h2>
-                                <p className="text-sm text-white/50 leading-relaxed max-w-md mx-auto mb-6">
-                                    Your appeal request has been successfully submitted and is under review by the Redlix HR team. You will receive an email confirmation shortly. No further action is required at this time.
+                                <h2 className="text-xl text-white mb-3">Appeal Submitted</h2>
+                                <p className="text-sm text-white/40 leading-relaxed max-w-lg mx-auto mb-8">
+                                    Your appeal has been received and is under review by the Redlix HR team. A confirmation has been sent to your email. No further action is required.
                                 </p>
-                                <div className="bg-white/[0.03] border border-white/5 p-4 text-left">
-                                    <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2 font-bold">Your Submitted Request</p>
-                                    <p className="text-sm text-white/60 leading-relaxed">{pinkSlipStatus.pinkSlipRequest || `Reason: ${pinkSlipAppealReason}\n\nDetails: ${pinkSlipAppealDetails}`}</p>
+                                <div className="bg-white/[0.02] border border-white/5 p-5 text-left">
+                                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-3">Submitted Appeal</p>
+                                    <p className="text-sm text-white/50 leading-relaxed whitespace-pre-wrap">{pinkSlipStatus.pinkSlipRequest || `Reason: ${pinkSlipAppealReason}\n\nDetails: ${pinkSlipAppealDetails}`}</p>
                                 </div>
                             </div>
                         ) : (
                             /* ─ Appeal Form ─ */
                             <div className="bg-[#0f0f0f] border border-white/5">
-                                {/* Alert header */}
-                                <div className="bg-[#E61E32] px-8 py-5">
-                                    <h1 className="text-xl font-black text-white tracking-tight mb-1">Portal Access Suspended</h1>
-                                    <p className="text-[13px] text-white/80">A Pink Slip has been issued to your account. Your portal access is frozen pending your response.</p>
+                                {/* Thin red top bar */}
+                                <div className="h-[3px] w-full bg-[#E61E32]" />
+
+                                <div className="px-10 py-8 border-b border-white/5">
+                                    <p className="text-[10px] text-white/25 uppercase tracking-[0.18em] mb-2">Human Resources — Confidential</p>
+                                    <h1 className="text-lg text-white">Portal Access Suspended</h1>
+                                    <p className="text-sm text-white/40 mt-1.5 leading-relaxed">
+                                        A Pink Slip has been issued to your account. Your portal access is frozen pending your response below.
+                                    </p>
                                 </div>
 
-                                <div className="p-8">
+                                <div className="px-10 py-8">
                                     {/* Countdown Timer */}
                                     {!pinkSlipStatus.isExpired && pinkSlipTimeLeft && (
-                                        <div className="mb-8 p-5 bg-[#E61E32]/5 border border-[#E61E32]/20">
-                                            <p className="text-[10px] font-black text-[#E61E32] uppercase tracking-widest mb-2">Time Remaining to Submit Appeal</p>
-                                            <div className="text-4xl font-black text-white font-mono tracking-wider">{pinkSlipTimeLeft}</div>
-                                            <p className="text-xs text-white/40 mt-2">
-                                                Issued: {new Date(pinkSlipStatus.allocatedAt!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
-                                            </p>
-                                            <p className="text-xs text-white/40">
-                                                Deadline: {new Date(pinkSlipStatus.deadline!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
-                                            </p>
+                                        <div className="mb-8 flex items-start gap-8 p-6 border border-white/5 bg-white/[0.02]">
+                                            <div>
+                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">Time Remaining</p>
+                                                <div className="text-3xl text-white font-mono tracking-widest">{pinkSlipTimeLeft}</div>
+                                            </div>
+                                            <div className="border-l border-white/5 pl-8">
+                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">Issued</p>
+                                                <p className="text-xs text-white/40">
+                                                    {new Date(pinkSlipStatus.allocatedAt!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
+                                                </p>
+                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mt-3 mb-2">Deadline</p>
+                                                <p className="text-xs text-[#E61E32]">
+                                                    {new Date(pinkSlipStatus.deadline!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
 
                                     {pinkSlipStatus.isExpired ? (
-                                        <div className="text-center py-8">
-                                            <p className="text-sm text-white/50">The appeal window has expired. Your account will be terminated shortly by the system.</p>
+                                        <div className="text-center py-10">
+                                            <p className="text-sm text-white/40">The appeal window has expired. Your account will be terminated shortly.</p>
                                         </div>
                                     ) : (
-                                        <form onSubmit={handlePinkSlipAppealSubmit} className="space-y-5">
-                                            <div>
-                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Reason for Appeal</p>
-                                                <p className="text-sm text-white/60 mb-4 leading-relaxed">
-                                                    You have been issued a Pink Slip due to non-compliance with Redlix Studio Company policies. If you believe this decision was made in error, please complete this appeal form. Your response will be reviewed by the HR team.
-                                                </p>
-                                            </div>
+                                        <form onSubmit={handlePinkSlipAppealSubmit} className="space-y-6">
+                                            <p className="text-sm text-white/40 leading-relaxed">
+                                                You have been issued a Pink Slip due to non-compliance with Redlix Studio Company policies. If you believe this decision was made in error, complete the form below. Your response will be reviewed by HR.
+                                            </p>
 
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Primary Reason for Appeal <span className="text-[#E61E32]">*</span></label>
+                                            <div className="h-[1px] bg-white/5" />
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Primary Reason for Appeal <span className="text-[#E61E32]">*</span></label>
                                                 <input
                                                     type="text"
                                                     required
                                                     value={pinkSlipAppealReason}
                                                     onChange={e => setPinkSlipAppealReason(e.target.value)}
                                                     placeholder="e.g. Incorrect policy violation, Technical issue, Personal circumstances..."
-                                                    className="w-full bg-white/[0.03] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                                    className="w-full bg-white/[0.03] border border-white/8 px-5 py-3.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                                                 />
                                             </div>
 
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Detailed Explanation <span className="text-[#E61E32]">*</span></label>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Detailed Explanation <span className="text-[#E61E32]">*</span></label>
                                                 <textarea
                                                     required
-                                                    rows={6}
+                                                    rows={7}
                                                     value={pinkSlipAppealDetails}
                                                     onChange={e => setPinkSlipAppealDetails(e.target.value)}
-                                                    placeholder="Please provide a detailed explanation of your situation, any supporting context, and why this decision should be reconsidered..."
-                                                    className="w-full bg-white/[0.03] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E61E32]/50 transition-colors resize-none"
+                                                    placeholder="Provide a detailed explanation of your situation, any supporting context, and why this decision should be reconsidered..."
+                                                    className="w-full bg-white/[0.03] border border-white/8 px-5 py-3.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors resize-none leading-relaxed"
                                                 />
                                             </div>
 
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Additional Contact Information <span className="text-white/20">(Optional)</span></label>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Additional Contact Information <span className="text-white/15">(Optional)</span></label>
                                                 <input
                                                     type="text"
                                                     value={pinkSlipContactInfo}
                                                     onChange={e => setPinkSlipContactInfo(e.target.value)}
                                                     placeholder="Phone number or alternate email"
-                                                    className="w-full bg-white/[0.03] border border-white/10 px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#E61E32]/50 transition-colors"
+                                                    className="w-full bg-white/[0.03] border border-white/8 px-5 py-3.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-white/20 transition-colors"
                                                 />
                                             </div>
 
                                             {pinkSlipSubmitError && (
-                                                <div className="p-3 bg-[#E61E32]/10 border border-[#E61E32]/30">
+                                                <div className="p-4 border border-[#E61E32]/20 bg-[#E61E32]/5">
                                                     <p className="text-sm text-[#E61E32]">{pinkSlipSubmitError}</p>
                                                 </div>
                                             )}
 
-                                            <div className="pt-2">
+                                            <div className="pt-1">
                                                 <button
                                                     type="submit"
                                                     disabled={pinkSlipSubmitting}
-                                                    className="w-full py-4 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-black uppercase tracking-widest transition-all"
+                                                    className="w-full py-4 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm uppercase tracking-widest transition-all"
                                                 >
                                                     {pinkSlipSubmitting ? (
                                                         <span className="flex items-center justify-center gap-2">
                                                             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                                                            Submitting Appeal...
+                                                            Submitting...
                                                         </span>
                                                     ) : "Submit Appeal Request"}
                                                 </button>
                                             </div>
 
-                                            <p className="text-[11px] text-white/25 text-center leading-relaxed">
-                                                By submitting this form, you confirm that all information provided is accurate. A confirmation email will be sent to <strong className="text-white/40">{employeeInfo?.email}</strong>.
+                                            <p className="text-[11px] text-white/20 text-center leading-relaxed">
+                                                By submitting, you confirm all information is accurate. A confirmation will be sent to {employeeInfo?.email}.
                                             </p>
                                         </form>
                                     )}
@@ -1714,6 +1716,7 @@ export default function EmployeePortal() {
                     </div>
                 </div>
             )}
+
 
             {/* Sidebar (Desktop only) */}
             <aside className="hidden md:flex w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col shrink-0 h-full">
