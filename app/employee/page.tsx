@@ -2237,8 +2237,8 @@ export default function EmployeePortal() {
                                     {/* Sleek Minimal Header */}
                                     <div
                                         id="tour-profile-banner"
-                                        className="relative h-28 sm:h-32 w-full shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6 bg-gradient-to-r from-neutral-950 via-neutral-900 to-[#E61E32]/10"
-                                        style={(!isEditingProfile && employeeInfo?.banner) ? { backgroundImage: `url('${employeeInfo.banner}')` } : (isEditingProfile && settingsBanner) ? { backgroundImage: `url('${settingsBanner}')` } : {}}
+                                        className="relative h-28 sm:h-32 w-full shrink-0 group/banner overflow-hidden rounded-none border border-white/5 shadow-sm mb-6 bg-cover bg-center bg-[#0a0a0a]"
+                                        style={{ backgroundImage: `url('${isEditingProfile ? (settingsBanner || "https://img.freepik.com/free-vector/lineart-background-colorful_677411-1826.jpg?semt=ais_hybrid&w=740&q=80") : (employeeInfo?.banner || "https://img.freepik.com/free-vector/lineart-background-colorful_677411-1826.jpg?semt=ais_hybrid&w=740&q=80")}')` }}
                                     >
                                         {/* Hover Edit Overlay */}
                                         <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
@@ -2285,7 +2285,7 @@ export default function EmployeePortal() {
                                         </div>
 
                                         {/* Profile identity info */}
-                                        <div className="absolute inset-0 px-4 sm:px-6 flex items-center gap-4 sm:gap-5 z-10 bg-gradient-to-r from-black/50 to-transparent">
+                                        <div className="absolute inset-0 px-4 sm:px-6 flex items-center gap-4 sm:gap-5 z-10 bg-transparent">
                                             {/* Avatar with simple border */}
                                             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-none shrink-0 border border-white/10 bg-black overflow-hidden shadow-xl group">
                                                 <img
@@ -2428,7 +2428,7 @@ export default function EmployeePortal() {
                                                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none">
                                                             <div className="relative w-full sm:w-48 h-20 rounded-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
                                                                 <img 
-                                                                    src={settingsBanner || "https://i.pinimg.com/originals/aa/2e/41/aa2e4145e7e90eca06eac77d3b42be48.jpg"} 
+                                                                    src={settingsBanner || "https://img.freepik.com/free-vector/lineart-background-colorful_677411-1826.jpg?semt=ais_hybrid&w=740&q=80"} 
                                                                     alt="Current Banner Preview" 
                                                                     className="w-full h-full object-cover" 
                                                                 />
