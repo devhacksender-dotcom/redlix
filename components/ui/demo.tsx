@@ -1,8 +1,8 @@
-import * as React from "react"
-import { CommitsGrid } from "@/components/ui/commits-grid"
+import { FullScreenSignup } from "@/components/ui/full-screen-signup";
 
-const CommitsGridDemo = () => {
-    return <CommitsGrid text="21st" />
-}
+const DemoOne = () => {
+  return <FullScreenSignup />;
+};
 
-export { CommitsGridDemo }
+const exportObject = { DemoOne };
+export default exportObject;
