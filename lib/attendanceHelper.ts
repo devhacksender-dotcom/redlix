@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 
 export function getPunchOutTimeForDate(punchInDate: Date): Date {
-    // 19:30:00.000 IST on the calendar day of punchInDate.
+    // 16:00:00.000 IST (4:00 PM IST) on the calendar day of punchInDate.
     // IST is UTC + 5:30.
     // Let's get the year, month, and date of the punchInDate in IST timezone.
     const formatter = new Intl.DateTimeFormat("en-US", {
@@ -16,19 +16,18 @@ export function getPunchOutTimeForDate(punchInDate: Date): Date {
     const month = parseInt(parts.find(p => p.type === "month")!.value, 10) - 1; // Month is 0-indexed in JS Date
     const day = parseInt(parts.find(p => p.type === "day")!.value, 10);
     
-    // Construct 7:30 PM (19:30) of that day in Asia/Kolkata timezone.
-    // 19:30 IST is exactly 14:00:00 UTC on the same calendar day.
-    let autoPunchOutUTC = new Date(Date.UTC(year, month, day, 14, 0, 0, 0));
+    // Construct 4:00 PM (16:00) of that day in Asia/Kolkata timezone.
+    // 16:00 IST is exactly 10:30:00 UTC on the same calendar day.
+    let autoPunchOutUTC = new Date(Date.UTC(year, month, day, 10, 30, 0, 0));
     
-    // If the punch-in time is already past 7:30 PM IST of that day,
-    // the auto punch-out time is 7:30 PM IST of the next calendar day.
+    // If the punch-in time is already past 4:00 PM IST of that day,
+    // the auto punch-out time is 4:00 PM IST of the next calendar day.
     if (punchInDate.getTime() >= autoPunchOutUTC.getTime()) {
         autoPunchOutUTC = new Date(autoPunchOutUTC.getTime() + 24 * 60 * 60 * 1000);
     }
     
     return autoPunchOutUTC;
 }
-
 export async function autoPunchOutStaleSessions() {
     try {
         const now = new Date();
@@ -56,7 +55,7 @@ export async function autoPunchOutStaleSessions() {
                         workMinutes
                     }
                 });
-                console.log(`[Auto Punch-Out] Session ID ${session.id} for employee ID ${session.employeeId} closed at 7:30 PM IST (${scheduledPunchOut.toISOString()})`);
+                console.log(`[Auto Punch-Out] Session ID ${session.id} for employee ID ${session.employeeId} closed at 4:00 PM IST (${scheduledPunchOut.toISOString()})`);
             }
         }
     } catch (error) {

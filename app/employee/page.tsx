@@ -1187,6 +1187,24 @@ export default function EmployeePortal() {
         }
     };
 
+    const isWithinPunchInWindow = (() => {
+        try {
+            const formatter = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Kolkata",
+                hour: "numeric",
+                minute: "numeric",
+                hour12: false,
+            });
+            const parts = formatter.formatToParts(currentTime);
+            const hour = parseInt(parts.find(p => p.type === "hour")?.value || "0", 10);
+            const minute = parseInt(parts.find(p => p.type === "minute")?.value || "0", 10);
+            const totalMinutes = hour * 60 + minute;
+            return totalMinutes <= 610 || totalMinutes >= 1315;
+        } catch (e) {
+            return true;
+        }
+    })();
+
     const handlePunchIn = async () => {
         setIsPunching(true);
         try {
@@ -2131,13 +2149,13 @@ export default function EmployeePortal() {
                                                         </button>
                                                     ) : (
                                                         <button
-                                                            disabled={isPunching}
+                                                            disabled={isPunching || !isWithinPunchInWindow}
                                                             onClick={handlePunchIn}
-                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-black font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50"
+                                                            className="bg-white hover:bg-white/95 hover:scale-[1.03] active:scale-[0.97] text-black font-normal py-1.5 px-3.5 text-xs rounded-none transition-all duration-300 ease-in-out cursor-pointer flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             {isPunching ? (
                                                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                            ) : "Punch In"}
+                                                            ) : !isWithinPunchInWindow ? "Closed" : "Punch In"}
                                                         </button>
                                                     )}
                                                 </div>

@@ -19,6 +19,29 @@ export async function POST(request: NextRequest) {
             const { payload } = await jwtVerify(token, secret);
             const employeeId = payload.employeeId as number;
 
+            // Enforce strict punch-in window: 9:55 PM (21:55) to 10:10 AM (10:10) IST
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat("en-US", {
+                timeZone: "Asia/Kolkata",
+                hour: "numeric",
+                minute: "numeric",
+                hour12: false,
+            });
+            const parts = formatter.formatToParts(now);
+            const hour = parseInt(parts.find(p => p.type === "hour")?.value || "0", 10);
+            const minute = parseInt(parts.find(p => p.type === "minute")?.value || "0", 10);
+            const totalMinutes = hour * 60 + minute;
+
+            // 10:10 AM is 610 mins, 9:55 PM is 1315 mins
+            const isAllowed = totalMinutes <= 610 || totalMinutes >= 1315;
+
+            if (!isAllowed) {
+                return NextResponse.json(
+                    { success: false, message: "Punch-in is only allowed between 9:55 PM and 10:10 AM IST." },
+                    { status: 400 }
+                );
+            }
+
             // Check if already punched in
             const activeSession = await prisma.attendance.findFirst({
                 where: {
