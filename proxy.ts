@@ -155,8 +155,8 @@ function rateLimitResponse(): NextResponse {
     return applySecurityHeaders(res);
 }
 
-// ─── Main Middleware ──────────────────────────────────────────────────────────
-export async function middleware(request: NextRequest) {
+// ─── Main Proxy ──────────────────────────────────────────────────────────────
+export default async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const secret = new TextEncoder().encode(
         process.env.JWT_SECRET || "default_secret"
