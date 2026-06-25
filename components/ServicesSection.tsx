@@ -2,25 +2,8 @@ import React from "react";
 import Link from "next/link";
 import { Sparkles, Globe, Smartphone, Cpu, Layers } from "lucide-react";
 
-// Prepend high-fidelity official brand colored SVG logos inside technology pills using third party Simple Icons CDN.
+// Prepend high-fidelity SVGs inside technology pills using jsDelivr CDN (to bypass ad-blockers) styled to match theme.
 function getPillIcon(pill: string) {
-    const customUrlMap: Record<string, string> = {
-        "Java": "https://upload.wikimedia.org/wikipedia/en/thumb/3/30/Java_programming_language_logo.svg/960px-Java_programming_language_logo.svg.png",
-        "AWS": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/93/Amazon_Web_Services_Logo.svg/960px-Amazon_Web_Services_Logo.svg.png?_=20170912170050",
-        "CSS3": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/CSS3_logo.svg/1280px-CSS3_logo.svg.png"
-    };
-
-    if (customUrlMap[pill]) {
-        return (
-            <img
-                src={customUrlMap[pill]}
-                alt=""
-                className="w-4 h-4 shrink-0 mr-1.5 object-contain"
-                loading="lazy"
-            />
-        );
-    }
-
     const slugMap: Record<string, string> = {
         "TypeScript": "typescript",
         "JavaScript": "javascript",
@@ -34,6 +17,7 @@ function getPillIcon(pill: string) {
         "Swift": "swift",
         "Kotlin": "kotlin",
         "HTML5": "html5",
+        "CSS3": "css3",
         "Dart": "dart",
         "Zig": "zig",
         "React": "react",
@@ -48,15 +32,20 @@ function getPillIcon(pill: string) {
         "Prisma": "prisma",
         "Stripe": "stripe",
         "Firebase": "firebase",
-        "Git": "git"
+        "Git": "git",
+        "Java": "java",
+        "AWS": "amazonwebservices"
     };
     const slug = slugMap[pill];
     if (!slug) return null;
     return (
         <img
-            src={`https://cdn.simpleicons.org/${slug}`}
+            src={`https://cdn.jsdelivr.net/npm/simple-icons@6.23.0/icons/${slug}.svg`}
             alt=""
             className="w-4 h-4 shrink-0 mr-1.5 object-contain"
+            style={{
+                filter: "invert(18%) sepia(85%) saturate(1478%) hue-rotate(185deg) brightness(91%) contrast(101%)"
+            }}
             loading="lazy"
         />
     );
