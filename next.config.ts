@@ -20,7 +20,9 @@ const ContentSecurityPolicy = `
     https://cal.com
     https://app.cal.com
     https://www.gstatic.com
-    https://www.google.com;
+    https://www.google.com
+    https://cdn.jsdelivr.net
+    https://upload.wikimedia.org;
   media-src 'self' blob: data:;
   frame-src
     https://cal.com
