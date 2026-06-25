@@ -1,248 +1,200 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Youtube, Instagram, Linkedin, Facebook } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function CorporateFooter() {
     const year = new Date().getFullYear();
+    const [email, setEmail] = useState("");
 
-    const socialLinks = [
-        {
-            icon: <Youtube className="w-[18px] h-[18px]" />,
-            href: "#",
-            label: "YouTube"
-        },
-        {
-            icon: (
-                <svg className="w-[16px] h-[16px]" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                </svg>
-            ),
-            href: "#",
-            label: "X"
-        },
-        {
-            icon: <Instagram className="w-[18px] h-[18px]" />,
-            href: "#",
-            label: "Instagram"
-        },
-        {
-            icon: <Linkedin className="w-[18px] h-[18px]" />,
-            href: "#",
-            label: "LinkedIn"
-        },
-        {
-            icon: <Facebook className="w-[18px] h-[18px]" />,
-            href: "#",
-            label: "Facebook"
-        }
-    ];
-
-    const companyLinks = [
-        { name: "About Us", href: "/about-us" },
-        { name: "Our Work", href: "/portfolio" },
-        { name: "Careers", href: "#" }
-    ];
-
-    const resourcesLinks = [
-        { name: "Blog", href: "/blogs" },
-        { name: "Help Center", href: "/support" },
-        { name: "Brand Assets", href: "/brand-assets" }
-    ];
-
-    const caseStudies = [
-        { name: "PisciDrop", href: "/portfolio/piscidrop" },
-        { name: "Dhasha Media", href: "/portfolio/dhasha-media" },
-        { name: "HSGA Telangana", href: "/portfolio/hsga-telangana" },
-        { name: "Forge Digital Technologies", href: "/portfolio/forge-digital" },
-        { name: "HUS System", href: "/portfolio/hus-system" },
-        { name: "NSS CMRIT Chapter", href: "/portfolio/nss-cmrit" },
-        { name: "Stories At Scale", href: "/portfolio/stories-at-scale" },
-        { name: "National E-Commerce Platform", href: "/portfolio/national-ecommerce" }
-    ];
-
-    const terminalLinks = [
-        { name: "Employee Portal", href: "/employee/login" },
-        { name: "Admin Dashboard", href: "/admin/login" },
-        { name: "Department Portal", href: "/department/login" }
-    ];
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        alert(`Thank you for subscribing: ${email}`);
+        setEmail("");
+    };
 
     return (
-        <footer className="w-full bg-[#070809] text-zinc-400 border-t border-zinc-900 font-sans">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-16">
+        <footer className="w-full bg-[#1E2022]/95 backdrop-blur-md text-zinc-400 border-t border-white/10 font-sans py-16 relative overflow-hidden text-left">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
                 
-                {/* TOP GRID */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-10 lg:gap-12 pb-2">
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-8 pb-12 border-b border-white/5">
                     
-                    {/* LOGO & SOCIALS COLUMN (Spans 2 columns on large screens) */}
-                    <div className="lg:col-span-2 flex flex-col items-start gap-5">
-                        <Link href="/" className="group inline-block">
+                    {/* Logo & Tagline (Col span 3) */}
+                    <div className="lg:col-span-3 flex flex-col items-start gap-4 text-left">
+                        <Link href="/" className="inline-block group">
                             <img
                                 src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
                                 alt="Redlix Logo"
-                                className="h-[56px] w-auto object-contain opacity-95 transition-transform duration-300 group-hover:scale-[1.01]"
-                                style={{ filter: "brightness(0) saturate(100%) invert(24%) sepia(74%) saturate(6689%) hue-rotate(345deg) brightness(94%) contrast(93%)" }}
+                                className="h-[56px] w-auto object-contain brightness-0 invert opacity-95 transition-transform duration-300 group-hover:scale-[1.02]"
                             />
                         </Link>
-
-                        <p className="text-zinc-500 max-w-xs text-sm text-left leading-relaxed">
+                        <p className="text-zinc-500 text-sm leading-relaxed max-w-[260px]">
                             Web design, product engineering, and custom software from Redlix Studio.
                         </p>
-
-                        {/* Social Links Row */}
-                        <div className="flex gap-2.5">
-                            {socialLinks.map((social) => (
-                                <a
-                                    key={social.label}
-                                    href={social.href}
-                                    aria-label={social.label}
-                                    className="w-9 h-9 rounded-full bg-zinc-900/60 border border-zinc-800/80 hover:border-zinc-700 hover:text-white flex items-center justify-center transition-all duration-300"
-                                >
-                                    {social.icon}
-                                </a>
-                            ))}
-                        </div>
-
-                        {/* Contact Us Details */}
-                        <div className="flex flex-col gap-1.5 mt-2">
-                            <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Contact us</span>
-                            <div className="flex flex-col gap-0.5 text-[13.5px] text-zinc-400 font-mono">
-                                <a href="tel:+916304889509" className="hover:text-white transition-colors">
-                                    +91 6304889509
-                                </a>
-                                <a href="mailto:help.ckrdatapoint@gmail.com" className="hover:text-white transition-colors">
-                                    help.ckrdatapoint@gmail.com
-                                </a>
-                                <a href="mailto:devhacksender@gmail.com" className="hover:text-white transition-colors">
-                                    devhacksender@gmail.com
-                                </a>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* COMPANY COLUMN */}
-                    <div className="flex flex-col gap-4 text-left">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Company</span>
-                        <ul className="flex flex-col gap-2.5 text-[14px]">
-                            {companyLinks.map((item) => (
-                                <li key={item.name}>
-                                    <Link href={item.href} className="hover:text-white hover:underline transition-all duration-200">
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
+                    {/* Company Links (Col span 2) */}
+                    <div className="lg:col-span-2 flex flex-col items-start text-left">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#E61E32] mb-4 block">Company</span>
+                        <ul className="flex flex-col gap-3 text-[14px]">
+                            <li>
+                                <Link href="/about-us" className="text-zinc-400 hover:text-white transition-colors block">
+                                    About Us
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/portfolio" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Our Work
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/coming-soon" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Careers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/employee/login" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Employee Portal
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/department/login" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Department Portal
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/#faq" className="text-zinc-400 hover:text-white transition-colors block">
+                                    FAQs
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/brand-assets" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Brand Assets
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/support" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Contact
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
-                    {/* RESOURCES COLUMN */}
-                    <div className="flex flex-col gap-4 text-left">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Resources</span>
-                        <ul className="flex flex-col gap-2.5 text-[14px]">
-                            {resourcesLinks.map((item) => (
-                                <li key={item.name}>
-                                    <Link href={item.href} className="hover:text-white hover:underline transition-all duration-200">
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
+                    {/* Our Wings (Col span 2) */}
+                    <div className="lg:col-span-2 flex flex-col items-start text-left">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#E61E32] mb-4 block">Our Wings</span>
+                        <ul className="flex flex-col gap-3 text-[14px]">
+                            <li>
+                                <Link href="/coming-soon" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Product Wing
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/coming-soon" className="text-zinc-400 hover:text-white transition-colors block">
+                                    IT Services Wing
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/coming-soon" className="text-zinc-400 hover:text-white transition-colors block">
+                                    Event Wing
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 
-                    {/* CASE STUDIES COLUMN */}
-                    <div className="flex flex-col gap-4 text-left">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Case Studies</span>
-                        <ul className="flex flex-col gap-2 text-[14px]">
-                            {caseStudies.map((item) => (
-                                <li key={item.name} className="border-b border-zinc-900 pb-2 last:border-0 last:pb-0">
-                                    <Link href={item.href} className="group flex items-center justify-between hover:text-white transition-all duration-200 text-left w-full py-0.5">
-                                        <span>{item.name}</span>
-                                        <span className="flex items-center justify-center w-[18px] h-[18px] rounded-full bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] opacity-75 group-hover:opacity-100 group-hover:bg-[#E61E32] group-hover:text-white transition-all duration-200 shrink-0 ml-2">
-                                            <svg className="w-2.5 h-2.5 transform group-hover:translate-x-[0.5px] transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                            </svg>
-                                        </span>
-                                    </Link>
-                                </li>
-                            ))}
+                    {/* Socials Column (Col span 2) */}
+                    <div className="lg:col-span-2 flex flex-col items-start text-left">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#E61E32] mb-4 block">Socials</span>
+                        <ul className="flex flex-col gap-3 text-[14px]">
+                            <li>
+                                <a href="mailto:help.ckrdatapoint@gmail.com" className="group flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors">
+                                    <span>Email</span>
+                                    <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" strokeWidth={3} />
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.instagram.com/redlix.co.in/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors">
+                                    <span>Instagram</span>
+                                    <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" strokeWidth={3} />
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://www.linkedin.com/company/redline-agency-db/" target="_blank" rel="noopener noreferrer" className="group flex items-center gap-1.5 text-zinc-400 hover:text-white transition-colors">
+                                    <span>LinkedIn</span>
+                                    <ArrowUpRight className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" strokeWidth={3} />
+                                </a>
+                            </li>
                         </ul>
                     </div>
 
-                    {/* PORTAL COLUMN */}
-                    <div className="flex flex-col gap-4 text-left">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Portal</span>
-                        <ul className="flex flex-col gap-2.5 text-[14px]">
-                            {terminalLinks.map((item) => (
-                                <li key={item.name}>
-                                    <Link href={item.href} className="hover:text-white hover:underline transition-all duration-200">
-                                        {item.name}
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                </div>
-
-                {/* MIDDLE SECTION (Separator Line & PWA App Section) */}
-                <div className="border-t border-zinc-900 pt-10 mt-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div className="flex flex-col text-left">
-                        <span className="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-1">Redlix Portal App</span>
-                        <h3 className="text-white font-medium text-[16px] mb-1.5">Redlix Employee Terminal (PWA)</h3>
-                        <p className="text-zinc-500 text-[13px] leading-relaxed max-w-xl">
-                            Looking for our enterprise platforms? Use our product for Host Exams, Registrations, EMS, and LMS Software via{" "}
-                            <a 
-                                href="https://app.redlix.co.in" 
-                                target="_blank" 
-                                rel="noopener noreferrer" 
-                                className="text-[#E61E32] hover:text-[#ff1f34] hover:underline transition-colors font-medium"
-                            >
-                                app.redlix.co.in
-                            </a>.
+                    {/* Newsletter (Col span 3) */}
+                    <div className="lg:col-span-3 flex flex-col items-start text-left">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#E61E32] mb-4 block">Newsletter</span>
+                        <p className="text-zinc-500 text-sm leading-relaxed max-w-[260px]">
+                            Stay ahead with design & marketing tips and strategies that drive results.
                         </p>
+                        
+                        {/* Pill Input Container */}
+                        <form onSubmit={handleSubmit} className="relative w-full max-w-[280px] mt-4">
+                            <div className="flex items-center bg-[#17181A] border border-white/5 rounded-full pl-4 pr-1.5 py-1 flex items-center justify-between w-full shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)] focus-within:border-white/15 transition-all duration-200">
+                                <span className="text-zinc-600 mr-2 text-[14px] select-none">@</span>
+                                <input
+                                    type="email"
+                                    placeholder="Enter your email..."
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="bg-transparent text-zinc-200 placeholder-zinc-600 text-sm outline-none w-full border-none p-0 focus:ring-0"
+                                />
+                                <button
+                                    type="submit"
+                                    aria-label="Subscribe"
+                                    className="w-8 h-8 rounded-full bg-[#E61E32] hover:bg-[#ff1f34] text-white flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 shrink-0 group/btn"
+                                >
+                                    <svg className="w-4 h-4 transform group-hover/btn:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    <div className="flex flex-col gap-2.5 shrink-0 w-full md:w-auto">
-                        <Link 
-                            href="/employee/login"
-                            className="inline-flex items-center justify-center bg-[#E61E32] hover:bg-[#ff1f34] text-white px-5 py-2.5 text-[13px] font-semibold transition-all duration-300 shadow-[0_4px_12px_rgba(230,30,50,0.15)] hover:scale-[1.01] w-full md:w-[220px]"
-                        >
-                            <img src="https://ik.imagekit.io/dypkhqxip/logo__1_" alt="" className="w-4 h-4 object-contain mr-2 brightness-0 invert" />
-                            Launch PWA App
-                        </Link>
-                        <Link 
-                            href="/department/login"
-                            className="inline-flex items-center justify-center bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-white px-5 py-2.5 text-[13px] font-semibold transition-all duration-300 hover:scale-[1.01] w-full md:w-[220px]"
-                        >
-                            <img src="https://ik.imagekit.io/dypkhqxip/logo__1_" alt="" className="w-4 h-4 object-contain mr-2 brightness-0 invert" />
-                            Launch Partner App
-                        </Link>
-                    </div>
-                </div>
-            </div>
 
-            {/* BOTTOM BAR LINKS */}
-            <div className="border-t border-zinc-900 bg-[#040506] py-6 text-[13px] text-zinc-500">
-                <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
+                </div>
+
+                {/* Bottom Bar Section */}
+                <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[13.5px] text-zinc-500">
                     <p className="order-2 md:order-1 font-mono text-[12.5px]">
                         © {year} Redlix Studio. All rights reserved.
                     </p>
                     <div className="order-1 md:order-2 flex flex-wrap justify-center gap-x-6 gap-y-2">
-                        <Link href="/privacy" className="hover:text-zinc-300 hover:underline transition-colors py-1">
-                            Privacy policy
+                        <Link href="/privacy" className="hover:text-zinc-300 transition-colors py-1">
+                            Privacy Policy
                         </Link>
-                        <Link href="/terms" className="hover:text-zinc-300 hover:underline transition-colors py-1">
-                            Terms and conditions
+                        <Link href="/terms" className="hover:text-zinc-300 transition-colors py-1">
+                            Terms of Service
                         </Link>
-                        <Link href="/cookies" className="hover:text-zinc-300 hover:underline transition-colors py-1">
-                            Cookies policy
+                        <Link href="/cookies" className="hover:text-zinc-300 transition-colors py-1">
+                            Cookies Policy
                         </Link>
-                        <Link href="/sitemap" className="hover:text-zinc-300 hover:underline transition-colors py-1">
+                        <Link href="/sitemap" className="hover:text-zinc-300 transition-colors py-1">
                             Sitemap
                         </Link>
                     </div>
                 </div>
+
             </div>
 
+            {/* Redlix Inline Logo — Red Watermark BG */}
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex items-end justify-center overflow-hidden" aria-hidden="true">
+                <img
+                    src="https://ik.imagekit.io/dypkhqxip/redlix%20new?updatedAt=1781042212493"
+                    alt=""
+                    className="w-[90%] max-w-5xl opacity-[0.04] select-none object-contain"
+                    style={{ filter: "brightness(0) invert(1)", transform: "translateY(18%)" }}
+                />
+            </div>
         </footer>
     );
 }

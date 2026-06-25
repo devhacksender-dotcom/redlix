@@ -15,8 +15,8 @@ export default function PrivacyPolicy() {
             <LegalDocLayout
                 title="Privacy Policy"
                 description="How Redlix Studio collects, uses, stores, and protects personal information when you use our website and services."
-                updated="May 23, 2026"
-                effective="May 23, 2026"
+                updated="June 26, 2026"
+                effective="June 26, 2026"
                 sections={privacySections}
             />
             <CorporateFooter />

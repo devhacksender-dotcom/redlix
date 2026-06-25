@@ -30,7 +30,7 @@ const BottomBanner = () => {
 
                         <div className="flex items-center gap-2.5 text-white/70">
                             <span className="text-[12px] font-medium tracking-wide">
-                                Designed and Maintained by Redlix Systems
+                                Designed and Maintained by Redlix Studio
                             </span>
                         </div>
                     </div>

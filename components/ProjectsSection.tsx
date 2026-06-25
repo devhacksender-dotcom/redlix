@@ -99,6 +99,18 @@ const projects = [
         author: "HSGA Telangana",
         role: "Digital Initiative",
         avatar: "https://res.cloudinary.com/dq2suftps/image/upload/v1722516854/logo_bivaq2.jpg",
+    },
+    {
+        title: "Student Forge",
+        slug: "student-forge",
+        category: "Educational Platform",
+        image: "https://ik.imagekit.io/dypkhqxip/sfredlix?updatedAt=1779555687235",
+        description: "Redlix designed and engineered Student Forge, a dynamic digital collaboration platform for student organizations, providing volunteer hour tracking, event hosting, and resources sharing databases.",
+        badge: "Delivered with precision.",
+        badgeColor: "bg-emerald-100 text-emerald-600",
+        author: "Jaswanth Sonti",
+        role: "Founder, Student Forge",
+        avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1771184951/Screenshot_2026-02-16_at_01.18.59_yodn7t.png",
     }
 ];
 
@@ -107,20 +119,20 @@ function ProjectCard({ project, keyPrefix }: { project: typeof projects[0]; keyP
         <Link
             href={`/portfolio/${project.slug}`}
             key={keyPrefix}
-            className="relative flex-none w-[450px] sm:w-[540px] bg-white border border-zinc-200/60 rounded-2xl overflow-hidden group cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 block flex flex-col"
+            className="relative flex-none w-[450px] sm:w-[540px] bg-zinc-100/65 border border-zinc-200/80 rounded-2xl overflow-hidden group cursor-pointer shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all duration-300 block flex flex-col"
         >
             <div className="p-3 pb-0">
-                <div className="w-full h-[290px] sm:h-[330px] rounded-xl overflow-hidden bg-zinc-50 flex items-center justify-center">
+                <div className="w-full h-[290px] sm:h-[330px] rounded-xl overflow-hidden bg-white border border-zinc-200/30 flex items-center justify-center">
                     <img
                         src={project.image}
                         alt={project.title}
-                        className="w-full h-full object-contain object-center group-hover:scale-[1.02] transition-transform duration-500 pointer-events-none"
+                        className="w-full h-full object-contain object-center group-hover:scale-[1.025] transition-transform duration-500 pointer-events-none"
                     />
                 </div>
             </div>
 
             <div className="px-4 pt-4 pb-3 flex-grow flex flex-col min-h-0">
-                <p className="text-[13px] text-zinc-600 leading-relaxed mb-3 line-clamp-3">
+                <p className="text-[13px] text-zinc-700 leading-relaxed mb-3 line-clamp-3">
                     {project.description}
                 </p>
                 <div className="mb-2">
@@ -130,15 +142,15 @@ function ProjectCard({ project, keyPrefix }: { project: typeof projects[0]; keyP
                 </div>
             </div>
 
-            <div className="px-4 pb-3.5 flex items-center gap-2.5 border-t border-zinc-100 pt-2.5 mt-auto">
+            <div className="px-4 pb-3.5 flex items-center gap-3 border-t border-zinc-200/50 pt-2.5 mt-auto">
                 <img
                     src={project.avatar}
                     alt={project.author}
-                    className="w-9 h-9 rounded-full object-cover pointer-events-none"
+                    className="w-11 h-11 rounded-full object-cover border border-zinc-200 shadow-sm pointer-events-none"
                 />
                 <div className="min-w-0">
-                    <p className="text-[12px] font-semibold text-zinc-800 leading-tight truncate">{project.author}</p>
-                    <p className="text-[10.5px] text-zinc-400 truncate">{project.role}</p>
+                    <p className="text-[13.5px] font-bold text-zinc-900 leading-tight truncate">{project.author}</p>
+                    <p className="text-[11px] text-zinc-500 font-medium truncate">{project.role}</p>
                 </div>
             </div>
         </Link>
@@ -147,7 +159,7 @@ function ProjectCard({ project, keyPrefix }: { project: typeof projects[0]; keyP
 
 export default function ProjectsSection() {
     return (
-        <section className="w-full bg-zinc-50/50 py-2 lg:py-4 border-y border-zinc-100 overflow-hidden">
+        <section className="w-full bg-white py-2 lg:py-4 border-y border-zinc-100 overflow-hidden">
             <div className="relative w-full overflow-hidden">
                 <div className="flex gap-4 animate-marquee-slow hover:[animation-play-state:paused] py-1 select-none items-stretch">
                     <div className="flex items-stretch gap-4 flex-shrink-0">

@@ -15,8 +15,8 @@ export default function TermsAndConditions() {
             <LegalDocLayout
                 title="Terms of Service"
                 description="Professional engagement guidelines for services provided by Redlix Studio, an independent freelance studio operated by Rishi Rohan Kalapala in Hyderabad, India."
-                updated="May 23, 2026"
-                effective="May 23, 2026"
+                updated="June 26, 2026"
+                effective="June 26, 2026"
                 sections={termsSections}
             />
             <CorporateFooter />

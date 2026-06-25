@@ -29,6 +29,17 @@ const ContactPopup = () => {
 
     const togglePopup = () => setIsOpen(!isOpen);
 
+    // Auto-open on first visit
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const hasVisited = localStorage.getItem("hasVisitedContactPopup");
+            if (!hasVisited) {
+                setIsOpen(true);
+                localStorage.setItem("hasVisitedContactPopup", "true");
+            }
+        }
+    }, []);
+
     // Explicitly render reCAPTCHA when modal opens
     useEffect(() => {
         if (isOpen) {
@@ -110,9 +121,9 @@ const ContactPopup = () => {
             <button
                 onClick={togglePopup}
                 aria-label="Get in touch"
-                className="fixed bottom-24 right-6 sm:bottom-8 sm:right-8 z-[100] bg-[#E61E32] hover:bg-[#ff1f34] text-white px-6 py-3 flex items-center gap-2.5 rounded-xl text-[14px] font-semibold shadow-[0_4px_16px_rgba(230,30,50,0.3)] hover:shadow-[0_8px_24px_rgba(230,30,50,0.45)] active:scale-[0.97] transition-all duration-300"
+                className="hidden sm:flex fixed sm:bottom-8 sm:right-8 z-[100] bg-[#1E2022] hover:bg-zinc-800 border border-zinc-800 text-white px-5 py-2.5 items-center gap-2 rounded-xl text-[13.5px] font-medium shadow-[0_8px_24px_rgba(0,0,0,0.12)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.2)] hover:-translate-y-0.5 active:scale-[0.97] transition-all duration-300"
             >
-                <Send className="w-4 h-4 shrink-0" />
+                <Send className="w-3.5 h-3.5 shrink-0" />
                 <span>Get in Touch</span>
             </button>
 

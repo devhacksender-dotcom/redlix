@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Sparkles, Globe, Smartphone, Cpu } from "lucide-react";
+import { Sparkles, Globe, Smartphone, Cpu, Layers } from "lucide-react";
 
 // Prepend high-fidelity official brand colored SVG logos inside technology pills using third party Simple Icons CDN.
 function getPillIcon(pill: string) {
@@ -113,7 +113,7 @@ export default function ServicesSection() {
                 {/* Header — tag, headline, intro call (stacked, centered) */}
                 <div className="flex flex-col items-center text-center mb-10 lg:mb-12">
                     <span className="inline-flex items-center gap-2 px-4 py-1.5 mb-5 bg-white border border-zinc-200/80 rounded-full text-[13px] font-medium text-zinc-700 shadow-[0_2px_8px_rgba(0,0,0,0.03)] select-none">
-                        <Sparkles className="w-3.5 h-3.5 text-zinc-500" strokeWidth={2} />
+                        <Layers className="w-3.5 h-3.5 text-zinc-500" strokeWidth={2} />
                         Services
                     </span>
                     <h2 className="text-[26px] sm:text-[30px] lg:text-[34px] font-semibold text-[#202124] tracking-tight leading-tight mb-6">

@@ -53,7 +53,7 @@ const projects = [
     {
         title: "PisciDrop",
         slug: "piscidrop",
-        link: "https://piscidrop.com",
+        link: "https://picsidrop.in",
         category: "Logistics & Supply Chain",
         image: "https://ik.imagekit.io/dypkhqxip/picsi",
         description: "Redlix built our end-to-end aquaculture logistics platform with real-time tracking, automated dispatch, and supply chain analytics that transformed our delivery operations.",
@@ -115,7 +115,7 @@ const projects = [
     {
         title: "HSGA Telangana",
         slug: "hsga-telangana",
-        link: "https://hsgatelangana.com",
+        link: "https://hsgatelangana.in",
         category: "Government Infrastructure",
         image: "https://ik.imagekit.io/dypkhqxip/hsga",
         description: "Designed and developed the official HSGA Telangana landing page. Elevated digital presence with fast, accessible design.",
@@ -177,7 +177,7 @@ const projects = [
     {
         title: "HUS System",
         slug: "hus-system",
-        link: "https://hus.hsgatelangana.com",
+        link: "https://hus.hsgatelangana.in",
         category: "Government Infrastructure",
         image: "https://ik.imagekit.io/dypkhqxip/hus",
         description: "Robust system engineered for large-scale state digital infrastructure. Precision engineering for complex governance use cases.",
@@ -270,7 +270,7 @@ const projects = [
     {
         title: "National E-Commerce Platform",
         slug: "national-ecommerce",
-        link: "https://shop.hsgatelangana.com",
+        link: "https://shop.hsgatelangana.in",
         category: "Retail & Commerce",
         image: "https://ik.imagekit.io/dypkhqxip/shop",
         description: "High-conversion online retail store with real-time inventory synchronization. Delivered seamless global checkout and multi-currency support.",
@@ -297,6 +297,36 @@ const projects = [
             "Structured an easy-to-use seller administration dashboard translated into regional languages."
         ],
         whyRedlix: "Redlix was selected due to our expertise in constructing robust public infrastructure portals and our commitment to high-performance, responsive design that highlights Telangana's premium handcraft heritage in an elegant, state-of-the-art interface."
+    },
+    {
+        title: "Student Forge",
+        slug: "student-forge",
+        link: "https://studentforge.in",
+        category: "Educational Platform",
+        image: "https://ik.imagekit.io/dypkhqxip/sfredlix?updatedAt=1779555687235",
+        description: "Redlix designed and engineered Student Forge, a dynamic digital collaboration platform for student organizations, providing volunteer hour tracking, event hosting, and resources sharing databases.",
+        clientInfo: { hq: "Bangalore, India", industry: "Education & Tech", size: "Community-led" },
+        services: ["Static Web Design", "Volunteer Management UI", "UX Audit"],
+        quote: "Student collaboration at scale — Modern, Fast, and Interactive",
+        founder: {
+            name: "Jaswanth Sonti",
+            role: "Founder, Student Forge",
+            avatar: "https://res.cloudinary.com/dsqqrpzfl/image/upload/v1771184951/Screenshot_2026-02-16_at_01.18.59_yodn7t.png"
+        },
+        testimonial: {
+            text: "Redlix delivered a highly performant community system that our students love using daily.",
+            author: "Jaswanth Sonti",
+            role: "Founder @ Student Forge"
+        },
+        clientDetail: "Student Forge is a volunteer-led educational and community orchestration platform designed to help student chapters and university organizations manage volunteer records, host events, and distribute resources efficiently.",
+        challenge: "Student organizers struggled with fragmented communication pipelines and manual records management. They required a unified dashboard that volunteer leaders could update securely in real-time.",
+        delivered: [
+            "Designed and built an interactive landing page and volunteer onboarding system.",
+            "Integrated gamified milestone trackers to display volunteer hours and event sign-ups.",
+            "Leveraged edge-cached databases for lightning-fast loads on low-end networks.",
+            "Implemented strict WCAG accessibility guidelines ensuring all students can navigate safely."
+        ],
+        whyRedlix: "Redlix combined technical competence with intuitive UX designs suited perfectly for modern student communities."
     }
 ];
 
@@ -416,7 +446,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
                                 <img 
                                     src={project.image} 
                                     alt={project.title} 
-                                    className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" 
+                                    className="w-full h-full object-cover transition-all duration-500" 
                                 />
                             </div>
 

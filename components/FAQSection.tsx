@@ -12,24 +12,40 @@ const faqs = [
         answer: "Starting a project is simple. You can schedule a discovery call through our website or contact our sales team directly. We'll discuss your vision, requirements, and objectives to create a tailored roadmap for your project."
     },
     {
-        question: "What are the requirements for Redlix Learn courses?",
-        answer: "Redlix Learn courses are designed for various skill levels. While some advanced modules require basic programming knowledge, many of our fundamental courses are open to anyone eager to learn full-stack development, UI/UX design, or system architecture."
+        question: "How do you price projects?",
+        answer: "We price projects on a fixed-scope or monthly retainer basis depending on your needs. For custom MVPs and software builds, we provide a transparent, upfront quote. For long-term product engineering, we offer dedicated monthly developer resources."
+    },
+    {
+        question: "Who owns the intellectual property and code?",
+        answer: "You do. Once the project is completed and the final invoice is paid, 100% of the codebase, design files, and intellectual property rights are fully and legally transferred to your company."
     },
     {
         question: "What is the typical project timeline?",
         answer: "Timelines vary depending on the complexity and scope of the project. A standard enterprise application typically takes between 8 to 16 weeks from discovery to deployment. We provide detailed milestones and regular updates throughout the process."
     },
     {
-        question: "Do I receive a certificate upon completion of a course?",
-        answer: "Yes, all students who successfully complete a Redlix Learn program receive a verified digital certificate. This credential validates your technical proficiency and can be directly shared on professional platforms like LinkedIn."
+        question: "Do you offer post-launch support and maintenance?",
+        answer: "Yes, we provide ongoing post-launch support, cloud infrastructure hosting setup, systems monitoring, and maintenance plans to ensure your product continues to run smoothly as your brand scales."
     },
     {
-        question: "Are there internship opportunities at Redlix Studio?",
-        answer: "We frequently open internship positions for talented individuals. Interns gain hands-on experience working on real-world projects and receive dedicated mentorship from our senior engineering team."
+        question: "Can you work with our existing codebase or tech stack?",
+        answer: "Absolutely. While we specialize in TypeScript (React/Next.js), Node.js, Python, and PostgreSQL, our engineering team can audit, refactor, and build directly on top of your existing code and infrastructure."
+    },
+    {
+        question: "Do you build SEO-friendly websites to help us rank on Google?",
+        answer: "Yes, every website we build is optimized for search engines from day one. We implement semantic HTML, maximize page loading speed, target core web vitals, and construct clean metadata structures to help your brand rank at the top of Google search results."
+    },
+    {
+        question: "How do you design systems to help businesses scale?",
+        answer: "We architect custom software using modern cloud infrastructure (AWS, serverless, and optimized databases). By implementing efficient caching, database indexing, and auto-scaling APIs, we ensure your platform handles high traffic volumes smoothly."
+    },
+    {
+        question: "What core tech stack do you specialize in?",
+        answer: "We specialize in high-performance stacks like TypeScript (Next.js, React), Node.js, Python, PostgreSQL, and Firebase. This combination allows us to deliver ultra-fast load times, solid security, and seamless cross-platform experiences."
     },
     {
         question: "How do you handle data security?",
-        answer: "Security is built into every layer of our development process. We implement industry-standard encryption, secure authentication protocols, and regular security audits to protect your data and ensure compliance with global standards."
+        answer: "Security is built into every layer of our development process. We implement industry-standard SSL/TLS encryption, secure OAuth/JWT authentication protocols, and regular security audits to protect your data and ensure compliance with global standards."
     }
 ];
 

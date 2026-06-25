@@ -38,6 +38,9 @@ export const termsSections: LegalSection[] = [
                     Upon full payment of all fees, the ownership of final custom deliverables is transferred to the client. However, Redlix Studio retains ownership of all underlying methodologies, reusable architectural patterns, and our proprietary management framework.
                 </p>
                 <p>
+                    Additionally, all brand assets, including logos, wordmarks, glyphs, color palettes, and typographic assets downloaded from this site are the exclusive intellectual property of Redlix Studio. These assets are protected by copyright laws and are provided for authorized media, partner, or client representation of Redlix Studio only. Any modifications (outside of authorized color palette usage), unauthorized commercial distribution, or use that misrepresents the brand is strictly prohibited.
+                </p>
+                <p>
                     Unauthorized distribution, reverse engineering, or resale of the platform&apos;s core architectural components is strictly prohibited.
                 </p>
             </>

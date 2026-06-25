@@ -1,6 +1,9 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 
 export default function FinalCTA() {
+    const [active, setActive] = useState(false);
     return (
         <section className="w-full bg-[#fafafa] py-2 sm:py-3 lg:py-4 font-sans">
             <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,6 +46,29 @@ export default function FinalCTA() {
 
                 </div>
                 
+            </div>
+
+            {/* Embedded Cal.com Scheduler (Edge-to-Edge Full-Width Iframe) */}
+            <div 
+                className="relative w-full mt-8 sm:mt-10 overflow-hidden bg-transparent"
+                onClick={() => setActive(true)}
+                onMouseLeave={() => setActive(false)}
+            >
+                <iframe
+                    src="https://cal.com/redlix.co.in/30min"
+                    title="Redlix Studio Scheduler"
+                    width="100%"
+                    height="720"
+                    frameBorder="0"
+                    className="w-full border-0"
+                    style={{ pointerEvents: active ? "auto" : "none" }}
+                    allow="camera; microphone; geolocation; clipboard-write; clipboard-read"
+                />
+                
+                {/* Scroll Protection Overlay */}
+                {!active && (
+                    <div className="absolute inset-0 bg-transparent cursor-pointer pointer-events-auto" />
+                )}
             </div>
         </section>
     );

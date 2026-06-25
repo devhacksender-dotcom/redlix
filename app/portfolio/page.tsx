@@ -106,6 +106,18 @@ const projects = [
         catColor: "text-[#44403c]/80",
         descColor: "text-[#57534e]/80",
     },
+    {
+        title: "Student Forge",
+        slug: "student-forge",
+        category: "Educational Platform",
+        image: "https://ik.imagekit.io/dypkhqxip/sfredlix?updatedAt=1779555687235",
+        description: "Redlix designed and engineered Student Forge, a dynamic digital collaboration platform for student organizations, providing volunteer hour tracking, event hosting, and resources sharing databases.",
+        bgColor: "bg-[#f0fdf4]", // Soft Mint
+        borderColor: "border-[#bbf7d0]/60",
+        textColor: "text-[#064e3b]",
+        catColor: "text-[#047857]/80",
+        descColor: "text-[#065f46]/80",
+    },
 ];
 
 export default function PortfolioPage() {

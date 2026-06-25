@@ -15,8 +15,8 @@ export default function CookiesPolicy() {
             <LegalDocLayout
                 title="Cookies Policy"
                 description="How we use cookies, local storage, and similar technologies on www.redlix.co.in, including analytics and security tools."
-                updated="May 23, 2026"
-                effective="May 23, 2026"
+                updated="June 26, 2026"
+                effective="June 26, 2026"
                 sections={cookiesSections}
             />
             <CorporateFooter />
