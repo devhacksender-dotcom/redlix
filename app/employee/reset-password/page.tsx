@@ -69,7 +69,7 @@ function ResetPasswordForm() {
                 </div>
                 <button
                     onClick={() => router.push("/employee/login")}
-                    className="w-full bg-[#E61E32] hover:bg-[#ff1f34] py-3.5 text-sm font-bold uppercase tracking-widest text-white transition-all cursor-pointer"
+                    className="w-full bg-[#E61E32] hover:bg-[#ff1f34] py-3.5 text-sm font-bold  tracking-widest text-white transition-all cursor-pointer"
                 >
                     Proceed to Login
                 </button>
@@ -80,7 +80,7 @@ function ResetPasswordForm() {
     return (
         <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
             <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/60">New Password</label>
+                <label className="text-xs font-semibold  tracking-wider text-white/60">New Password</label>
                 <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <input
@@ -95,7 +95,7 @@ function ResetPasswordForm() {
             </div>
 
             <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-white/60">Confirm Password</label>
+                <label className="text-xs font-semibold  tracking-wider text-white/60">Confirm Password</label>
                 <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <input
@@ -125,7 +125,7 @@ function ResetPasswordForm() {
                 {loading ? (
                     <Loader2 className="w-4 h-4 text-white animate-spin" />
                 ) : (
-                    <span className="text-sm font-bold uppercase tracking-widest text-white">Reset Password</span>
+                    <span className="text-sm font-bold  tracking-widest text-white">Reset Password</span>
                 )}
             </button>
 

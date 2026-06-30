@@ -271,7 +271,7 @@ export default function EmployeeLogin() {
                     {view === "login" ? (
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-medium uppercase tracking-wider text-white/50 text-left block">Email Address</label>
+                                <label className="text-[10px] font-medium  tracking-wider text-white/50 text-left block">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                                     <input
@@ -286,7 +286,7 @@ export default function EmployeeLogin() {
                             </div>
 
                             <div className="space-y-1">
-                                <label className="text-[10px] font-medium uppercase tracking-wider text-white/50 text-left block">Password</label>
+                                <label className="text-[10px] font-medium  tracking-wider text-white/50 text-left block">Password</label>
                                 <div className="relative">
                                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                                     <input
@@ -316,13 +316,13 @@ export default function EmployeeLogin() {
                                 {loading ? (
                                     <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
                                 ) : (
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-white">Login</span>
+                                    <span className="text-xs font-semibold  tracking-wider text-white">Login</span>
                                 )}
                             </button>
 
                             <div className="relative flex py-1.5 items-center">
                                 <div className="flex-grow border-t border-white/5"></div>
-                                <span className="flex-shrink mx-3 text-[9px] text-white/20 uppercase tracking-widest font-mono">or continue with</span>
+                                <span className="flex-shrink mx-3 text-[9px] text-white/20  tracking-widest font-mono">or continue with</span>
                                 <div className="flex-grow border-t border-white/5"></div>
                             </div>
 
@@ -386,7 +386,7 @@ export default function EmployeeLogin() {
                     ) : (
                         <form onSubmit={handleForgotPassword} className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-medium uppercase tracking-wider text-white/50 text-left block">Email Address</label>
+                                <label className="text-[10px] font-medium  tracking-wider text-white/50 text-left block">Email Address</label>
                                 <div className="relative">
                                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
                                     <input
@@ -423,7 +423,7 @@ export default function EmployeeLogin() {
                                 {loading ? (
                                     <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
                                 ) : (
-                                    <span className="text-xs font-semibold uppercase tracking-wider text-white">Send Reset Link</span>
+                                    <span className="text-xs font-semibold  tracking-wider text-white">Send Reset Link</span>
                                 )}
                             </button>
 

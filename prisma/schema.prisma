@@ -104,6 +104,7 @@ model Client {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   workSubmissions WorkSubmission[]
+  revenues        ClientRevenue[]
 
   @@map("clients")
 }
@@ -200,6 +201,21 @@ model Payroll {
   updatedAt   DateTime  @updatedAt
 
   @@map("payrolls")
+}
+
+model ClientRevenue {
+  id         Int       @id @default(autoincrement())
+  clientId   Int?
+  client     Client?   @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  clientName String
+  month      String
+  amount     Float
+  notes      String?
+  receivedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("client_revenue")
 }
 
 model LeaveRequest {

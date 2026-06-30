@@ -42,7 +42,10 @@ import {
     CheckCheck,
     Hourglass,
     Eye,
-    Printer
+    Printer,
+    Menu,
+    ChevronRight,
+    Paperclip
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -311,6 +314,7 @@ export default function AdminPortal() {
     const [isEditingEmployee, setIsEditingEmployee] = useState(false);
     const [isPaymentsOpen, setIsPaymentsOpen] = useState(false);
     const [isSupportOpen, setIsSupportOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [attendanceSubView, setAttendanceSubView] = useState<"logs" | "today">("logs");
 
@@ -461,6 +465,10 @@ export default function AdminPortal() {
     }, [receiptClientId, clients]);
 
     useEffect(() => {
+        setSidebarOpen(false);
+    }, [activeTab]);
+
+    useEffect(() => {
         const today = new Date().toISOString().split("T")[0];
         setReceiptInvoiceDate(today);
         setReceiptDueDate(today);
@@ -605,11 +613,40 @@ export default function AdminPortal() {
     const [payrollsLoading, setPayrollsLoading] = useState(false);
     const [selectedPayroll, setSelectedPayroll] = useState<AdminPayroll | null>(null);
     const [showAddPayrollForm, setShowAddPayrollForm] = useState(false);
+    const [payrollSubView, setPayrollSubView] = useState<"payouts" | "amount-generated">("payouts");
     const [newPayroll, setNewPayroll] = useState({
         employeeId: "",
         month: "",
         amount: "",
         status: "pending"
+    });
+
+    interface ClientRevenue {
+        id: number;
+        clientId?: number | null;
+        clientName: string;
+        month: string;
+        amount: number;
+        notes?: string | null;
+        receivedAt?: string | null;
+        createdAt: string;
+        client?: {
+            id: number;
+            companyName: string;
+            clientName: string;
+            email?: string;
+        } | null;
+    }
+    const [clientRevenues, setClientRevenues] = useState<ClientRevenue[]>([]);
+    const [clientRevenuesLoading, setClientRevenuesLoading] = useState(false);
+    const [showAddRevenueForm, setShowAddRevenueForm] = useState(false);
+    const [newRevenue, setNewRevenue] = useState({
+        clientId: "",
+        clientName: "",
+        month: "",
+        amount: "",
+        notes: "",
+        receivedAt: "",
     });
 
     // Leave Management States
@@ -683,11 +720,15 @@ export default function AdminPortal() {
         });
 
         const amountData = months.map(m => {
-            return payrolls.filter(p => {
-                const pDate = p.createdAt ? new Date(p.createdAt) : null;
-                if (!pDate || isNaN(pDate.getTime())) return false;
-                return pDate.getFullYear() === m.year && pDate.getMonth() === m.monthVal;
-            }).reduce((sum, p) => sum + (p.amount || 0), 0);
+            return clientRevenues.filter(r => {
+                const monthDate = new Date(`${r.month} 1`);
+                if (!isNaN(monthDate.getTime())) {
+                    return monthDate.getFullYear() === m.year && monthDate.getMonth() === m.monthVal;
+                }
+                const rDate = r.receivedAt ? new Date(r.receivedAt) : (r.createdAt ? new Date(r.createdAt) : null);
+                if (!rDate || isNaN(rDate.getTime())) return false;
+                return rDate.getFullYear() === m.year && rDate.getMonth() === m.monthVal;
+            }).reduce((sum, r) => sum + (r.amount || 0), 0);
         });
 
         const hoursData = months.map(m => {
@@ -735,7 +776,9 @@ export default function AdminPortal() {
             fetchEmployees();
         } else if (activeTab === "payrolls") {
             fetchPayrolls();
-            fetchEmployees(); // needed to allocate payrolls
+            fetchClientRevenues();
+            fetchEmployees();
+            fetchClients();
         } else if (activeTab === "leaves") {
             fetchLeaves();
         } else if (activeTab === "alerts") {
@@ -773,6 +816,7 @@ export default function AdminPortal() {
                 fetchAdminDeclarations(),
                 fetchGlobalAttendance(),
                 fetchPayrolls(),
+                fetchClientRevenues(),
                 fetchLeaves(),
                 fetchFcmSubscribers()
             ]);
@@ -1003,6 +1047,56 @@ export default function AdminPortal() {
             console.error("Failed to fetch payrolls:", error);
         } finally {
             setPayrollsLoading(false);
+        }
+    };
+
+    const fetchClientRevenues = async () => {
+        setClientRevenuesLoading(true);
+        try {
+            const res = await fetch("/api/admin/client-revenue");
+            const data = await res.json();
+            if (data.success) setClientRevenues(data.data);
+        } catch (error) {
+            console.error("Failed to fetch client revenue:", error);
+        } finally {
+            setClientRevenuesLoading(false);
+        }
+    };
+
+    const handleAddClientRevenue = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        try {
+            const res = await fetch("/api/admin/client-revenue", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newRevenue),
+            });
+            const data = await res.json();
+            if (data.success) {
+                setClientRevenues([data.data, ...clientRevenues]);
+                setShowAddRevenueForm(false);
+                setNewRevenue({ clientId: "", clientName: "", month: "", amount: "", notes: "", receivedAt: "" });
+            } else {
+                alert(data.message || "Failed to save amount generated");
+            }
+        } catch (error) {
+            console.error("Failed to add client revenue:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleDeleteClientRevenue = async (id: number) => {
+        if (!confirm("Delete this revenue record?")) return;
+        try {
+            const res = await fetch(`/api/admin/client-revenue/${id}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setClientRevenues(clientRevenues.filter(r => r.id !== id));
+            }
+        } catch (error) {
+            console.error("Failed to delete client revenue:", error);
         }
     };
 
@@ -1381,7 +1475,7 @@ export default function AdminPortal() {
                     setSelectedEmployee(prev => prev ? { ...prev, pinkSlipAllocatedAt: new Date().toISOString(), pinkSlipRevoked: false } : prev);
                 }
                 setShowPinkSlipModal(false);
-                alert(`✅ Pink Slip allocated successfully. Notification email sent to the employee.`);
+                alert(`Pink slip allocated successfully. Notification email sent to the employee.`);
             } else {
                 alert(data.message || "Failed to allocate pink slip");
             }
@@ -1407,7 +1501,7 @@ export default function AdminPortal() {
                 if (selectedEmployee?.id === employeeId) {
                     setSelectedEmployee(prev => prev ? { ...prev, pinkSlipAllocatedAt: null, pinkSlipRevoked: true } : prev);
                 }
-                alert("✅ Pink slip revoked. Employee access has been restored.");
+                alert("Pink slip revoked. Employee access has been restored.");
             } else {
                 alert(data.message || "Failed to revoke pink slip");
             }
@@ -1759,23 +1853,47 @@ export default function AdminPortal() {
     );
 
     const analyticsData = activeTab === "overview" ? getAnalyticsData() : null;
+    const taskStats = {
+        pending: tasks.filter((t) => t.status === "pending").length,
+        inProgress: tasks.filter((t) => t.status === "in_progress").length,
+        completed: tasks.filter((t) => t.status === "completed").length,
+        total: tasks.length,
+    };
 
     return (
         <main className="h-screen bg-[#0a0a0a] text-white flex font-sans overflow-hidden">
-            {/* Simple Sidebar */}
-            <aside className="no-print w-64 border-r border-white/5 bg-[#0f0f0f] flex flex-col p-6 space-y-8 shrink-0 h-full">
-                <div className="px-4 space-y-4">
-                    <div className="flex items-center gap-3">
+            {sidebarOpen && (
+                <button
+                    type="button"
+                    aria-label="Close navigation menu"
+                    className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+            {/* Sidebar */}
+            <aside className={`no-print fixed lg:static inset-y-0 left-0 z-50 w-64 max-w-[85vw] border-r border-white/5 bg-[#0f0f0f] flex flex-col p-4 md:p-6 space-y-6 shrink-0 h-full overflow-y-auto transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+                <div className="px-2 md:px-4 space-y-4">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
                         <img
                             src="https://ik.imagekit.io/dypkhqxip/logo__1_?updatedAt=1781048454786"
                             alt="Redlix Logo"
                             className="h-[42px] w-auto brightness-0 invert opacity-95 object-contain"
                         />
-                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none border border-[#E61E32]/20">
+                        <span className="bg-[#E61E32]/10 text-[#E61E32] text-xs font-bold px-1.5 py-0.5 rounded-lg border border-[#E61E32]/20 shrink-0">
                             Admin
                         </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(false)}
+                            className="lg:hidden p-1.5 text-white/50 hover:text-white border border-white/10"
+                            aria-label="Close menu"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-white/30">
+                    <div className="flex items-center gap-1.5 text-sm text-white/30">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                         <span>Online</span>
                     </div>
@@ -1784,7 +1902,7 @@ export default function AdminPortal() {
                 <nav className="flex-grow space-y-1">
                     <button
                         onClick={() => setActiveTab("overview")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='overview'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Globe className="w-4 h-4" />
                         Overview
@@ -1793,66 +1911,54 @@ export default function AdminPortal() {
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsSupportOpen(!isSupportOpen)}
-                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'inquiries' || activeTab === 'support' || activeTab === 'intern-support')
-                                ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
-                                : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
-                                }`}
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${(activeTab ==='inquiries'|| activeTab ==='support'|| activeTab ==='intern-support') ?'text-[#E61E32] bg-[#E61E32]/10':'text-white/50 hover:text-white hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-3">
                                 <MessageSquare className="w-4 h-4" />
                                 <span>Support</span>
                             </div>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSupportOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isSupportOpen ?'rotate-180':''}`} />
                         </button>
                         {isSupportOpen && (
                             <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
                                 <button
                                     onClick={() => setActiveTab("inquiries")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'inquiries'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='inquiries'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                         <span>Inquiries</span>
                                     </div>
                                     {unreadInquiriesCount > 0 && (
-                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                        <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                             {unreadInquiriesCount}
                                         </span>
                                     )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("intern-support")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'intern-support'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='intern-support'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                         <span>Intern Support</span>
                                     </div>
                                     {pendingInternTicketsCount > 0 && (
-                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                                        <span className="text-xs font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
                                             {pendingInternTicketsCount}
                                         </span>
                                     )}
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("support")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'support'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='support'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                         <span>Support Tickets</span>
                                     </div>
                                     {pendingTicketsCount > 0 && (
-                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                        <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                             {pendingTicketsCount}
                                         </span>
                                     )}
@@ -1863,14 +1969,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("employees")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'employees' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='employees'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <Users className="w-4 h-4" />
                             <span>Employees</span>
                         </div>
                         {employeesCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
                                 {employeesCount}
                             </span>
                         )}
@@ -1878,7 +1984,7 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("attendance")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='attendance'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Clock className="w-4 h-4" />
                         Attendance
@@ -1886,14 +1992,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("tasks")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='tasks'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <ListTodo className="w-4 h-4" />
                             <span>Tasks</span>
                         </div>
                         {pendingTasksCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                 {pendingTasksCount}
                             </span>
                         )}
@@ -1901,14 +2007,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("clients")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'clients' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='clients'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <Briefcase className="w-4 h-4" />
                             <span>Clients</span>
                         </div>
                         {clientsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
                                 {clientsCount}
                             </span>
                         )}
@@ -1916,14 +2022,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("meetings")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='meetings'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <Video className="w-4 h-4" />
                             <span>Meetings</span>
                         </div>
                         {upcomingMeetingsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 rounded-full shrink-0">
                                 {upcomingMeetingsCount}
                             </span>
                         )}
@@ -1931,14 +2037,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("documents")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='documents'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <FileText className="w-4 h-4" />
                             <span>Documents</span>
                         </div>
                         {documentsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/40 rounded-full shrink-0">
                                 {documentsCount}
                             </span>
                         )}
@@ -1946,14 +2052,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("declarations")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='declarations'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <FolderUp className="w-4 h-4" />
                             <span>Declarations</span>
                         </div>
                         {pendingDeclarationsCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                 {pendingDeclarationsCount}
                             </span>
                         )}
@@ -1961,14 +2067,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("submissions")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='submissions'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <Send className="w-4 h-4" />
                             <span>Work Submissions</span>
                         </div>
                         {adminSubmissions.length > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                 {adminSubmissions.length}
                             </span>
                         )}
@@ -1976,14 +2082,14 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("leaves")}
-                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='leaves'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <div className="flex items-center gap-3">
                             <Calendar className="w-4 h-4" />
                             <span>Leaves</span>
                         </div>
                         {pendingLeavesCount > 0 && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
+                            <span className="text-xs font-bold px-1.5 py-0.5 bg-yellow-500/10 border border-yellow-500/25 text-yellow-500 rounded-full shrink-0">
                                 {pendingLeavesCount}
                             </span>
                         )}
@@ -1992,62 +2098,47 @@ export default function AdminPortal() {
                     <div className="space-y-1">
                         <button
                             onClick={() => setIsPaymentsOpen(!isPaymentsOpen)}
-                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${(activeTab === 'payment-due-sender' || activeTab === 'payment-received-sender' || activeTab === 'receipt-generator' || activeTab === 'payrolls')
-                                ? 'text-[#E61E32] bg-[#E61E32]/5 border-l-2 border-[#E61E32] pl-[14px]'
-                                : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'
-                                }`}
+                            className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${(activeTab ==='payment-due-sender'|| activeTab ==='payment-received-sender'|| activeTab ==='receipt-generator'|| activeTab ==='payrolls') ?'text-[#E61E32] bg-[#E61E32]/10':'text-white/50 hover:text-white hover:bg-white/5'}`}
                         >
                             <div className="flex items-center gap-3">
                                 <CreditCard className="w-4 h-4" />
                                 <span>Payments</span>
                             </div>
-                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isPaymentsOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isPaymentsOpen ?'rotate-180':''}`} />
                         </button>
                         {isPaymentsOpen && (
                             <div className="pl-4 space-y-1 mt-1 animate-in slide-in-from-top-1 duration-150">
                                 <button
                                     onClick={() => setActiveTab("payment-due-sender")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payment-due-sender'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='payment-due-sender'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Due Mail Sender
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payment-received-sender")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payment-received-sender'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='payment-received-sender'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Payment Received Sender
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("receipt-generator")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'receipt-generator'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='receipt-generator'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                     Receipt Generator
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payrolls")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls'
-                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]'
-                                        : 'text-white/40 hover:text-white hover:bg-white/5 hover:pl-5'
-                                        }`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-xs font-medium transition-all duration-200 rounded-lg ${activeTab ==='payrolls'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/40 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
                                         <span>Payrolls</span>
                                     </div>
                                     {pendingPayrollsCount > 0 && (
-                                        <span className="text-[9px] font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
+                                        <span className="text-xs font-bold px-1.5 py-0.5 bg-[#E61E32]/10 border border-[#E61E32]/25 text-[#E61E32] rounded-full shrink-0">
                                             {pendingPayrollsCount}
                                         </span>
                                     )}
@@ -2058,7 +2149,7 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("alerts")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'alerts' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='alerts'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Bell className="w-4 h-4" />
                         Alert Sender
@@ -2066,7 +2157,7 @@ export default function AdminPortal() {
                     <div className="h-[1px] bg-white/5 my-1.5 mx-4" />
                     <button
                         onClick={() => setActiveTab("settings")}
-                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-[#E61E32]/10 text-[#E61E32] border-l-2 border-[#E61E32] pl-[14px]' : 'text-white/50 hover:text-white hover:bg-white/5 hover:pl-5'}`}
+                        className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg ${activeTab ==='settings'?'bg-[#E61E32]/10 text-[#E61E32]':'text-white/50 hover:text-white hover:bg-white/5'}`}
                     >
                         <Settings className="w-4 h-4" />
                         Settings
@@ -2077,7 +2168,7 @@ export default function AdminPortal() {
 
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10 rounded-none"
+                    className="w-full flex items-center justify-start text-left gap-3 px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white transition-all text-sm font-semibold shadow-lg shadow-[#E61E32]/10 rounded-lg"
                 >
                     <LogOut className="w-4 h-4" />
                     Logout
@@ -2085,12 +2176,24 @@ export default function AdminPortal() {
             </aside>
 
             {/* Main Content */}
-            <div className="flex-grow p-8 overflow-y-auto h-full">
-                <div className={`${activeTab === 'attendance' ? 'max-w-none' : 'max-w-7xl'} mx-auto space-y-8 h-full flex flex-col w-full`}>
+            <div className="flex-grow p-4 md:p-6 lg:p-8 overflow-y-auto h-full min-w-0">
+                <div className={`${activeTab ==='attendance'?'max-w-none':'max-w-7xl'} mx-auto space-y-4 md:space-y-8 h-full flex flex-col w-full min-w-0`}>
+                    {/* Mobile nav toggle */}
+                    <div className="no-print lg:hidden flex items-center justify-between shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setSidebarOpen(true)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/80 border border-white/10 hover:bg-white/5 transition-colors"
+                        >
+                            <Menu className="w-5 h-5" />
+                            Menu
+                        </button>
+                        <span className="text-sm font-medium text-white/50">Admin</span>
+                    </div>
                     {/* Header */}
-                    <div className="no-print flex justify-between items-center bg-white/[0.02] p-6 border border-white/5 shrink-0">
+                    <div className="no-print flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 bg-white/[0.02] p-4 md:p-6 border border-white/5 shrink-0 min-w-0 rounded-xl">
                         <div>
-                            <div className="flex items-center gap-1.5 text-[10px] uppercase font-bold tracking-wider text-white/30 mb-1.5">
+                            <div className="flex items-center gap-1.5 text-sm font-medium text-white/50 mb-1.5">
                                 <span>Admin</span>
                                 <span className="text-white/10 font-normal">/</span>
                                 <span className="text-[#E61E32]">
@@ -2126,13 +2229,13 @@ export default function AdminPortal() {
                                                                     activeTab === "documents" ? "Document vault" :
                                                                         activeTab === "declarations" ? "Declarations" :
                                                                             activeTab === "submissions" ? "Employee Work Submissions" :
-                                                                                activeTab === "payrolls" ? "Payroll allocation" :
+                                                                                activeTab === "payrolls" ? (payrollSubView === "amount-generated" ? "Amount Generated" : "Employee Payouts") :
                                                                                     activeTab === "leaves" ? "Leave Requests" :
                                                                                         activeTab === "settings" ? "System Settings" :
                                                                                             activeTab === "payment-due-sender" ? "Payment Due Sender" :
                                                                                                 activeTab === "receipt-generator" ? "Payment Receipt Generator" : "Payment Received Sender"}
                             </h2>
-                            <p className="text-xs text-white/30 mt-0.5">
+                            <p className="text-sm text-white/50 mt-0.5 break-words">
                                 {activeTab === "overview" ? "real-time system metrics and activity" :
                                     activeTab === "inquiries" ? "view and respond to incoming messages" :
                                         activeTab === "support" ? "manage and resolve technical issues" :
@@ -2145,36 +2248,36 @@ export default function AdminPortal() {
                                                                     activeTab === "documents" ? "upload and manage company and client documents" :
                                                                         activeTab === "declarations" ? "review employee-submitted client declaration documents" :
                                                                             activeTab === "submissions" ? "review website and repository links submitted by employees" :
-                                                                                activeTab === "payrolls" ? "manage, allocate and track employee monthly payouts" :
+                                                                                activeTab === "payrolls" ? (payrollSubView === "amount-generated" ? "Record revenue collected from clients" : "Send and track employee monthly payouts") :
                                                                                     activeTab === "leaves" ? "review, approve or reject employee leave submissions" :
                                                                                         activeTab === "settings" ? "manage system controls and master settings" :
                                                                                             activeTab === "payment-due-sender" ? "send billing notices to registered clients" :
                                                                                                 activeTab === "receipt-generator" ? "generate high-fidelity printable payment receipts" : "send payment receipts to registered clients"}
                             </p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto min-w-0">
                             {activeTab === "employees" && (
                                 <>
                                     <button
                                         onClick={() => { setShowAddForm(!showAddForm); setShowOnboardForm(false); }}
-                                        className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                        className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                     >
                                         <Plus className="w-4 h-4" />
-                                        Add employee
+                                        Add Employee
                                     </button>
                                     <button
                                         onClick={() => { setShowOnboardForm(!showOnboardForm); setShowAddForm(false); }}
-                                        className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                        className="flex items-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                     >
                                         <Users className="w-4 h-4" />
-                                        Onboard employee
+                                        Onboard Employee
                                     </button>
                                 </>
                             )}
                             {activeTab === "tasks" && (
                                 <button
                                     onClick={() => { setShowAddTaskForm(!showAddTaskForm); setIsEditingTask(false); setSelectedTask(null); }}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Assign Task
@@ -2183,7 +2286,7 @@ export default function AdminPortal() {
                             {activeTab === "meetings" && (
                                 <button
                                     onClick={() => setShowAddMeetingForm(!showAddMeetingForm)}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Schedule Meeting
@@ -2192,7 +2295,7 @@ export default function AdminPortal() {
                             {activeTab === "documents" && (
                                 <button
                                     onClick={() => setShowAddDocForm(!showAddDocForm)}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Add Document
@@ -2201,29 +2304,38 @@ export default function AdminPortal() {
                             {activeTab === "clients" && (
                                 <button
                                     onClick={() => setShowAddClientForm(!showAddClientForm)}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Register client
                                 </button>
                             )}
-                            {activeTab === "payrolls" && (
+                            {activeTab === "payrolls" && payrollSubView === "payouts" && (
                                 <button
-                                    onClick={() => setShowAddPayrollForm(!showAddPayrollForm)}
-                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-none"
+                                    onClick={() => { setShowAddPayrollForm(!showAddPayrollForm); setShowAddRevenueForm(false); }}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
                                 >
                                     <Plus className="w-4 h-4" />
                                     Allocate Payroll
                                 </button>
                             )}
-                            <div className="relative w-72">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                            {activeTab === "payrolls" && payrollSubView === "amount-generated" && (
+                                <button
+                                    onClick={() => { setShowAddRevenueForm(!showAddRevenueForm); setShowAddPayrollForm(false); }}
+                                    className="flex items-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white px-4 py-2 text-xs font-semibold transition-colors rounded-lg"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    Add Amount Generated
+                                </button>
+                            )}
+                            <div className="relative w-full sm:w-72 min-w-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50" />
                                 <input
                                     type="text"
                                     placeholder={activeTab === "documents" ? "Search documents..." : activeTab === "attendance" ? "Search attendance..." : activeTab === "settings" ? "Search settings..." : "Search..."}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-xs focus:outline-none focus:border-[#E61E32] rounded-none text-white placeholder-white/20"
+                                    className="w-full bg-white/5 border border-white/10 px-10 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] rounded-lg text-white placeholder-white/40"
                                 />
                             </div>
                         </div>
@@ -2234,7 +2346,7 @@ export default function AdminPortal() {
                         {activeTab === "overview" && analyticsData && (
                             <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
                                 {/* Stats Grid */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                                     <StatCard
                                         icon={<Users className="w-5 h-5" />}
                                         label="Total Employees"
@@ -2276,7 +2388,7 @@ export default function AdminPortal() {
 
                                 {/* All Analytics Section */}
                                 <div className="space-y-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-widest text-[#E61E32]">
+                                    <h3 className="text-xs font-bold text-[#E61E32]">
                                         all analytics
                                     </h3>
                                     
@@ -2315,7 +2427,7 @@ export default function AdminPortal() {
                                 {/* Inquiry List */}
                                 <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                                     {loading ? (
-                                        <p className="text-white/20 text-center py-10">Loading inquiries...</p>
+                                        <p className="text-white/50 text-center py-10">Loading inquiries...</p>
                                     ) : filteredInquiries.length > 0 ? (
                                         filteredInquiries.map((inv) => (
                                             <div
@@ -2324,14 +2436,14 @@ export default function AdminPortal() {
                                                     setSelectedInquiry(inv);
                                                     if (!inv.isRead) markAsRead(inv.id);
                                                 }}
-                                                className={`p-5 border transition-all cursor-pointer ${selectedInquiry?.id === inv.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                className={`p-5 border transition-all cursor-pointer ${selectedInquiry?.id === inv.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                             >
                                                 <div className="flex justify-between items-start mb-2">
                                                     <h3 className="font-bold text-white flex items-center gap-2">
                                                         {inv.name}
                                                         {!inv.isRead && <span className="w-1.5 h-1.5 bg-[#E61E32] rounded-full" />}
                                                     </h3>
-                                                    <span className="text-[10px] text-white/20 uppercase tracking-tighter">
+                                                    <span className="text-xs text-white/50 tracking-tighter">
                                                         {new Date(inv.createdAt).toLocaleDateString()}
                                                     </span>
                                                 </div>
@@ -2340,13 +2452,13 @@ export default function AdminPortal() {
                                         ))
                                     ) : (
                                         <div className="py-20 text-center border border-dashed border-white/5">
-                                            <p className="text-white/20 text-sm">No inquiries found.</p>
+                                            <p className="text-white/50 text-sm">No inquiries found.</p>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Inquiry Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                <div className={`bg-white/5 border border-white/5 rounded-xl p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden break-words min-w-0 ${selectedEmployee ?'block':'hidden lg:block'}`}>
                                     {selectedInquiry ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
                                             <div className="space-y-2 pb-6 border-b border-white/5">
@@ -2360,13 +2472,13 @@ export default function AdminPortal() {
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 <InfoBlock label="Company" value={selectedInquiry.company} />
                                                 <InfoBlock label="Service" value={selectedInquiry.service} />
                                             </div>
 
                                             <div className="space-y-3 pt-6 border-t border-white/5">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Message</h4>
+                                                <h4 className="text-xs font-bold text-white/40">Message</h4>
                                                 <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
                                                     {selectedInquiry.message}
                                                 </p>
@@ -2374,7 +2486,7 @@ export default function AdminPortal() {
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select an inquiry to view details</p>
+                                            <p className="text-sm font-medium">Select An Inquiry To View Details</p>
                                         </div>
                                     )}
                                 </div>
@@ -2386,38 +2498,38 @@ export default function AdminPortal() {
                                 {/* Ticket List */}
                                 <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                                     {loading ? (
-                                        <p className="text-white/20 text-center py-10">Loading tickets...</p>
+                                        <p className="text-white/50 text-center py-10">Loading tickets...</p>
                                     ) : filteredTickets.length > 0 ? (
                                         filteredTickets.map((t) => (
                                             <div
                                                 key={t.id}
                                                 onClick={() => setSelectedTicket(t)}
-                                                className={`p-5 border transition-all cursor-pointer ${selectedTicket?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                className={`p-5 border transition-all cursor-pointer ${selectedTicket?.id === t.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                             >
                                                 <div className="flex justify-between items-start mb-2">
                                                     <h3 className="font-bold text-white flex items-center gap-2">
                                                         {t.subject}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${t.status === 'pending' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'bg-green-500/10 text-green-500'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-xs font-black ${t.status ==='pending'?'bg-[#E61E32]/10 text-[#E61E32]':'bg-green-500/10 text-green-500'}`}>
                                                             {t.status}
                                                         </span>
                                                     </h3>
-                                                    <span className="text-[10px] text-white/20 uppercase tracking-tighter">
+                                                    <span className="text-xs text-white/50 tracking-tighter">
                                                         {new Date(t.createdAt).toLocaleDateString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">{t.name}</p>
+                                                <p className="text-xs text-white/30 font-bold mb-1">{t.name}</p>
                                                 <p className="text-xs text-white/40 truncate">{t.message}</p>
                                             </div>
                                         ))
                                     ) : (
                                         <div className="py-20 text-center border border-dashed border-white/5">
-                                            <p className="text-white/20 text-sm">No support tickets found.</p>
+                                            <p className="text-white/50 text-sm">No support tickets found.</p>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Ticket Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                <div className={`bg-white/5 border border-white/5 rounded-xl p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden break-words min-w-0 ${selectedEmployee ?'block':'hidden lg:block'}`}>
                                     {selectedTicket ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
                                             <div className="space-y-4 pb-6 border-b border-white/5">
@@ -2427,12 +2539,12 @@ export default function AdminPortal() {
                                                         {selectedTicket.status === 'pending' && (
                                                             <button
                                                                 onClick={() => handleUpdateTicketStatus(selectedTicket.id, 'resolved')}
-                                                                className="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest border border-green-500/20 hover:bg-green-500 hover:text-white transition-all"
+                                                                className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-bold border border-green-500/20 hover:bg-green-500 hover:text-white transition-all"
                                                             >
                                                                 Mark Resolved
                                                             </button>
                                                         )}
-                                                        <button className="px-3 py-1 bg-white/5 text-white/40 text-[10px] font-bold uppercase tracking-widest border border-white/10 hover:bg-white/10 hover:text-white transition-all">
+                                                        <button className="px-3 py-1 bg-white/5 text-white/40 text-xs font-bold border border-white/10 hover:bg-white/10 hover:text-white transition-all">
                                                             Close Ticket
                                                         </button>
                                                     </div>
@@ -2444,7 +2556,7 @@ export default function AdminPortal() {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Query Details</h4>
+                                                <h4 className="text-xs font-bold text-white/40">Query Details</h4>
                                                 <div className="bg-white/[0.02] border border-white/5 p-6">
                                                     <p className="text-sm leading-relaxed text-white/80 whitespace-pre-wrap">
                                                         {selectedTicket.message}
@@ -2453,7 +2565,7 @@ export default function AdminPortal() {
                                             </div>
 
                                             <div className="pt-6">
-                                                <button className="w-full flex items-center justify-center gap-2 bg-[#E61E32] text-white font-bold py-4 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+                                                <button className="w-full flex items-center justify-center gap-2 bg-[#E61E32] text-white font-bold py-4 text-xs hover:bg-white hover:text-black transition-all">
                                                     <Send className="w-4 h-4" />
                                                     Reply via Email
                                                 </button>
@@ -2461,7 +2573,7 @@ export default function AdminPortal() {
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select a ticket to view details</p>
+                                            <p className="text-sm font-medium">Select A Ticket To View Details</p>
                                         </div>
                                     )}
                                 </div>
@@ -2473,57 +2585,57 @@ export default function AdminPortal() {
                                 {/* Intern Ticket List */}
                                 <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin">
                                     {loading ? (
-                                        <p className="text-white/20 text-center py-10">Loading tickets...</p>
+                                        <p className="text-white/50 text-center py-10">Loading tickets...</p>
                                     ) : internTickets.length > 0 ? (
                                         internTickets.map((t) => (
                                             <div
                                                 key={t.id}
                                                 onClick={() => setSelectedInternTicket(t)}
-                                                className={`p-5 border transition-all cursor-pointer ${selectedInternTicket?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                className={`p-5 border transition-all cursor-pointer ${selectedInternTicket?.id === t.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                             >
                                                 <div className="flex justify-between items-start mb-2">
                                                     <h3 className="font-bold text-white flex items-center gap-2">
                                                         {t.name}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black ${t.status === 'pending' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'bg-green-500/10 text-green-500'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-xs font-black ${t.status ==='pending'?'bg-[#E61E32]/10 text-[#E61E32]':'bg-green-500/10 text-green-500'}`}>
                                                             {t.status}
                                                         </span>
                                                     </h3>
-                                                    <span className="text-[10px] text-white/20 uppercase tracking-tighter">
+                                                    <span className="text-xs text-white/50 tracking-tighter">
                                                         {new Date(t.createdAt).toLocaleDateString()}
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">{t.batchNumber} | {t.college}</p>
+                                                <p className="text-xs text-white/30 font-bold mb-1">{t.batchNumber} | {t.college}</p>
                                                 <p className="text-xs text-white/40 truncate">{t.description}</p>
                                             </div>
                                         ))
                                     ) : (
                                         <div className="py-20 text-center border border-dashed border-white/5">
-                                            <p className="text-white/20 text-sm">No intern support tickets found.</p>
+                                            <p className="text-white/50 text-sm">No intern support tickets found.</p>
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Intern Ticket Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                <div className={`bg-white/5 border border-white/5 rounded-xl p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden break-words min-w-0 ${selectedEmployee ?'block':'hidden lg:block'}`}>
                                     {selectedInternTicket ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
                                             <div className="space-y-4 pb-6 border-b border-white/5">
                                                 <div className="flex items-center justify-between">
                                                     <h3 className="text-xl font-bold">{selectedInternTicket.name}</h3>
-                                                    <span className={`px-2 py-1 text-[10px] uppercase tracking-widest font-black ${selectedInternTicket.status === 'pending' ? 'bg-[#E61E32]/10 text-[#E61E32]' : 'bg-green-500/10 text-green-500'}`}>
+                                                    <span className={`px-2 py-1 text-xs font-black ${selectedInternTicket.status ==='pending'?'bg-[#E61E32]/10 text-[#E61E32]':'bg-green-500/10 text-green-500'}`}>
                                                         {selectedInternTicket.status}
                                                     </span>
                                                 </div>
                                                 <div className="flex flex-wrap gap-4 text-sm text-white/30 font-medium">
                                                     <span className="flex items-center gap-1.5 font-bold text-white/60"><Building className="w-3.5 h-3.5" /> {selectedInternTicket.college}</span>
                                                     <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" /> {selectedInternTicket.email}</span>
-                                                    <span className="flex items-center gap-1.5 text-[#E61E32] font-black uppercase tracking-tighter"><Search className="w-3.5 h-3.5" /> {selectedInternTicket.batchNumber}</span>
+                                                    <span className="flex items-center gap-1.5 text-[#E61E32] font-black tracking-tighter"><Search className="w-3.5 h-3.5" /> {selectedInternTicket.batchNumber}</span>
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
                                                 <div className="space-y-1">
-                                                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-white/20">Problem Page</h4>
+                                                    <h4 className="text-xs font-bold text-white/50">Problem Page</h4>
                                                     <div className="text-sm font-mono bg-white/5 p-2 rounded border border-white/5 flex items-center gap-2">
                                                         <ExternalLink className="w-3.5 h-3.5 text-white/40" />
                                                         {selectedInternTicket.problemPage}
@@ -2531,7 +2643,7 @@ export default function AdminPortal() {
                                                 </div>
 
                                                 <div className="space-y-1">
-                                                    <h4 className="text-[10px] font-bold uppercase tracking-wider text-white/20">Issue Description</h4>
+                                                    <h4 className="text-xs font-bold text-white/50">Issue Description</h4>
                                                     <div className="bg-white/[0.02] border border-white/5 p-6">
                                                         <p className="text-sm leading-relaxed text-white/80 whitespace-pre-wrap">
                                                             {selectedInternTicket.description}
@@ -2541,7 +2653,7 @@ export default function AdminPortal() {
                                             </div>
 
                                             <div className="pt-6">
-                                                <button className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all">
+                                                <button className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs hover:bg-[#E61E32] hover:text-white transition-all">
                                                     <Send className="w-4 h-4" />
                                                     Contact Intern
                                                 </button>
@@ -2549,7 +2661,7 @@ export default function AdminPortal() {
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select an intern ticket to view details</p>
+                                            <p className="text-sm font-medium">Select An Intern Ticket To View Details</p>
                                         </div>
                                     )}
                                 </div>
@@ -2557,250 +2669,178 @@ export default function AdminPortal() {
                         )}
 
                         {activeTab === "tasks" && (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-                                {/* Task List or Add Task Form */}
-                                <div className="space-y-4 h-full flex flex-col overflow-hidden">
-                                    {showAddTaskForm ? (
-                                        <div className="bg-white/5 border border-white/10 p-8 animate-in slide-in-from-top-4 duration-300">
-                                            <div className="flex justify-between items-center mb-6">
-                                                <h3 className="text-lg font-bold uppercase tracking-tight">Assign New Task</h3>
-                                                <button onClick={() => setShowAddTaskForm(false)} className="text-white/40 hover:text-white text-xs">Cancel</button>
-                                            </div>
-                                            <form onSubmit={handleAddTask} className="space-y-4">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Task Title</label>
-                                                    <input
-                                                        required
-                                                        type="text"
-                                                        value={newTask.title}
-                                                        onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                                        className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
-                                                    <textarea
-                                                        rows={3}
-                                                        value={newTask.description}
-                                                        onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                                                        className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none resize-none font-sans"
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Assign To Employee</label>
-                                                        <select
-                                                            required
-                                                            value={newTask.employeeId}
-                                                            onChange={(e) => setNewTask({ ...newTask, employeeId: e.target.value })}
-                                                            className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none text-white"
-                                                        >
-                                                            <option value="" disabled>Select employee</option>
-                                                            {employees.map((emp) => (
-                                                                <option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Deadline</label>
-                                                        <input
-                                                            type="date"
-                                                            value={newTask.deadline}
-                                                            onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })}
-                                                            className="w-full bg-[#111111] border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-[#E61E32] rounded-none"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    disabled={isSubmitting}
-                                                    type="submit"
-                                                    className="w-full bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none cursor-pointer"
-                                                >
-                                                    {isSubmitting ? "Assigning..." : "Assign Task"}
-                                                </button>
-                                            </form>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="flex gap-2 border-b border-white/5 pb-3 shrink-0">
-                                                {(["all", "pending", "in_progress", "completed"] as const).map((filter) => (
-                                                    <button
-                                                        key={filter}
-                                                        onClick={() => setTaskFilter(filter)}
-                                                        className={`px-3 py-1 text-[10px] uppercase font-bold tracking-widest border transition-all rounded-none cursor-pointer ${taskFilter === filter ? 'bg-[#E61E32]/10 border-[#E61E32] text-[#E61E32]' : 'bg-transparent border-white/5 text-white/40 hover:text-white hover:border-white/10'}`}
-                                                    >
-                                                        {filter.replace("_", " ")}
-                                                    </button>
-                                                ))}
-                                            </div>
-
-                                            <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
-                                                {loading ? (
-                                                    <p className="text-white/20 text-center py-10 animate-pulse">Loading tasks...</p>
-                                                ) : filteredTasks.length > 0 ? (
-                                                    filteredTasks.map((t) => (
-                                                        <div
-                                                            key={t.id}
-                                                            onClick={() => {
-                                                                setSelectedTask(t);
-                                                                setIsEditingTask(false);
-                                                            }}
-                                                            className={`p-5 border transition-all cursor-pointer ${selectedTask?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
-                                                        >
-                                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-                                                                <h3 className="font-bold text-white flex items-center gap-2 flex-wrap min-w-0" title={t.title}>
-                                                                    {t.title}
-                                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md shrink-0 ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
-                                                                        {t.status.replace("_", " ")}
-                                                                    </span>
-                                                                </h3>
-                                                            </div>
-                                                            <div className="flex flex-col sm:flex-row sm:items-start md:items-end justify-between gap-2 mt-1">
-                                                                <div>
-                                                                    <p className="text-[10px] text-white/30 uppercase font-bold tracking-widest mb-1">Assigned: {t.employee?.name || "Unknown"}</p>
-                                                                    <p className="text-xs text-white/40 truncate max-w-[250px]" title={t.description || ""}>{t.description || "No description."}</p>
-                                                                </div>
-                                                                {t.deadline && (
-                                                                    <span className="text-[9px] text-white/20 uppercase tracking-wider shrink-0">
-                                                                        Due {new Date(t.deadline).toLocaleDateString()}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ))
-                                                ) : (
-                                                    <div className="py-20 text-center border border-dashed border-white/5">
-                                                        <p className="text-white/20 text-sm">No tasks found.</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </>
-                                    )}
+                            <div className="flex flex-col gap-5 h-full min-w-0 overflow-hidden">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
+                                    <StatCard
+                                        icon={<ListTodo className="w-5 h-5" />}
+                                        label="Total Tasks"
+                                        value={taskStats.total}
+                                        sublabel="All assignments"
+                                        color="text-blue-500"
+                                    />
+                                    <StatCard
+                                        icon={<Hourglass className="w-5 h-5" />}
+                                        label="Pending"
+                                        value={taskStats.pending}
+                                        sublabel="Awaiting start"
+                                        color="text-yellow-500"
+                                    />
+                                    <StatCard
+                                        icon={<Clock className="w-5 h-5" />}
+                                        label="In Progress"
+                                        value={taskStats.inProgress}
+                                        sublabel="Currently active"
+                                        color="text-orange-500"
+                                    />
+                                    <StatCard
+                                        icon={<CheckCheck className="w-5 h-5" />}
+                                        label="Completed"
+                                        value={taskStats.completed}
+                                        sublabel="Finished tasks"
+                                        color="text-green-500"
+                                    />
                                 </div>
 
-                                {/* Task Details Panel */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
-                                    {selectedTask ? (
-                                        <div className="space-y-8 animate-in fade-in duration-300">
-                                            <div className="flex items-center justify-between pb-6 border-b border-white/5">
-                                                <div>
-                                                    <h3 className="text-xl font-bold">{selectedTask.title}</h3>
-                                                    <p className="text-xs text-[#E61E32] font-bold uppercase tracking-widest mt-1">Assigned to: {selectedTask.employee?.name} ({selectedTask.employee?.role})</p>
+                                <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 flex-grow min-h-0 overflow-hidden">
+                                    <div className={`xl:col-span-4 flex flex-col gap-4 min-h-0 overflow-hidden ${selectedTask ? "hidden xl:flex" : "flex"}`}>
+                                        {showAddTaskForm ? (
+                                            <div className="bg-white/[0.02] rounded-xl p-5 md:p-6 animate-in slide-in-from-top-4 duration-300 overflow-y-auto">
+                                                <div className="flex justify-between items-start gap-3 mb-5">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className="w-10 h-10 rounded-xl bg-[#E61E32]/15 border border-[#E61E32]/30 flex items-center justify-center shrink-0">
+                                                            <ListTodo className="w-5 h-5 text-[#E61E32]" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h3 className="text-base font-semibold text-white">Assign New Task</h3>
+                                                            <p className="text-xs text-white/50">Create and assign work</p>
+                                                        </div>
+                                                    </div>
+                                                    <button onClick={() => setShowAddTaskForm(false)} className="text-white/50 hover:text-white text-sm px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 shrink-0">Cancel</button>
                                                 </div>
-                                                <div className="flex items-center gap-4">
-                                                    <button
-                                                        onClick={() => setIsEditingTask(!isEditingTask)}
-                                                        className={`p-2 transition-colors ${isEditingTask ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
-                                                        title="Edit Task"
-                                                    >
-                                                        <Edit2 className="w-5 h-5" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteTask(selectedTask.id)}
-                                                        className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
-                                                        title="Delete Task"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {isEditingTask ? (
-                                                <form onSubmit={handleUpdateTask} className="space-y-6 bg-white/[0.02] p-6 border border-white/5">
+                                                <form onSubmit={handleAddTask} className="space-y-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Task Title</label>
-                                                        <input
-                                                            required
-                                                            type="text"
-                                                            value={selectedTask.title}
-                                                            onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })}
-                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
-                                                        />
+                                                        <label className="text-sm font-medium text-white/60">Task Title</label>
+                                                        <input required type="text" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] rounded-lg" placeholder="Enter task title" />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Description</label>
-                                                        <textarea
-                                                            rows={3}
-                                                            value={selectedTask.description || ""}
-                                                            onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })}
-                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none resize-none font-sans"
-                                                        />
+                                                        <label className="text-sm font-medium text-white/60">Description</label>
+                                                        <textarea rows={3} value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] rounded-lg resize-none font-sans" placeholder="Describe requirements" />
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Status</label>
-                                                            <select
-                                                                value={selectedTask.status}
-                                                                onChange={(e) => setSelectedTask({ ...selectedTask, status: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none text-white"
-                                                            >
-                                                                <option value="pending">Pending</option>
-                                                                <option value="in_progress">In Progress</option>
-                                                                <option value="completed">Completed</option>
+                                                            <label className="text-sm font-medium text-white/60">Assign To Employee</label>
+                                                            <select required value={newTask.employeeId} onChange={(e) => setNewTask({ ...newTask, employeeId: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] rounded-lg text-white">
+                                                                <option value="" disabled>Select employee</option>
+                                                                {employees.map((emp) => (<option key={emp.id} value={emp.id}>{emp.name} ({emp.role})</option>))}
                                                             </select>
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Deadline</label>
-                                                            <input
-                                                                type="date"
-                                                                value={selectedTask.deadline ? new Date(selectedTask.deadline).toISOString().split('T')[0] : ""}
-                                                                onChange={(e) => setSelectedTask({ ...selectedTask, deadline: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
-                                                            />
+                                                            <label className="text-sm font-medium text-white/60">Deadline</label>
+                                                            <input type="date" value={newTask.deadline} onChange={(e) => setNewTask({ ...newTask, deadline: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] rounded-lg" />
                                                         </div>
                                                     </div>
-                                                    <div className="flex gap-4">
-                                                        <button
-                                                            type="submit"
-                                                            disabled={isSubmitting}
-                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none cursor-pointer"
-                                                        >
-                                                            {isSubmitting ? "Updating..." : "Save Changes"}
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setIsEditingTask(false)}
-                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10 rounded-none cursor-pointer"
-                                                        >
-                                                            Cancel
-                                                        </button>
-                                                    </div>
+                                                    <button disabled={isSubmitting} type="submit" className="w-full bg-[#E61E32] text-white font-semibold py-3 text-sm hover:bg-[#C81428] transition-all disabled:opacity-50 rounded-lg cursor-pointer flex items-center justify-center gap-2">
+                                                        {isSubmitting ? <><Loader2 className="w-4 h-4 animate-spin" /> Assigning...</> : <><Send className="w-4 h-4" /> Assign Task</>}
+                                                    </button>
                                                 </form>
-                                            ) : (
-                                                <div className="space-y-6">
-                                                    <div className="p-6 bg-white/[0.02] border border-white/5 space-y-4">
-                                                        <InfoBlock label="Description" value={selectedTask.description || "No description provided."} />
-                                                        <InfoBlock label="Deadline" value={selectedTask.deadline ? new Date(selectedTask.deadline).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : "No deadline"} />
-                                                        <div className="space-y-0.5">
-                                                            <p className="text-[11px] font-medium text-white/20">Task Status</p>
-                                                            <div className="flex items-center gap-2 mt-1">
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex flex-wrap gap-2 shrink-0">
+                                                    {(["all", "pending", "in_progress", "completed"] as const).map((filter) => (
+                                                        <button key={filter} onClick={() => setTaskFilter(filter)} className={`px-3 py-1.5 text-xs font-semibold transition-all rounded-full cursor-pointer ${taskFilter === filter ? "bg-[#E61E32]/15 text-[#E61E32]" : "bg-white/5 text-white/50 hover:text-white hover:bg-white/10"}`}>
+                                                            {formatLabel(filter === "all" ? "all tasks" : filter)}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="overflow-y-auto space-y-2.5 pr-1 scrollbar-thin flex-grow min-h-0">
+                                                    {loading ? (
+                                                        <div className="rounded-xl bg-white/[0.02] py-12 text-center">
+                                                            <Loader2 className="w-6 h-6 text-white/40 animate-spin mx-auto mb-2" />
+                                                            <p className="text-white/50 text-sm">Loading Tasks...</p>
+                                                        </div>
+                                                    ) : filteredTasks.length > 0 ? (
+                                                        filteredTasks.map((t) => {
+                                                            const statusStyles = getTaskStatusStyles(t.status);
+                                                            return (
+                                                                <button key={t.id} type="button" onClick={() => { setSelectedTask(t); setIsEditingTask(false); }} className={`w-full text-left p-4 rounded-xl transition-all min-w-0 ${selectedTask?.id === t.id ? "bg-white/[0.06]" : "bg-white/[0.02] hover:bg-white/[0.04]"}`}>
+                                                                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                                                                        <p className="font-semibold text-white text-sm line-clamp-2 break-words flex-1">{t.title}</p>
+                                                                        <span className={`px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full shrink-0 ${statusStyles.badge}`}>{formatLabel(t.status)}</span>
+                                                                    </div>
+                                                                    <p className="text-xs text-white/50 truncate">{t.employee?.name || "Unassigned"}</p>
+                                                                    {t.deadline && (
+                                                                        <p className="text-[11px] text-white/40 mt-2 flex items-center gap-1"><Calendar className="w-3 h-3" /> Due {new Date(t.deadline).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</p>
+                                                                    )}
+                                                                </button>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="py-14 text-center rounded-xl bg-white/[0.02]">
+                                                            <ListTodo className="w-8 h-8 text-white/20 mx-auto mb-3" />
+                                                            <p className="text-white/60 text-sm font-medium">No Tasks Found</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className={`xl:col-span-8 bg-white/[0.02] rounded-xl p-4 md:p-6 overflow-y-auto overflow-x-hidden break-words min-w-0 min-h-0 ${selectedTask ? "flex flex-col" : "hidden xl:flex xl:items-center xl:justify-center"}`}>
+                                        {selectedTask ? (
+                                            <div className="space-y-5 animate-in fade-in duration-300 w-full">
+                                                <div className="flex items-start justify-between gap-3 pb-4 border-b border-white/5">
+                                                    <div className="min-w-0 flex-1">
+                                                        <span className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full mb-2 ${getTaskStatusStyles(selectedTask.status).badge}`}>{formatLabel(selectedTask.status)}</span>
+                                                        <h3 className="text-lg sm:text-xl font-semibold text-white break-words">{selectedTask.title}</h3>
+                                                        <p className="text-sm text-white/50 mt-2 flex items-center gap-1.5 flex-wrap"><User className="w-3.5 h-3.5 shrink-0" />{selectedTask.employee?.name} · {selectedTask.employee?.role}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <button onClick={() => setIsEditingTask(!isEditingTask)} className={`p-2 rounded-lg border transition-colors ${isEditingTask ? "text-[#E61E32] border-[#E61E32]/30 bg-[#E61E32]/10" : "text-white/50 border-white/10 hover:text-white hover:bg-white/5"}`} title="Edit Task"><Edit2 className="w-4 h-4" /></button>
+                                                        <button onClick={() => handleDeleteTask(selectedTask.id)} className="p-2 rounded-lg border border-white/10 text-white/50 hover:text-[#E61E32] hover:border-[#E61E32]/30 hover:bg-[#E61E32]/10" title="Delete Task"><Trash2 className="w-4 h-4" /></button>
+                                                        <button onClick={() => { setSelectedTask(null); setIsEditingTask(false); }} className="xl:hidden p-2 rounded-lg border border-white/10 text-white/50 hover:text-white hover:bg-white/5" aria-label="Back to list"><X className="w-4 h-4" /></button>
+                                                    </div>
+                                                </div>
+                                                {isEditingTask ? (
+                                                    <form onSubmit={handleUpdateTask} className="space-y-4 bg-white/[0.02] p-4 sm:p-5 rounded-xl">
+                                                        <div className="space-y-1.5"><label className="text-sm font-medium text-white/60">Task Title</label><input required type="text" value={selectedTask.title} onChange={(e) => setSelectedTask({ ...selectedTask, title: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm rounded-lg focus:outline-none focus:border-[#E61E32]" /></div>
+                                                        <div className="space-y-1.5"><label className="text-sm font-medium text-white/60">Description</label><textarea rows={4} value={selectedTask.description || ""} onChange={(e) => setSelectedTask({ ...selectedTask, description: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm rounded-lg resize-none focus:outline-none focus:border-[#E61E32]" /></div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div className="space-y-1.5"><label className="text-sm font-medium text-white/60">Status</label><select value={selectedTask.status} onChange={(e) => setSelectedTask({ ...selectedTask, status: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm rounded-lg text-white focus:outline-none focus:border-[#E61E32]"><option value="pending">Pending</option><option value="in_progress">In Progress</option><option value="completed">Completed</option></select></div>
+                                                            <div className="space-y-1.5"><label className="text-sm font-medium text-white/60">Deadline</label><input type="date" value={selectedTask.deadline ? new Date(selectedTask.deadline).toISOString().split("T")[0] : ""} onChange={(e) => setSelectedTask({ ...selectedTask, deadline: e.target.value })} className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm rounded-lg focus:outline-none focus:border-[#E61E32]" /></div>
+                                                        </div>
+                                                        <div className="flex flex-col sm:flex-row gap-3">
+                                                            <button type="submit" disabled={isSubmitting} className="flex-1 bg-[#E61E32] text-white font-semibold py-3 text-sm rounded-lg disabled:opacity-50">{isSubmitting ? "Updating..." : "Save Changes"}</button>
+                                                            <button type="button" onClick={() => setIsEditingTask(false)} className="px-6 py-3 text-sm font-semibold rounded-lg border border-white/10 text-white/70 hover:bg-white/5">Cancel</button>
+                                                        </div>
+                                                    </form>
+                                                ) : (
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="md:col-span-2 p-4 sm:p-5 bg-white/[0.02] rounded-xl">
+                                                            <InfoBlock label="Description" value={selectedTask.description || "No description provided."} />
+                                                        </div>
+                                                        <div className="p-4 sm:p-5 bg-white/[0.02] rounded-xl">
+                                                            <InfoBlock label="Deadline" value={selectedTask.deadline ? new Date(selectedTask.deadline).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }) : "No deadline set"} />
+                                                        </div>
+                                                        <div className="p-4 sm:p-5 bg-white/[0.02] rounded-xl">
+                                                            <p className="text-sm font-medium text-white/60 mb-2">Update Status</p>
+                                                            <div className="flex flex-wrap gap-2">
                                                                 {(["pending", "in_progress", "completed"] as const).map((status) => (
-                                                                    <button
-                                                                        key={status}
-                                                                        onClick={() => handleUpdateTaskStatus(selectedTask.id, status)}
-                                                                        className={`px-3 py-1 text-[9px] uppercase font-bold tracking-wider border rounded-none transition-colors cursor-pointer ${selectedTask.status === status
-                                                                            ? status === 'completed'
-                                                                                ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                                                                                : status === 'in_progress'
-                                                                                    ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                                                                                    : 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
-                                                                            : 'bg-white/5 border-white/10 text-white/40 hover:text-white'
-                                                                            }`}
-                                                                    >
-                                                                        {status.replace("_", " ")}
-                                                                    </button>
+                                                                    <button key={status} type="button" onClick={() => handleUpdateTaskStatus(selectedTask.id, status)} className={`px-3 py-1.5 text-xs font-semibold rounded-full ${selectedTask.status === status ? getTaskStatusStyles(status).badge : "bg-white/5 text-white/50 hover:text-white hover:bg-white/10"}`}>{formatLabel(status)}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select a task to view details</p>
-                                        </div>
-                                    )}
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center px-4 py-12">
+                                                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4"><ListTodo className="w-8 h-8 text-white/25" /></div>
+                                                <p className="text-sm font-medium text-white/50">Select A Task To View Details</p>
+                                                <p className="text-xs text-white/35 mt-1 max-w-xs mx-auto">Pick a task from the list or use Assign Task in the header.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -2808,17 +2848,17 @@ export default function AdminPortal() {
                         {activeTab === "employees" && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
                                 {/* Employee List or Add Form */}
-                                <div className="space-y-4 h-full flex flex-col overflow-hidden">
+                                <div className={`space-y-4 h-full flex flex-col overflow-hidden ${selectedEmployee ?'hidden lg:flex':'flex'}`}>
                                     {showAddForm ? (
-                                        <div className="bg-white/5 border border-white/10 p-8 animate-in slide-in-from-top-4 duration-300">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-6 md:p-8 animate-in slide-in-from-top-4 duration-300">
                                             <div className="flex justify-between items-center mb-6">
-                                                <h3 className="text-lg font-bold uppercase tracking-tight">Add New Employee</h3>
+                                                <h3 className="text-lg font-bold tracking-tight">Add New Employee</h3>
                                                 <button onClick={() => setShowAddForm(false)} className="text-white/40 hover:text-white text-xs">Cancel</button>
                                             </div>
                                             <form onSubmit={handleAddEmployee} className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                        <label className="text-xs font-bold text-white/40">Full Name</label>
                                                         <input
                                                             required
                                                             type="text"
@@ -2828,7 +2868,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
+                                                        <label className="text-xs font-bold text-white/40">Email Address</label>
                                                         <input
                                                             required
                                                             type="email"
@@ -2838,9 +2878,9 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
+                                                        <label className="text-xs font-bold text-white/40">Job Role</label>
                                                         <input
                                                             required
                                                             type="text"
@@ -2850,7 +2890,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
+                                                        <label className="text-xs font-bold text-white/40">Password</label>
                                                         <input
                                                             type="text"
                                                             value={newEmployee.password}
@@ -2860,9 +2900,9 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                        <label className="text-xs font-bold text-white/40">Division</label>
                                                         <input
                                                             type="text"
                                                             value={newEmployee.division}
@@ -2872,7 +2912,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                        <label className="text-xs font-bold text-white/40">Offer Letter Link</label>
                                                         <input
                                                             type="url"
                                                             value={newEmployee.offerLetterLink}
@@ -2890,29 +2930,29 @@ export default function AdminPortal() {
                                                         onChange={(e) => setNewEmployee({ ...newEmployee, isDeptAdmin: e.target.checked })}
                                                         className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
                                                     />
-                                                    <label htmlFor="newEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                    <label htmlFor="newEmpIsDeptAdmin" className="text-xs font-bold text-white cursor-pointer select-none">
                                                         Department Admin Login (Enable for Department Lead access)
                                                     </label>
                                                 </div>
                                                 <button
                                                     disabled={isSubmitting}
                                                     type="submit"
-                                                    className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50"
+                                                    className="w-full bg-white text-black font-bold py-3 text-xs hover:bg-white/90 transition-colors disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? "Creating..." : "Save Employee"}
                                                 </button>
                                             </form>
                                         </div>
                                     ) : showOnboardForm ? (
-                                        <div className="bg-white/5 border border-white/10 p-8 animate-in slide-in-from-top-4 duration-300">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-6 md:p-8 animate-in slide-in-from-top-4 duration-300">
                                             <div className="flex justify-between items-center mb-6">
-                                                <h3 className="text-lg font-bold uppercase tracking-tight">Onboard New Employee</h3>
+                                                <h3 className="text-lg font-bold tracking-tight">Onboard New Employee</h3>
                                                 <button onClick={() => setShowOnboardForm(false)} className="text-white/40 hover:text-white text-xs">Cancel</button>
                                             </div>
                                             <form onSubmit={handleOnboardEmployee} className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                        <label className="text-xs font-bold text-white/40">Full Name</label>
                                                         <input
                                                             required
                                                             type="text"
@@ -2922,7 +2962,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
+                                                        <label className="text-xs font-bold text-white/40">Email Address</label>
                                                         <input
                                                             required
                                                             type="email"
@@ -2933,7 +2973,7 @@ export default function AdminPortal() {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
+                                                    <label className="text-xs font-bold text-white/40">Job Role</label>
                                                     <input
                                                         required
                                                         type="text"
@@ -2950,14 +2990,14 @@ export default function AdminPortal() {
                                                         onChange={(e) => setNewOnboardEmployee({ ...newOnboardEmployee, isDeptAdmin: e.target.checked })}
                                                         className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
                                                     />
-                                                    <label htmlFor="onboardEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                    <label htmlFor="onboardEmpIsDeptAdmin" className="text-xs font-bold text-white cursor-pointer select-none">
                                                         Department Admin Login (Enable for Department Lead access)
                                                     </label>
                                                 </div>
                                                 <button
                                                     disabled={isSubmitting}
                                                     type="submit"
-                                                    className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/90 transition-colors disabled:opacity-50"
+                                                    className="w-full bg-white text-black font-bold py-3 text-xs hover:bg-white/90 transition-colors disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? "Onboarding..." : "Onboard Employee"}
                                                 </button>
@@ -2966,7 +3006,7 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
                                             {loading ? (
-                                                <p className="text-white/20 text-center py-10">Loading employees...</p>
+                                                <p className="text-white/50 text-center py-10">Loading employees...</p>
                                             ) : filteredEmployees.length > 0 ? (
                                                 filteredEmployees.map((emp) => (
                                                     <div
@@ -2975,20 +3015,20 @@ export default function AdminPortal() {
                                                             setSelectedEmployee(emp);
                                                             setIsEditingEmployee(false);
                                                         }}
-                                                        className={`p-5 border transition-all cursor-pointer ${selectedEmployee?.id === emp.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                        className={`p-5 border transition-all cursor-pointer ${selectedEmployee?.id === emp.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                                     >
                                                         <div className="flex justify-between items-start">
                                                             <div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <h3 className="font-bold text-white truncate max-w-[160px]">{emp.name}</h3>
+                                                                    <h3 className="font-bold text-white truncate min-w-0 flex-1">{emp.name}</h3>
                                                                     {emp.pinkSlipAllocatedAt && !emp.pinkSlipRevoked && (
-                                                                        <span className="text-[8px] font-black uppercase tracking-widest bg-[#E61E32]/15 border border-[#E61E32]/40 text-[#E61E32] px-1.5 py-0.5 flex-shrink-0">PINK SLIP</span>
+                                                                        <span className="text-xs font-black bg-[#E61E32]/15 border border-[#E61E32]/40 text-[#E61E32] px-1.5 py-0.5 flex-shrink-0">Pink slip</span>
                                                                     )}
                                                                 </div>
-                                                                <p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-wider">{emp.role}</p>
+                                                                <p className="text-xs text-[#E61E32] font-bold">{emp.role}</p>
                                                             </div>
                                                             <div className="flex flex-col items-end">
-                                                                <span className="text-[10px] text-white/20 uppercase tracking-tighter">
+                                                                <span className="text-xs text-white/50 tracking-tighter">
                                                                     Joined {new Date(emp.joinedAt).toLocaleDateString()}
                                                                 </span>
                                                                 <div className="mt-2 flex gap-2">
@@ -2998,10 +3038,7 @@ export default function AdminPortal() {
                                                                             sendOfferLetter(emp.id);
                                                                         }}
                                                                         disabled={sendEmailStatus?.id === emp.id && sendEmailStatus.status === 'sending'}
-                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success'
-                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500'
-                                                                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'
-                                                                            }`}
+                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-xs font-bold tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action ==='offer'&& sendEmailStatus.status ==='success'?'bg-green-500/10 border-green-500/50 text-green-500':'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'}`}
                                                                     >
                                                                         {sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'sending' ? (
                                                                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -3016,10 +3053,7 @@ export default function AdminPortal() {
                                                                             sendOnboardingEmail(emp.id);
                                                                         }}
                                                                         disabled={sendEmailStatus?.id === emp.id && sendEmailStatus.status === 'sending'}
-                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-[10px] font-bold uppercase tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success'
-                                                                            ? 'bg-green-500/10 border-green-500/50 text-green-500'
-                                                                            : 'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'
-                                                                            }`}
+                                                                        className={`flex items-center gap-1.5 px-2 py-1 text-xs font-bold tracking-tight border transition-colors ${sendEmailStatus?.id === emp.id && sendEmailStatus.action ==='onboarding'&& sendEmailStatus.status ==='success'?'bg-green-500/10 border-green-500/50 text-green-500':'bg-white/5 border-white/10 hover:bg-white/10 text-white/60 hover:text-white'}`}
                                                                     >
                                                                         {sendEmailStatus?.id === emp.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'sending' ? (
                                                                             <Loader2 className="w-3 h-3 animate-spin" />
@@ -3035,7 +3069,7 @@ export default function AdminPortal() {
                                                 ))
                                             ) : (
                                                 <div className="py-20 text-center border border-dashed border-white/5">
-                                                    <p className="text-white/20 text-sm">No employees found.</p>
+                                                    <p className="text-white/50 text-sm">No employees found.</p>
                                                 </div>
                                             )}
                                         </div>
@@ -3043,9 +3077,16 @@ export default function AdminPortal() {
                                 </div>
 
                                 {/* Employee Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                <div className={`bg-white/5 border border-white/5 rounded-xl p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden break-words min-w-0 ${selectedEmployee ?'block':'hidden lg:block'}`}>
                                     {selectedEmployee ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
+                                            {/* Mobile Back Button */}
+                                            <button
+                                                onClick={() => setSelectedEmployee(null)}
+                                                className="flex items-center gap-2 text-xs text-[#E61E32] hover:text-[#ff1f34] transition-colors lg:hidden font-medium mb-4"
+                                            >
+                                                &larr; Back to Employee List
+                                            </button>
                                             <div className="flex items-center justify-between pb-6 border-b border-white/5">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-12 bg-white/10 flex items-center justify-center border border-white/10">
@@ -3053,7 +3094,7 @@ export default function AdminPortal() {
                                                     </div>
                                                     <div>
                                                         <h3 className="text-xl font-bold">{selectedEmployee.name}</h3>
-                                                        <p className="text-sm text-[#E61E32] font-bold uppercase tracking-widest">{selectedEmployee.role}</p>
+                                                        <p className="text-sm text-[#E61E32] font-bold">{selectedEmployee.role}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
@@ -3061,30 +3102,30 @@ export default function AdminPortal() {
                                                     {selectedEmployee.pinkSlipAllocatedAt && !selectedEmployee.pinkSlipRevoked ? (
                                                         <button
                                                             onClick={() => handleRevokePinkSlip(selectedEmployee.id)}
-                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold transition-all"
                                                             title="Revoke Pink Slip"
                                                         >
-                                                            <span>⚠</span> Revoke Pink Slip
+                                                            <ShieldAlert className="w-3.5 h-3.5 text-amber-400" /> Revoke Pink Slip
                                                         </button>
                                                     ) : (
                                                         <button
                                                             onClick={() => { setPinkSlipModalEmployeeId(selectedEmployee.id); setShowPinkSlipModal(true); }}
-                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E61E32]/10 hover:bg-[#E61E32]/20 text-[#E61E32] border border-[#E61E32]/30 text-[10px] font-bold uppercase tracking-widest transition-all"
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E61E32]/10 hover:bg-[#E61E32]/20 text-[#E61E32] border border-[#E61E32]/30 text-xs font-bold transition-all"
                                                             title="Allocate Pink Slip"
                                                         >
-                                                            <span>🗂</span> Pink Slip
+                                                            <ShieldAlert className="w-3.5 h-3.5 text-[#E61E32]" /> Pink Slip
                                                         </button>
                                                     )}
                                                     <button
                                                         onClick={() => setIsEditingEmployee(!isEditingEmployee)}
-                                                        className={`p-2 transition-colors ${isEditingEmployee ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
+                                                        className={`p-2 transition-colors ${isEditingEmployee ?'text-[#E61E32]':'text-white/50 hover:text-white'}`}
                                                         title="Edit Employee"
                                                     >
                                                         <Edit2 className="w-5 h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteEmployee(selectedEmployee.id)}
-                                                        className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
+                                                        className="p-2 text-white/50 hover:text-[#E61E32] transition-colors"
                                                         title="Delete Employee"
                                                     >
                                                         <Trash2 className="w-5 h-5" />
@@ -3094,140 +3135,140 @@ export default function AdminPortal() {
 
                                             {isEditingEmployee ? (
                                                 <form onSubmit={handleUpdateEmployee} className="space-y-6 bg-white/[0.02] p-6 border border-white/5 animate-in slide-in-from-top-4 duration-300">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Full Name</label>
+                                                            <label className="text-xs font-bold text-white/40">Full Name</label>
                                                             <input
                                                                 required
                                                                 type="text"
                                                                 value={selectedEmployee.name}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, name: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
+                                                            <label className="text-xs font-bold text-white/40">Email Address</label>
                                                             <input
                                                                 required
                                                                 type="email"
                                                                 value={selectedEmployee.email}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, email: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Job Role</label>
+                                                            <label className="text-xs font-bold text-white/40">Job Role</label>
                                                             <input
                                                                 required
                                                                 type="text"
                                                                 value={selectedEmployee.role}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, role: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Password</label>
+                                                            <label className="text-xs font-bold text-white/40">Password</label>
                                                             <input
                                                                 type="text"
                                                                 value={selectedEmployee.password || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, password: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
+                                                            <label className="text-xs font-bold text-white/40">Phone Number</label>
                                                             <input
                                                                 type="tel"
                                                                 value={selectedEmployee.phone || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, phone: e.target.value })}
                                                                 placeholder="+91 XXXXX XXXXX"
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">UPI ID (For Payrolls)</label>
+                                                            <label className="text-xs font-bold text-white/40">UPI ID (For Payrolls)</label>
                                                             <input
                                                                 type="text"
                                                                 value={selectedEmployee.upiId || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, upiId: e.target.value })}
                                                                 placeholder="username@upi"
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Father's Name</label>
+                                                            <label className="text-xs font-bold text-white/40">Father's Name</label>
                                                             <input
                                                                 type="text"
                                                                 value={selectedEmployee.fatherName || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, fatherName: e.target.value })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Emergency Mobile</label>
+                                                            <label className="text-xs font-bold text-white/40">Emergency Mobile</label>
                                                             <input
                                                                 type="tel"
                                                                 value={selectedEmployee.mobile || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, mobile: e.target.value })}
                                                                 placeholder="XXXXXXXXXX"
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Alternative Email</label>
+                                                            <label className="text-xs font-bold text-white/40">Alternative Email</label>
                                                             <input
                                                                 type="email"
                                                                 value={selectedEmployee.altEmail || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, altEmail: e.target.value })}
                                                                 placeholder="name@personal.com"
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Postal Address (For Goodies/Deliveries)</label>
+                                                        <label className="text-xs font-bold text-white/40">Postal Address (For Goodies/Deliveries)</label>
                                                         <textarea
                                                             rows={2}
                                                             value={selectedEmployee.address || ""}
                                                             onChange={(e) => setSelectedEmployee({ ...selectedEmployee, address: e.target.value })}
                                                             placeholder="House No, Street Name, Area, City, State, Pincode"
-                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none resize-none font-sans"
+                                                            className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg resize-none font-sans"
                                                         />
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Joined Date</label>
+                                                            <label className="text-xs font-bold text-white/40">Joined Date</label>
                                                             <input
                                                                 type="date"
                                                                 value={selectedEmployee.joinedAt ? new Date(selectedEmployee.joinedAt).toISOString().split('T')[0] : ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, joinedAt: e.target.value ? new Date(e.target.value).toISOString() : new Date().toISOString() })}
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Division</label>
+                                                            <label className="text-xs font-bold text-white/40">Division</label>
                                                             <input
                                                                 type="text"
                                                                 value={selectedEmployee.division || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, division: e.target.value })}
                                                                 placeholder="e.g. Division A"
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Offer Letter Link</label>
+                                                            <label className="text-xs font-bold text-white/40">Offer Letter Link</label>
                                                             <input
                                                                 type="url"
                                                                 value={selectedEmployee.offerLetterLink || ""}
                                                                 onChange={(e) => setSelectedEmployee({ ...selectedEmployee, offerLetterLink: e.target.value })}
                                                                 placeholder="https://..."
-                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-none"
+                                                                className="w-full bg-black border border-white/10 px-4 py-2 text-sm focus:outline-none focus:border-white/30 rounded-lg"
                                                             />
                                                         </div>
                                                     </div>
@@ -3239,7 +3280,7 @@ export default function AdminPortal() {
                                                             onChange={(e) => setSelectedEmployee({ ...selectedEmployee, isDeptAdmin: e.target.checked })}
                                                             className="w-4 h-4 rounded bg-black border-white/10 text-[#E61E32] focus:ring-0 focus:ring-offset-0"
                                                         />
-                                                        <label htmlFor="editEmpIsDeptAdmin" className="text-xs font-bold text-white uppercase tracking-widest cursor-pointer select-none">
+                                                        <label htmlFor="editEmpIsDeptAdmin" className="text-xs font-bold text-white cursor-pointer select-none">
                                                             Department Admin Login (Enable to grant Department Lead access)
                                                         </label>
                                                     </div>
@@ -3247,14 +3288,14 @@ export default function AdminPortal() {
                                                         <button
                                                             type="submit"
                                                             disabled={isSubmitting}
-                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-none"
+                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs hover:bg-white hover:text-black transition-all disabled:opacity-50 rounded-lg"
                                                         >
                                                             {isSubmitting ? "Updating..." : "Save Changes"}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsEditingEmployee(false)}
-                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10 rounded-none"
+                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs hover:bg-white/10 hover:text-white transition-all border border-white/10 rounded-lg"
                                                         >
                                                             Cancel
                                                         </button>
@@ -3266,7 +3307,7 @@ export default function AdminPortal() {
                                                         {/* Column 1: Employment & Contact */}
                                                         <div className="space-y-6">
                                                             <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Employment & Contact</p>
+                                                                <p className="text-xs font-bold text-white/50">Employment & Contact</p>
                                                                 <InfoBlock label="Email Address" value={selectedEmployee.email} />
                                                                 <InfoBlock label="Phone Number" value={selectedEmployee.phone || "Not Provided"} />
                                                                 <InfoBlock label="Alternative Email" value={selectedEmployee.altEmail || "Not Provided"} />
@@ -3276,15 +3317,15 @@ export default function AdminPortal() {
                                                             </div>
 
                                                             <div className="p-4 bg-white/[0.02] border border-white/5">
-                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest mb-3">Offer letter</p>
+                                                                <p className="text-xs font-bold text-white/50 mb-3">Offer letter</p>
                                                                 {selectedEmployee.offerLetterLink ? (
                                                                     <a
                                                                         href={selectedEmployee.offerLetterLink}
                                                                         target="_blank"
-                                                                        className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors rounded-none"
+                                                                        className="flex items-center justify-between group bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-colors rounded-lg"
                                                                     >
                                                                         <span className="text-xs font-medium text-white/60 group-hover:text-white truncate pr-4">{selectedEmployee.offerLetterLink}</span>
-                                                                        <ExternalLink className="w-3.5 h-3.5 text-white/20 group-hover:text-white/60" />
+                                                                        <ExternalLink className="w-3.5 h-3.5 text-white/50 group-hover:text-white/60" />
                                                                     </a>
                                                                 ) : (
                                                                     <p className="text-xs text-white/30 italic">No link provided</p>
@@ -3295,12 +3336,12 @@ export default function AdminPortal() {
                                                         {/* Column 2: Payroll & Personal/Goodies */}
                                                         <div className="space-y-6">
                                                             <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Payroll Info</p>
+                                                                <p className="text-xs font-bold text-white/50">Payroll Info</p>
                                                                 <InfoBlock label="UPI ID" value={selectedEmployee.upiId || "Not Provided"} />
                                                             </div>
 
                                                             <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                                <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Personal & Goodies</p>
+                                                                <p className="text-xs font-bold text-white/50">Personal & Goodies</p>
                                                                 <InfoBlock label="Father's Name" value={selectedEmployee.fatherName || "Not Provided"} />
                                                                 <InfoBlock label="Emergency Mobile" value={selectedEmployee.mobile || "Not Provided"} />
                                                                 <InfoBlock label="Postal Address" value={selectedEmployee.address || "Not Provided"} />
@@ -3310,14 +3351,14 @@ export default function AdminPortal() {
 
                                                     {/* Attendance History Block */}
                                                     <div className="p-4 bg-white/[0.02] border border-white/5 space-y-4">
-                                                        <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Attendance Logs</p>
+                                                        <p className="text-xs font-bold text-white/50">Attendance Logs</p>
                                                         {loadingAttendance ? (
                                                             <p className="text-xs text-white/30 animate-pulse py-2">Loading attendance logs...</p>
                                                         ) : selectedEmployeeAttendance.length > 0 ? (
                                                             <div className="max-h-48 overflow-y-auto pr-1 scrollbar-thin">
                                                                 <table className="w-full text-left text-xs">
                                                                     <thead>
-                                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                                        <tr className="border-b border-white/10 text-white/30 text-xs font-bold">
                                                                             <th className="py-2">Date</th>
                                                                             <th className="py-2">Clock In</th>
                                                                             <th className="py-2">Clock Out</th>
@@ -3339,7 +3380,7 @@ export default function AdminPortal() {
                                                                                     <td className="py-2">{pIn.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
                                                                                     <td className="py-2">{pIn.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}</td>
                                                                                     <td className="py-2">{pOut ? pOut.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' }) : "Active"}</td>
-                                                                                    <td className={`py-2 text-right font-medium ${pOut ? 'text-white/60' : 'text-[#E61E32] animate-pulse'}`}>{durationStr}</td>
+                                                                                    <td className={`py-2 text-right font-medium ${pOut ?'text-white/60':'text-[#E61E32] animate-pulse'}`}>{durationStr}</td>
                                                                                 </tr>
                                                                             );
                                                                         })}
@@ -3355,7 +3396,7 @@ export default function AdminPortal() {
                                                         <button
                                                             onClick={() => sendOfferLetter(selectedEmployee.id)}
                                                             disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
-                                                            className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
+                                                            className="w-full flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
                                                         >
                                                             {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'sending' ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -3367,7 +3408,7 @@ export default function AdminPortal() {
                                                         <button
                                                             onClick={() => sendOnboardingEmail(selectedEmployee.id)}
                                                             disabled={sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'sending'}
-                                                            className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/80 font-bold py-4 text-xs uppercase tracking-widest border border-white/10 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
+                                                            className="w-full flex items-center justify-center gap-2 bg-white/5 text-white/80 font-bold py-4 text-xs border border-white/10 hover:bg-white/10 hover:text-white transition-all disabled:opacity-50"
                                                         >
                                                             {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'sending' ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -3377,13 +3418,13 @@ export default function AdminPortal() {
                                                             Send Onboarding Email
                                                         </button>
                                                         {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.status === 'error' && (
-                                                            <p className="text-[10px] text-[#E61E32] text-center mt-2 font-bold uppercase">Error sending email. Check logs.</p>
+                                                            <p className="text-xs text-[#E61E32] text-center mt-2 font-bold">Error sending email. Check logs.</p>
                                                         )}
                                                         {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'offer' && sendEmailStatus.status === 'success' && (
-                                                            <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Offer letter sent successfully!</p>
+                                                            <p className="text-xs text-green-500 text-center mt-2 font-bold">Offer letter sent successfully!</p>
                                                         )}
                                                         {sendEmailStatus?.id === selectedEmployee.id && sendEmailStatus.action === 'onboarding' && sendEmailStatus.status === 'success' && (
-                                                            <p className="text-[10px] text-green-500 text-center mt-2 font-bold uppercase">Onboarding email sent successfully!</p>
+                                                            <p className="text-xs text-green-500 text-center mt-2 font-bold">Onboarding email sent successfully!</p>
                                                         )}
                                                     </div>
                                                 </>
@@ -3391,7 +3432,7 @@ export default function AdminPortal() {
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium text-center">
+                                            <p className="text-sm font-medium text-center">
                                                 Select an employee to<br />view profile and history
                                             </p>
                                         </div>
@@ -3401,18 +3442,18 @@ export default function AdminPortal() {
                         )}
 
                         {activeTab === "attendance" && (
-                            <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full animate-in fade-in duration-500">
+                            <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col overflow-hidden h-full animate-in fade-in duration-500">
                                 {/* Sub Tabs toggle */}
                                 <div className="flex border-b border-white/10 mb-6 shrink-0">
                                     <button
                                         onClick={() => setAttendanceSubView("logs")}
-                                        className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${attendanceSubView === 'logs' ? 'border-[#E61E32] text-white' : 'border-transparent text-white/40 hover:text-white'}`}
+                                        className={`px-5 py-3 text-xs font-bold border-b-2 transition-all ${attendanceSubView ==='logs'?'border-[#E61E32] text-white':'border-transparent text-white/40 hover:text-white'}`}
                                     >
                                         Logs Timeline
                                     </button>
                                     <button
                                         onClick={() => setAttendanceSubView("today")}
-                                        className={`px-5 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${attendanceSubView === 'today' ? 'border-[#E61E32] text-white' : 'border-transparent text-white/40 hover:text-white'}`}
+                                        className={`px-5 py-3 text-xs font-bold border-b-2 transition-all ${attendanceSubView ==='today'?'border-[#E61E32] text-white':'border-transparent text-white/40 hover:text-white'}`}
                                     >
                                         Today's Status
                                     </button>
@@ -3435,7 +3476,7 @@ export default function AdminPortal() {
                                             <div className="overflow-x-auto">
                                                 <table className="w-full text-left text-xs min-w-[700px]">
                                                     <thead>
-                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                        <tr className="border-b border-white/10 text-white/30 text-xs font-bold">
                                                             <th className="py-3">Employee</th>
                                                             <th className="py-3">Role</th>
                                                             <th className="py-3">Status</th>
@@ -3457,28 +3498,28 @@ export default function AdminPortal() {
                                                                 <tr key={log.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
                                                                     <td className="py-3.5">
                                                                         <p className="font-semibold text-white">{log.employee?.name || `Employee #${log.employeeId}`}</p>
-                                                                        <p className="text-[10px] text-white/30">{log.employee?.email}</p>
+                                                                        <p className="text-xs text-white/30">{log.employee?.email}</p>
                                                                     </td>
                                                                     <td className="py-3.5 text-white/50">{log.employee?.role || "-"}</td>
                                                                     <td className="py-3.5">
                                                                         {isActive ? (
-                                                                            <span className="text-green-400 uppercase text-[9px] tracking-wider font-extrabold border border-green-500/20 bg-green-500/5 px-2.5 py-0.5 rounded-none animate-pulse">
+                                                                            <span className="text-green-400 text-xs font-extrabold border border-green-500/20 bg-green-500/5 px-2.5 py-0.5 rounded-lg animate-pulse">
                                                                                 Active
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-white/40 uppercase text-[9px] tracking-wider font-semibold border border-white/10 bg-white/5 px-2.5 py-0.5 rounded-none">
+                                                                            <span className="text-white/40 text-xs font-semibold border border-white/10 bg-white/5 px-2.5 py-0.5 rounded-lg">
                                                                                 Inactive
                                                                             </span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="py-3.5 text-white/80 font-mono text-[11px]">
+                                                                    <td className="py-3.5 text-white/80 font-mono text-sm">
                                                                         {new Date(log.punchIn).toLocaleString("en-IN", {
                                                                             timeZone: "Asia/Kolkata",
                                                                             dateStyle: "medium",
                                                                             timeStyle: "short"
                                                                         })}
                                                                     </td>
-                                                                    <td className="py-3.5 font-mono text-[11px]">
+                                                                    <td className="py-3.5 font-mono text-sm">
                                                                         {log.punchOut ? (
                                                                             <span className="text-white/85">
                                                                                 {new Date(log.punchOut).toLocaleString("en-IN", {
@@ -3488,12 +3529,12 @@ export default function AdminPortal() {
                                                                                 })}
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-yellow-400/80 uppercase text-[9px] tracking-wider font-extrabold border border-yellow-400/20 bg-yellow-400/5 px-2 py-0.5">Punch In</span>
+                                                                            <span className="text-yellow-400/80 text-xs font-extrabold border border-yellow-400/20 bg-yellow-400/5 px-2 py-0.5">Punch In</span>
                                                                         )}
                                                                     </td>
                                                                     <td className="py-3.5 text-right font-semibold text-white/60">
                                                                         {isActive ? (
-                                                                            <span className="text-green-400 font-extrabold tracking-wide uppercase text-[9px] animate-pulse">In Office</span>
+                                                                            <span className="text-green-400 font-extrabold tracking-wide text-xs animate-pulse">In Office</span>
                                                                         ) : (
                                                                             <span className="text-white/85">{duration}</span>
                                                                         )}
@@ -3506,7 +3547,7 @@ export default function AdminPortal() {
                                             </div>
                                         ) : (
                                             <div className="py-16 text-center border border-dashed border-white/5">
-                                                <p className="text-white/20 text-xs">No attendance logs found matching filters.</p>
+                                                <p className="text-white/50 text-xs">No attendance logs found matching filters.</p>
                                             </div>
                                         );
                                     })() : (() => {
@@ -3550,13 +3591,13 @@ export default function AdminPortal() {
                                         return (
                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-6 animate-in fade-in duration-300">
                                                 {/* Present Today Column */}
-                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-none">
-                                                    <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
+                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-lg">
+                                                    <h3 className="text-xs font-bold text-white mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
                                                         <span className="flex items-center gap-2">
                                                             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                                                             Present Today
                                                         </span>
-                                                        <span className="bg-green-500/10 text-green-500 px-2 py-0.5 text-[10px] font-mono">{filteredPresent.length}</span>
+                                                        <span className="bg-green-500/10 text-green-500 px-2 py-0.5 text-xs font-mono">{filteredPresent.length}</span>
                                                     </h3>
                                                     <div className="space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin">
                                                         {filteredPresent.length > 0 ? (
@@ -3564,16 +3605,16 @@ export default function AdminPortal() {
                                                                 <div key={emp.id} className="p-4 bg-white/5 border border-white/5 flex justify-between items-center hover:border-white/10 transition-colors">
                                                                     <div>
                                                                         <p className="font-semibold text-xs text-white">{emp.name}</p>
-                                                                        <p className="text-[10px] text-white/30">{emp.email} • {emp.role}</p>
+                                                                        <p className="text-xs text-white/30">{emp.email} • {emp.role}</p>
                                                                     </div>
                                                                     <div className="text-right">
                                                                         {emp.isCurrentlyActive ? (
-                                                                            <span className="text-[8px] font-extrabold uppercase bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-none animate-pulse">Active</span>
+                                                                            <span className="text-xs font-extrabold bg-green-500/10 border border-green-500/20 text-green-400 px-2 py-0.5 rounded-lg animate-pulse">Active</span>
                                                                         ) : (
-                                                                            <span className="text-[8px] font-semibold uppercase bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">Checked Out</span>
+                                                                            <span className="text-xs font-semibold bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-lg">Checked Out</span>
                                                                         )}
                                                                         {emp.latestLog && (
-                                                                            <p className="text-[9px] text-white/30 mt-1.5 font-mono">
+                                                                            <p className="text-xs text-white/30 mt-1.5 font-mono">
                                                                                 Punched In: {new Date(emp.latestLog.punchIn).toLocaleTimeString("en-IN", {
                                                                                     timeZone: "Asia/Kolkata",
                                                                                     hour: '2-digit',
@@ -3587,20 +3628,20 @@ export default function AdminPortal() {
                                                             ))
                                                         ) : (
                                                             <div className="py-10 text-center border border-dashed border-white/5">
-                                                                <p className="text-white/20 text-xs">No employees present matching filters today.</p>
+                                                                <p className="text-white/50 text-xs">No employees present matching filters today.</p>
                                                             </div>
                                                         )}
                                                     </div>
                                                 </div>
 
                                                 {/* Absent Today Column */}
-                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-none">
-                                                    <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
+                                                <div className="bg-white/[0.02] border border-white/5 p-6 flex flex-col rounded-lg">
+                                                    <h3 className="text-xs font-bold text-white mb-4 flex items-center justify-between pb-3 border-b border-white/5 shrink-0">
                                                         <span className="flex items-center gap-2">
                                                             <span className="w-2.5 h-2.5 bg-[#E61E32] rounded-full" />
                                                             Absent Today
                                                         </span>
-                                                        <span className="bg-[#E61E32]/10 text-[#E61E32] px-2 py-0.5 text-[10px] font-mono">{filteredAbsent.length}</span>
+                                                        <span className="bg-[#E61E32]/10 text-[#E61E32] px-2 py-0.5 text-xs font-mono">{filteredAbsent.length}</span>
                                                     </h3>
                                                     <div className="space-y-3 overflow-y-auto max-h-[500px] pr-1 scrollbar-thin">
                                                         {filteredAbsent.length > 0 ? (
@@ -3608,14 +3649,14 @@ export default function AdminPortal() {
                                                                 <div key={emp.id} className="p-4 bg-white/5 border border-white/5 flex justify-between items-center hover:border-white/10 transition-colors">
                                                                     <div>
                                                                         <p className="font-semibold text-xs text-white">{emp.name}</p>
-                                                                        <p className="text-[10px] text-white/30">{emp.email} • {emp.role}</p>
+                                                                        <p className="text-xs text-white/30">{emp.email} • {emp.role}</p>
                                                                     </div>
-                                                                    <span className="text-[8px] font-bold uppercase bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] px-2 py-0.5 rounded-none">Absent</span>
+                                                                    <span className="text-xs font-bold bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] px-2 py-0.5 rounded-lg">Absent</span>
                                                                 </div>
                                                             ))
                                                         ) : (
                                                             <div className="py-10 text-center border border-dashed border-white/5">
-                                                                <p className="text-white/20 text-xs">No absent employees matching filters today.</p>
+                                                                <p className="text-white/50 text-xs">No absent employees matching filters today.</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -3630,17 +3671,17 @@ export default function AdminPortal() {
                         {activeTab === "clients" && (
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
                                 {/* Client List or Add Form */}
-                                <div className="space-y-4 h-full flex flex-col overflow-hidden">
+                                <div className={`space-y-4 h-full flex flex-col overflow-hidden ${selectedEmployee ?'hidden lg:flex':'flex'}`}>
                                     {showAddClientForm ? (
-                                        <div className="bg-white/5 border border-white/10 p-8 animate-in slide-in-from-top-4 duration-300">
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-6 md:p-8 animate-in slide-in-from-top-4 duration-300">
                                             <div className="flex justify-between items-center mb-6">
-                                                <h3 className="text-lg font-bold uppercase tracking-tight">Register New Client</h3>
+                                                <h3 className="text-lg font-bold tracking-tight">Register New Client</h3>
                                                 <button onClick={() => setShowAddClientForm(false)} className="text-white/40 hover:text-white text-xs">Cancel</button>
                                             </div>
                                             <form onSubmit={handleAddClient} className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Company Name</label>
+                                                        <label className="text-xs font-bold text-white/40">Company Name</label>
                                                         <input
                                                             required
                                                             type="text"
@@ -3650,7 +3691,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">App / Website Name</label>
+                                                        <label className="text-xs font-bold text-white/40">App / Website Name</label>
                                                         <input
                                                             type="text"
                                                             value={newClient.appName}
@@ -3659,9 +3700,9 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Client Contact Name</label>
+                                                        <label className="text-xs font-bold text-white/40">Client Contact Name</label>
                                                         <input
                                                             required
                                                             type="text"
@@ -3671,7 +3712,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Email Address</label>
+                                                        <label className="text-xs font-bold text-white/40">Email Address</label>
                                                         <input
                                                             required
                                                             type="email"
@@ -3681,9 +3722,9 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Phone Number</label>
+                                                        <label className="text-xs font-bold text-white/40">Phone Number</label>
                                                         <input
                                                             type="tel"
                                                             value={newClient.phone}
@@ -3692,7 +3733,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Template</label>
+                                                        <label className="text-xs font-bold text-white/40">Meeting Template</label>
                                                         <select
                                                             value={newClient.meetingTemplate}
                                                             onChange={(e) => setNewClient({ ...newClient, meetingTemplate: e.target.value })}
@@ -3706,9 +3747,9 @@ export default function AdminPortal() {
                                                         </select>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Developer Name (For Dev Meet)</label>
+                                                        <label className="text-xs font-bold text-white/40">Developer Name (For Dev Meet)</label>
                                                         <input
                                                             type="text"
                                                             value={newClient.developerName}
@@ -3718,7 +3759,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Link (Custom)</label>
+                                                        <label className="text-xs font-bold text-white/40">Meeting Link (Custom)</label>
                                                         <input
                                                             type="url"
                                                             value={newClient.meetingLink}
@@ -3729,7 +3770,7 @@ export default function AdminPortal() {
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Preferred Meeting Time</label>
+                                                    <label className="text-xs font-bold text-white/40">Preferred Meeting Time</label>
                                                     <input
                                                         type="datetime-local"
                                                         value={newClient.meetingTime}
@@ -3740,7 +3781,7 @@ export default function AdminPortal() {
                                                 <button
                                                     disabled={isSubmitting}
                                                     type="submit"
-                                                    className="w-full bg-white text-black font-bold py-3 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
+                                                    className="w-full bg-white text-black font-bold py-3 text-xs hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
                                                 >
                                                     {isSubmitting ? "Registering..." : "Register Client"}
                                                 </button>
@@ -3749,25 +3790,25 @@ export default function AdminPortal() {
                                     ) : (
                                         <div className="overflow-y-auto space-y-3 pr-2 scrollbar-thin flex-grow">
                                             {loading ? (
-                                                <p className="text-white/20 text-center py-10">Loading clients...</p>
+                                                <p className="text-white/50 text-center py-10">Loading clients...</p>
                                             ) : filteredClients.length > 0 ? (
                                                 filteredClients.map((client) => (
                                                     <div
                                                         key={client.id}
                                                         onClick={() => setSelectedClient(client)}
-                                                        className={`p-5 border transition-all cursor-pointer ${selectedClient?.id === client.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                        className={`p-5 border transition-all cursor-pointer ${selectedClient?.id === client.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                                     >
                                                         <div className="flex justify-between items-start">
                                                             <div>
-                                                                <h3 className="font-bold text-white truncate max-w-[200px] uppercase tracking-tight">{client.companyName}</h3>
-                                                                <p className="text-[10px] text-[#E61E32] font-bold uppercase tracking-wider">{client.appName || "No App Specified"}</p>
+                                                                <h3 className="font-bold text-white truncate min-w-0 flex-1 tracking-tight">{client.companyName}</h3>
+                                                                <p className="text-xs text-[#E61E32] font-bold">{client.appName || "No App Specified"}</p>
                                                             </div>
                                                             <div className="flex flex-col items-end">
-                                                                <span className="text-[10px] text-white/20 uppercase tracking-tighter">
+                                                                <span className="text-xs text-white/50 tracking-tighter">
                                                                     Registered {new Date(client.createdAt).toLocaleDateString()}
                                                                 </span>
                                                                 {client.meetingTime && (
-                                                                    <div className="mt-2 flex items-center gap-1 text-[9px] text-green-500 font-bold uppercase">
+                                                                    <div className="mt-2 flex items-center gap-1 text-xs text-green-500 font-bold">
                                                                         <Clock className="w-3 h-3" />
                                                                         Scheduled
                                                                     </div>
@@ -3778,7 +3819,7 @@ export default function AdminPortal() {
                                                                         setSelectedClient(client);
                                                                         setIsEditingClient(true);
                                                                     }}
-                                                                    className="mt-2 text-[10px] text-white/40 hover:text-[#E61E32] font-bold uppercase tracking-widest transition-colors"
+                                                                    className="mt-2 text-xs text-white/40 hover:text-[#E61E32] font-bold transition-colors"
                                                                 >
                                                                     Reschedule
                                                                 </button>
@@ -3788,7 +3829,7 @@ export default function AdminPortal() {
                                                 ))
                                             ) : (
                                                 <div className="py-20 text-center border border-dashed border-white/5">
-                                                    <p className="text-white/20 text-sm">No clients found.</p>
+                                                    <p className="text-white/50 text-sm">No clients found.</p>
                                                 </div>
                                             )}
                                         </div>
@@ -3796,7 +3837,7 @@ export default function AdminPortal() {
                                 </div>
 
                                 {/* Client Details */}
-                                <div className="bg-white/5 border border-white/5 p-8 overflow-y-auto">
+                                <div className={`bg-white/5 border border-white/5 rounded-xl p-4 md:p-6 lg:p-8 overflow-y-auto overflow-x-hidden break-words min-w-0 ${selectedEmployee ?'block':'hidden lg:block'}`}>
                                     {selectedClient ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
                                             <div className="space-y-2 pb-6 border-b border-white/5">
@@ -3806,21 +3847,21 @@ export default function AdminPortal() {
                                                             <Building className="w-6 h-6" />
                                                         </div>
                                                         <div>
-                                                            <h3 className="text-xl font-bold uppercase">{selectedClient.companyName}</h3>
-                                                            <p className="text-sm text-[#E61E32] font-bold uppercase tracking-widest">{selectedClient.appName || "Web Project"}</p>
+                                                            <h3 className="text-xl font-bold">{selectedClient.companyName}</h3>
+                                                            <p className="text-sm text-[#E61E32] font-bold">{selectedClient.appName || "Web Project"}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-4">
                                                         <button
                                                             onClick={() => setIsEditingClient(!isEditingClient)}
-                                                            className={`p-2 transition-colors ${isEditingClient ? 'text-[#E61E32]' : 'text-white/20 hover:text-white'}`}
+                                                            className={`p-2 transition-colors ${isEditingClient ?'text-[#E61E32]':'text-white/50 hover:text-white'}`}
                                                             title="Edit Client"
                                                         >
                                                             <Edit2 className="w-5 h-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteClient(selectedClient.id)}
-                                                            className="p-2 text-white/20 hover:text-[#E61E32] transition-colors"
+                                                            className="p-2 text-white/50 hover:text-[#E61E32] transition-colors"
                                                             title="Delete Client"
                                                         >
                                                             <Trash2 className="w-5 h-5" />
@@ -3831,9 +3872,9 @@ export default function AdminPortal() {
 
                                             {isEditingClient ? (
                                                 <form onSubmit={handleUpdateClient} className="space-y-6 bg-white/[0.02] p-6 border border-white/5 animate-in slide-in-from-top-4 duration-300">
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Template</label>
+                                                            <label className="text-xs font-bold text-white/40">Meeting Template</label>
                                                             <select
                                                                 value={selectedClient.meetingTemplate || ""}
                                                                 onChange={(e) => setSelectedClient({ ...selectedClient, meetingTemplate: e.target.value })}
@@ -3847,7 +3888,7 @@ export default function AdminPortal() {
                                                             </select>
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Time</label>
+                                                            <label className="text-xs font-bold text-white/40">Meeting Time</label>
                                                             <input
                                                                 type="datetime-local"
                                                                 value={selectedClient.meetingTime ? new Date(selectedClient.meetingTime).toISOString().slice(0, 16) : ""}
@@ -3856,9 +3897,9 @@ export default function AdminPortal() {
                                                             />
                                                         </div>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Developer Assigned</label>
+                                                            <label className="text-xs font-bold text-white/40">Developer Assigned</label>
                                                             <input
                                                                 type="text"
                                                                 value={selectedClient.developerName || ""}
@@ -3867,7 +3908,7 @@ export default function AdminPortal() {
                                                             />
                                                         </div>
                                                         <div className="space-y-1.5">
-                                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Meeting Link</label>
+                                                            <label className="text-xs font-bold text-white/40">Meeting Link</label>
                                                             <input
                                                                 type="url"
                                                                 value={selectedClient.meetingLink || ""}
@@ -3881,14 +3922,14 @@ export default function AdminPortal() {
                                                         <button
                                                             type="submit"
                                                             disabled={isSubmitting}
-                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs uppercase tracking-widest hover:bg-white hover:text-black transition-all disabled:opacity-50"
+                                                            className="flex-grow bg-[#E61E32] text-white font-bold py-3 text-xs hover:bg-white hover:text-black transition-all disabled:opacity-50"
                                                         >
                                                             {isSubmitting ? "Updating..." : "Save Changes"}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsEditingClient(false)}
-                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10"
+                                                            className="px-6 bg-white/5 text-white/60 font-bold py-3 text-xs hover:bg-white/10 hover:text-white transition-all border border-white/10"
                                                         >
                                                             Cancel
                                                         </button>
@@ -3898,32 +3939,32 @@ export default function AdminPortal() {
                                                 <>
                                                     <div className="grid grid-cols-1 gap-6">
                                                         <div className="p-6 bg-white/[0.02] border border-white/5 space-y-6">
-                                                            <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                 <InfoBlock label="Client Name" value={selectedClient.clientName} />
                                                                 <InfoBlock label="Email Address" value={selectedClient.email} />
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                 <InfoBlock label="Phone Number" value={selectedClient.phone || "N/A"} />
                                                                 <InfoBlock label="Registered On" value={new Date(selectedClient.createdAt).toLocaleDateString()} />
                                                             </div>
                                                         </div>
 
-                                                        <div className="p-6 bg-[#E61E32]/5 border border-[#E61E32]/10 space-y-4">
-                                                            <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest flex items-center gap-2">
+                                                        <div className="p-6 bg-[#E61E32]/10 border border-[#E61E32]/10 space-y-4">
+                                                            <h4 className="text-xs font-bold text-[#E61E32] flex items-center gap-2">
                                                                 <Calendar className="w-3 h-3" />
                                                                 Meeting & Schedule
                                                             </h4>
-                                                            <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                 <InfoBlock label="Template Type" value={selectedClient.meetingTemplate || "Standard Call"} />
                                                                 <InfoBlock
                                                                     label="Scheduled Time"
                                                                     value={selectedClient.meetingTime ? new Date(selectedClient.meetingTime).toLocaleString() : "Not Scheduled"}
                                                                 />
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-4">
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                                 <InfoBlock label="Developer Assigned" value={selectedClient.developerName || "N/A"} />
                                                                 <div className="space-y-1">
-                                                                    <p className="text-[10px] uppercase font-bold text-white/20 tracking-widest">Meeting Link</p>
+                                                                    <p className="text-xs font-bold text-white/50">Meeting Link</p>
                                                                     {selectedClient.meetingLink ? (
                                                                         <a href={selectedClient.meetingLink} target="_blank" className="text-sm text-[#E61E32] font-medium hover:underline truncate block max-w-[200px]">
                                                                             {selectedClient.meetingLink}
@@ -3940,7 +3981,7 @@ export default function AdminPortal() {
                                                         <button
                                                             onClick={() => sendMeetingEmail(selectedClient.id)}
                                                             disabled={(sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending') || !selectedClient.meetingTime}
-                                                            className="flex-grow flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs uppercase tracking-widest hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
+                                                            className="flex-grow flex items-center justify-center gap-2 bg-white text-black font-bold py-4 text-xs hover:bg-[#E61E32] hover:text-white transition-all disabled:opacity-50"
                                                         >
                                                             {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'sending' ? (
                                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -3949,7 +3990,7 @@ export default function AdminPortal() {
                                                             )}
                                                             {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'success' ? "Details Sent" : "Send Meeting Details"}
                                                         </button>
-                                                        <button className="flex-grow flex items-center justify-center gap-2 bg-white/5 text-white/60 font-bold py-4 text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all border border-white/10">
+                                                        <button className="flex-grow flex items-center justify-center gap-2 bg-white/5 text-white/60 font-bold py-4 text-xs hover:bg-white/10 hover:text-white transition-all border border-white/10">
                                                             <Globe className="w-4 h-4" />
                                                             Open Dashboard
                                                         </button>
@@ -3957,15 +3998,15 @@ export default function AdminPortal() {
                                                 </>
                                             )}
                                             {sendEmailStatus?.id === selectedClient.id && sendEmailStatus.status === 'error' && (
-                                                <p className="text-[10px] text-[#E61E32] text-center mt-2 font-bold uppercase">Error sending meeting details. Check logs.</p>
+                                                <p className="text-xs text-[#E61E32] text-center mt-2 font-bold">Error sending meeting details. Check logs.</p>
                                             )}
                                             {!selectedClient.meetingTime && (
-                                                <p className="text-[10px] text-white/20 text-center mt-2 font-bold uppercase">Schedule a meeting to send details</p>
+                                                <p className="text-xs text-white/50 text-center mt-2 font-bold">Schedule a meeting to send details</p>
                                             )}
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium text-center">
+                                            <p className="text-sm font-medium text-center">
                                                 Select a client to<br />view full details and projects
                                             </p>
                                         </div>
@@ -3979,7 +4020,7 @@ export default function AdminPortal() {
                                 {/* Form Container */}
                                 <div className="bg-white/5 border border-white/10 p-8 space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
+                                        <h3 className="text-lg font-bold tracking-tight flex items-center gap-2">
                                             <CreditCard className="w-5 h-5 text-[#E61E32]" />
                                             Send Payment Pending Notice
                                         </h3>
@@ -3989,7 +4030,7 @@ export default function AdminPortal() {
                                     <form onSubmit={handleSendPaymentDue} className="space-y-6">
                                         {/* Client Dropdown */}
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Registered Client *</label>
+                                            <label className="text-xs font-bold text-white/40">Select Registered Client *</label>
                                             <select
                                                 required
                                                 value={paymentClientId}
@@ -4012,8 +4053,8 @@ export default function AdminPortal() {
                                                 if (!client) return null;
                                                 return (
                                                     <div className="p-4 bg-white/[0.02] border border-white/5 space-y-3 animate-in fade-in duration-300">
-                                                        <p className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest">Selected Client Details</p>
-                                                        <div className="grid grid-cols-2 gap-4 text-xs">
+                                                        <p className="text-xs font-bold text-[#E61E32]">Selected Client Details</p>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                                             <div>
                                                                 <span className="text-white/30 block mb-0.5">Company Name</span>
                                                                 <span className="text-white/80 font-medium">{client.companyName}</span>
@@ -4039,7 +4080,7 @@ export default function AdminPortal() {
                                         {/* Amount and Due Date Row */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Due *</label>
+                                                <label className="text-xs font-bold text-white/40">Amount Due *</label>
                                                 <input
                                                     required
                                                     type="text"
@@ -4050,7 +4091,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Due Date *</label>
+                                                <label className="text-xs font-bold text-white/40">Due Date *</label>
                                                 <input
                                                     required
                                                     type="date"
@@ -4063,7 +4104,7 @@ export default function AdminPortal() {
 
                                         {/* Invoice PDF Upload */}
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Upload Invoice PDF (Optional)</label>
+                                            <label className="text-xs font-bold text-white/40 block">Upload Invoice PDF (Optional)</label>
                                             <div className="relative border border-dashed border-white/10 hover:border-white/20 transition-colors p-6 text-center cursor-pointer bg-black/20 flex flex-col items-center justify-center space-y-2">
                                                 <input
                                                     type="file"
@@ -4078,7 +4119,7 @@ export default function AdminPortal() {
                                                         <button
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); setPaymentInvoiceFile(null); }}
-                                                            className="text-[10px] text-white/40 hover:text-red-500 font-bold uppercase"
+                                                            className="text-xs text-white/40 hover:text-red-500 font-bold"
                                                         >
                                                             Remove File
                                                         </button>
@@ -4086,7 +4127,7 @@ export default function AdminPortal() {
                                                 ) : (
                                                     <div>
                                                         <p className="text-xs font-medium text-white/60">Click to upload or drag & drop</p>
-                                                        <p className="text-[10px] text-white/20 mt-0.5">Only PDF files are supported</p>
+                                                        <p className="text-xs text-white/50 mt-0.5">Only PDF files are supported</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -4096,7 +4137,7 @@ export default function AdminPortal() {
                                         <button
                                             disabled={paymentSendStatus === 'sending' || !paymentClientId || !paymentAmount || !paymentDueDate}
                                             type="submit"
-                                            className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/50 text-white font-bold py-4 text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+                                            className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:bg-[#E61E32]/100 text-white font-bold py-4 text-xs transition-all disabled:cursor-not-allowed"
                                         >
                                             {paymentSendStatus === 'sending' ? (
                                                 <>
@@ -4113,18 +4154,19 @@ export default function AdminPortal() {
 
                                         {/* Status Feedback Messages */}
                                         {paymentSendStatus === 'success' && (
-                                            <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center uppercase tracking-wider">
-                                                ✓ Payment reminder email sent successfully!
+                                            <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center flex items-center justify-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                Payment reminder email sent successfully!
                                             </div>
                                         )}
                                         {paymentSendStatus === 'error' && (
-                                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1 uppercase tracking-wider">
+                                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1">
                                                 <div className="flex items-center gap-1.5">
                                                     <AlertCircle className="w-4 h-4" />
                                                     <span>Failed to send email</span>
                                                 </div>
                                                 {paymentErrorMessage && (
-                                                    <p className="text-[10px] text-red-400/80 mt-1 font-mono normal-case">{paymentErrorMessage}</p>
+                                                    <p className="text-xs text-red-400/80 mt-1 font-mono normal-case">{paymentErrorMessage}</p>
                                                 )}
                                             </div>
                                         )}
@@ -4132,14 +4174,14 @@ export default function AdminPortal() {
                                 </div>
 
                                 {/* Dynamic Live Email Preview */}
-                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col h-full space-y-4">
+                                <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col h-full space-y-4">
                                     <div className="flex justify-between items-center pb-3 border-b border-white/10">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                                             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                                             <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                                         </div>
-                                        <span className="text-[10px] text-white/30 uppercase tracking-widest font-mono">Live Email Preview</span>
+                                        <span className="text-xs text-white/30 font-mono">Live Email Preview</span>
                                     </div>
 
                                     {/* Email Frame */}
@@ -4184,7 +4226,7 @@ export default function AdminPortal() {
                                                             </p>
 
                                                             {/* Billing Table */}
-                                                            <h3 style={{ fontSize: '11px', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px 0' }}>Billing Details</h3>
+                                                            <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#E61E32', margin: '0 0 10px 0' }}>Billing Details</h3>
                                                             <div style={{ backgroundColor: '#f9fafb', padding: '18px', border: '1px solid #e5e7eb', marginBottom: '25px' }}>
                                                                 <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
                                                                     <tbody>
@@ -4215,7 +4257,7 @@ export default function AdminPortal() {
                                                             {/* PDF File Attachment preview */}
                                                             {paymentInvoiceFile && (
                                                                 <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', fontSize: '13px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '25px' }}>
-                                                                    <span style={{ fontSize: '16px' }}>📎</span>
+                                                                    <Paperclip className="w-4 h-4 text-white/60 shrink-0" />
                                                                     <span><strong>Invoice Attached:</strong> {paymentInvoiceFile.name} (PDF)</span>
                                                                 </div>
                                                             )}
@@ -4227,11 +4269,11 @@ export default function AdminPortal() {
 
                                                         {/* Footer */}
                                                         <div style={{ backgroundColor: '#f9fafb', padding: '30px', borderTop: '1px solid #eee', fontSize: '12px' }}>
-                                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>Billing Lead</p>
+                                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', fontSize: '12px' }}>Billing Lead</p>
                                                             <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#111' }}>Shiva Krishna Manthena</p>
                                                             <p style={{ margin: '2px 0 20px 0', color: '#4b5563' }}>Redlix Studio | Accounts Department</p>
 
-                                                            <div style={{ fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
+                                                            <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
                                                                 <p style={{ margin: '0' }}>© 2026 Redlix Studio</p>
                                                                 <p style={{ margin: '0' }}>Software & IT infrastructure solutions</p>
                                                                 <p style={{ margin: '4px 0 0 0', color: '#E61E32', fontWeight: '600' }}>www.redlix.co.in</p>
@@ -4257,7 +4299,7 @@ export default function AdminPortal() {
                                 <div className="bg-white/5 border border-white/10 p-8 space-y-6">
                                     <div className="flex items-center justify-between gap-4">
                                         <div>
-                                            <h3 className="text-lg font-bold uppercase tracking-tight flex items-center gap-2">
+                                            <h3 className="text-lg font-bold tracking-tight flex items-center gap-2">
                                                 <CheckCircle2 className="w-5 h-5 text-[#10B981]" />
                                                 Send Payment Confirmation
                                             </h3>
@@ -4276,7 +4318,7 @@ export default function AdminPortal() {
                                     <form onSubmit={handleSendPaymentReceived} className="space-y-6">
                                         {/* Client Dropdown */}
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Registered Client *</label>
+                                            <label className="text-xs font-bold text-white/40">Select Registered Client *</label>
                                             <select
                                                 required
                                                 value={receivedClientId}
@@ -4299,8 +4341,8 @@ export default function AdminPortal() {
                                                 if (!client) return null;
                                                 return (
                                                     <div className="p-4 bg-white/[0.02] border border-white/5 space-y-3 animate-in fade-in duration-300">
-                                                        <p className="text-[10px] font-bold text-[#10B981] uppercase tracking-widest">Selected Client Details</p>
-                                                        <div className="grid grid-cols-2 gap-4 text-xs">
+                                                        <p className="text-xs font-bold text-[#10B981]">Selected Client Details</p>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                                             <div>
                                                                 <span className="text-white/30 block mb-0.5">Company Name</span>
                                                                 <span className="text-white/80 font-medium">{client.companyName}</span>
@@ -4326,7 +4368,7 @@ export default function AdminPortal() {
                                         {/* Amount, Payment Date, Transaction ID */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount Received *</label>
+                                                <label className="text-xs font-bold text-white/40">Amount Received *</label>
                                                 <input
                                                     required
                                                     type="text"
@@ -4337,7 +4379,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Payment Date *</label>
+                                                <label className="text-xs font-bold text-white/40">Payment Date *</label>
                                                 <input
                                                     required
                                                     type="date"
@@ -4350,7 +4392,7 @@ export default function AdminPortal() {
 
                                         {/* Transaction ID */}
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Transaction ID (Optional)</label>
+                                            <label className="text-xs font-bold text-white/40">Transaction ID (Optional)</label>
                                             <input
                                                 type="text"
                                                 placeholder="e.g. TXN123456789 or UTR / UPI Ref No."
@@ -4358,12 +4400,12 @@ export default function AdminPortal() {
                                                 onChange={(e) => setReceivedTransactionId(e.target.value)}
                                                 className="w-full bg-black border border-white/10 px-4 py-3 text-sm focus:outline-none focus:border-white/30 text-white font-mono"
                                             />
-                                            <p className="text-[10px] text-white/20">Will appear as a reference on the payment receipt email.</p>
+                                            <p className="text-xs text-white/50">Will appear as a reference on the payment receipt email.</p>
                                         </div>
 
                                         {/* Receipt PDF Upload */}
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Upload Receipt / Invoice PDF (Optional)</label>
+                                            <label className="text-xs font-bold text-white/40 block">Upload Receipt / Invoice PDF (Optional)</label>
                                             <div className="relative border border-dashed border-white/10 hover:border-white/20 transition-colors p-6 text-center cursor-pointer bg-black/20 flex flex-col items-center justify-center space-y-2">
                                                 <input
                                                     type="file"
@@ -4378,7 +4420,7 @@ export default function AdminPortal() {
                                                         <button
                                                             type="button"
                                                             onClick={(e) => { e.stopPropagation(); setReceivedReceiptFile(null); }}
-                                                            className="text-[10px] text-white/40 hover:text-red-500 font-bold uppercase"
+                                                            className="text-xs text-white/40 hover:text-red-500 font-bold"
                                                         >
                                                             Remove File
                                                         </button>
@@ -4386,7 +4428,7 @@ export default function AdminPortal() {
                                                 ) : (
                                                     <div>
                                                         <p className="text-xs font-medium text-white/60">Click to upload or drag & drop</p>
-                                                        <p className="text-[10px] text-white/20 mt-0.5">Only PDF files are supported</p>
+                                                        <p className="text-xs text-white/50 mt-0.5">Only PDF files are supported</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -4396,7 +4438,7 @@ export default function AdminPortal() {
                                         <button
                                             disabled={receivedSendStatus === 'sending' || !receivedClientId || !receivedAmount || !receivedDate}
                                             type="submit"
-                                            className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#10B981]/90 disabled:bg-[#10B981]/50 text-white font-bold py-4 text-xs uppercase tracking-widest transition-all disabled:cursor-not-allowed"
+                                            className="w-full flex items-center justify-center gap-2 bg-[#10B981] hover:bg-[#10B981]/90 disabled:bg-[#10B981]/50 text-white font-bold py-4 text-xs transition-all disabled:cursor-not-allowed"
                                         >
                                             {receivedSendStatus === 'sending' ? (
                                                 <>
@@ -4413,18 +4455,19 @@ export default function AdminPortal() {
 
                                         {/* Status Feedback Messages */}
                                         {receivedSendStatus === 'success' && (
-                                            <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center uppercase tracking-wider animate-in fade-in duration-200">
-                                                ✓ Payment confirmation email sent successfully!
+                                            <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center animate-in fade-in duration-200 flex items-center justify-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                Payment confirmation email sent successfully!
                                             </div>
                                         )}
                                         {receivedSendStatus === 'error' && (
-                                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1 uppercase tracking-wider animate-in fade-in duration-200">
+                                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1 animate-in fade-in duration-200">
                                                 <div className="flex items-center gap-1.5">
                                                     <AlertCircle className="w-4 h-4" />
                                                     <span>Failed to send email</span>
                                                 </div>
                                                 {receivedErrorMessage && (
-                                                    <p className="text-[10px] text-red-400/80 mt-1 font-mono normal-case">{receivedErrorMessage}</p>
+                                                    <p className="text-xs text-red-400/80 mt-1 font-mono normal-case">{receivedErrorMessage}</p>
                                                 )}
                                             </div>
                                         )}
@@ -4432,14 +4475,14 @@ export default function AdminPortal() {
                                 </div>
 
                                 {/* Dynamic Live Email Preview */}
-                                <div className="bg-white/5 border border-white/5 p-6 flex flex-col h-full space-y-4">
+                                <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col h-full space-y-4">
                                     <div className="flex justify-between items-center pb-3 border-b border-white/10">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
                                             <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
                                             <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                                         </div>
-                                        <span className="text-[10px] text-white/30 uppercase tracking-widest font-mono">Live Email Preview</span>
+                                        <span className="text-xs text-white/30 font-mono">Live Email Preview</span>
                                     </div>
 
                                     {/* Email Frame */}
@@ -4489,7 +4532,7 @@ export default function AdminPortal() {
                                                             </p>
 
                                                             {/* Billing Table */}
-                                                            <h3 style={{ fontSize: '11px', fontWeight: 'bold', color: '#10B981', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 10px 0' }}>Receipt Details</h3>
+                                                            <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#10B981', margin: '0 0 10px 0' }}>Receipt Details</h3>
                                                             <div style={{ backgroundColor: '#f9fafb', padding: '18px', border: '1px solid #e5e7eb', marginBottom: '25px' }}>
                                                                 <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
                                                                     <tbody>
@@ -4520,7 +4563,7 @@ export default function AdminPortal() {
                                                             {/* PDF File Attachment preview */}
                                                             {receivedReceiptFile && (
                                                                 <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '12px', fontSize: '13px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '25px' }}>
-                                                                    <span style={{ fontSize: '16px' }}>📎</span>
+                                                                    <Paperclip className="w-4 h-4 text-white/60 shrink-0" />
                                                                     <span><strong>Receipt Attached:</strong> {receivedReceiptFile.name} (PDF)</span>
                                                                 </div>
                                                             )}
@@ -4532,11 +4575,11 @@ export default function AdminPortal() {
 
                                                         {/* Footer */}
                                                         <div style={{ backgroundColor: '#f9fafb', padding: '30px', borderTop: '1px solid #eee', fontSize: '12px' }}>
-                                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', textTransform: 'uppercase', letterSpacing: '0.05em', fontSize: '10px' }}>Billing Lead</p>
+                                                            <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#E61E32', fontSize: '12px' }}>Billing Lead</p>
                                                             <p style={{ margin: '0', fontSize: '15px', fontWeight: 'bold', color: '#111' }}>Shiva Krishna Manthena</p>
                                                             <p style={{ margin: '2px 0 20px 0', color: '#4b5563' }}>Redlix Studio | Accounts Department</p>
 
-                                                            <div style={{ fontSize: '11px', color: '#9ca3af', lineHeight: '1.6' }}>
+                                                            <div style={{ fontSize: '13px', color: '#9ca3af', lineHeight: '1.6' }}>
                                                                 <p style={{ margin: '0' }}>© 2026 Redlix Studio</p>
                                                                 <p style={{ margin: '0' }}>Software & IT infrastructure solutions</p>
                                                                 <p style={{ margin: '4px 0 0 0', color: '#E61E32', fontWeight: '600' }}>www.redlix.co.in</p>
@@ -4559,7 +4602,7 @@ export default function AdminPortal() {
                                     {showAddMeetingForm && (
                                         <form onSubmit={handleAddMeeting} className="bg-white/[0.02] border border-white/10 p-5 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Schedule New Meeting</h3>
+                                                <h3 className="text-sm font-bold text-white">Schedule New Meeting</h3>
                                                 <button type="button" onClick={() => setShowAddMeetingForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
                                             </div>
                                             <input required placeholder="Meeting title *" value={newMeeting.title} onChange={e => setNewMeeting(p => ({ ...p, title: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
@@ -4567,11 +4610,11 @@ export default function AdminPortal() {
                                             <input required placeholder="Meeting lead name *" value={newMeeting.meetingLead} onChange={e => setNewMeeting(p => ({ ...p, meetingLead: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
                                             <input placeholder="Meeting link (Google Meet / Zoom)" value={newMeeting.meetingLink} onChange={e => setNewMeeting(p => ({ ...p, meetingLink: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
                                             <div>
-                                                <label className="text-[10px] text-white/30 uppercase tracking-wider mb-1 block">Scheduled Date & Time *</label>
+                                                <label className="text-xs text-white/30 mb-1 block">Scheduled Date & Time *</label>
                                                 <input required type="datetime-local" value={newMeeting.scheduledAt} onChange={e => setNewMeeting(p => ({ ...p, scheduledAt: e.target.value }))} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30" />
                                             </div>
                                             <div>
-                                                <label className="text-[10px] text-white/30 uppercase tracking-wider mb-2 block">Select Attendees</label>
+                                                <label className="text-xs text-white/30 mb-2 block">Select Attendees</label>
                                                 <div className="space-y-1 max-h-40 overflow-y-auto">
                                                     {employees.map(emp => (
                                                         <label key={emp.id} className="flex items-center gap-2 cursor-pointer group">
@@ -4592,41 +4635,33 @@ export default function AdminPortal() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                            <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
                                                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Video className="w-4 h-4" /> Schedule Meeting</>}
                                             </button>
                                         </form>
                                     )}
 
                                     {meetingsLoading ? (
-                                        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                        <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
                                     ) : meetings.length === 0 ? (
-                                        <div className="text-center py-12 text-white/20 text-sm">No meetings scheduled yet.</div>
+                                        <div className="text-center py-12 text-white/50 text-sm">No meetings scheduled yet.</div>
                                     ) : (
                                         meetings.map(meeting => (
                                             <div
                                                 key={meeting.id}
                                                 onClick={() => setSelectedMeeting(meeting)}
-                                                className={`p-4 border cursor-pointer transition-all space-y-2 ${
-                                                    selectedMeeting?.id === meeting.id
-                                                        ? 'border-[#E61E32]/40 bg-[#E61E32]/5'
-                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
-                                                }`}
+                                                className={`p-4 border cursor-pointer transition-all space-y-2 ${ selectedMeeting?.id === meeting.id ?'border-[#E61E32]/40 bg-[#E61E32]/10':'border-white/5 bg-white/[0.02] hover:border-white/15'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-2">
                                                     <div>
                                                         <p className="text-sm font-semibold text-white">{meeting.title}</p>
-                                                        <p className="text-[10px] text-white/40 mt-0.5">Lead: {meeting.meetingLead}</p>
+                                                        <p className="text-xs text-white/40 mt-0.5">Lead: {meeting.meetingLead}</p>
                                                     </div>
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${
-                                                        new Date(meeting.scheduledAt) > new Date()
-                                                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                            : 'bg-white/5 text-white/30 border border-white/10'
-                                                    }`}>
+                                                    <span className={`text-xs font-bold px-2 py-0.5 ${ new Date(meeting.scheduledAt) > new Date() ?'bg-green-500/10 text-green-400 border border-green-500/20':'bg-white/5 text-white/30 border border-white/10'}`}>
                                                         {new Date(meeting.scheduledAt) > new Date() ? 'Upcoming' : 'Completed'}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center gap-4 text-[10px] text-white/30">
+                                                <div className="flex items-center gap-4 text-xs text-white/30">
                                                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(meeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}</span>
                                                     <span className="flex items-center gap-1"><Users className="w-3 h-3" />{meeting.attendees.length} attendees</span>
                                                 </div>
@@ -4648,20 +4683,20 @@ export default function AdminPortal() {
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
+                                                <p className="text-xs text-white/30">Meeting Lead</p>
                                                 <p className="text-sm font-semibold text-white">{selectedMeeting.meetingLead}</p>
                                             </div>
                                             <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider">Scheduled At</p>
+                                                <p className="text-xs text-white/30">Scheduled At</p>
                                                 <p className="text-sm font-semibold text-white">{new Date(selectedMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
                                             </div>
                                         </div>
 
                                         {selectedMeeting.meetingLink && (
                                             <div className="bg-white/[0.03] border border-white/5 p-4">
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Meeting Link</p>
+                                                <p className="text-xs text-white/30 mb-2">Meeting Link</p>
                                                 <a href={selectedMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline">
                                                     <LinkIcon className="w-4 h-4" />{selectedMeeting.meetingLink}
                                                 </a>
@@ -4669,7 +4704,7 @@ export default function AdminPortal() {
                                         )}
 
                                         <div>
-                                            <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">Attendees ({selectedMeeting.attendees.length})</p>
+                                            <p className="text-xs text-white/30 mb-3">Attendees ({selectedMeeting.attendees.length})</p>
                                             <div className="space-y-2">
                                                 {selectedMeeting.attendees.map(att => (
                                                     <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5">
@@ -4678,12 +4713,12 @@ export default function AdminPortal() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-medium text-white">{att.employee.name}</p>
-                                                            <p className="text-[10px] text-white/30">{att.employee.role} &middot; {att.employee.email}</p>
+                                                            <p className="text-xs text-white/30">{att.employee.role} &middot; {att.employee.email}</p>
                                                         </div>
                                                     </div>
                                                 ))}
                                                 {selectedMeeting.attendees.length === 0 && (
-                                                    <p className="text-sm text-white/20">No attendees assigned.</p>
+                                                    <p className="text-sm text-white/50">No attendees assigned.</p>
                                                 )}
                                             </div>
                                         </div>
@@ -4700,9 +4735,9 @@ export default function AdminPortal() {
                         {activeTab === "documents" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto">
                                 {showAddDocForm && (
-                                    <form onSubmit={handleAddDocument} className="bg-white/[0.02] border border-white/10 p-5 grid grid-cols-2 gap-4">
+                                    <form onSubmit={handleAddDocument} className="bg-white/[0.02] border border-white/10 p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div className="col-span-2 flex items-center justify-between">
-                                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Add New Document</h3>
+                                            <h3 className="text-sm font-bold text-white">Add New Document</h3>
                                             <button type="button" onClick={() => setShowAddDocForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
                                         </div>
                                         <input required placeholder="Document title *" value={newDoc.title} onChange={e => setNewDoc(p => ({ ...p, title: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
@@ -4716,16 +4751,16 @@ export default function AdminPortal() {
                                         <input required placeholder="File name (e.g. NDA_2026.pdf) *" value={newDoc.fileName} onChange={e => setNewDoc(p => ({ ...p, fileName: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
                                         <input required placeholder="File URL (Google Drive / S3 link) *" value={newDoc.fileUrl} onChange={e => setNewDoc(p => ({ ...p, fileUrl: e.target.value }))} className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30" />
                                         <textarea placeholder="Description (optional)" value={newDoc.description} onChange={e => setNewDoc(p => ({ ...p, description: e.target.value }))} rows={2} className="col-span-2 bg-white/5 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 resize-none" />
-                                        <button type="submit" disabled={isSubmitting} className="col-span-2 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={isSubmitting} className="col-span-2 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
                                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><FileText className="w-4 h-4" /> Add Document</>}
                                         </button>
                                     </form>
                                 )}
 
                                 {documentsLoading ? (
-                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
                                 ) : documents.length === 0 ? (
-                                    <div className="text-center py-16 text-white/20 text-sm">No documents uploaded yet. Click &ldquo;Add Document&rdquo; to get started.</div>
+                                    <div className="text-center py-16 text-white/50 text-sm">No documents uploaded yet. Click &ldquo;Add Document&rdquo; to get started.</div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                         {documents.map(doc => {
@@ -4743,7 +4778,7 @@ export default function AdminPortal() {
                                                             <FileText className="w-5 h-5 text-[#E61E32] shrink-0" />
                                                             <div>
                                                                 <p className="text-sm font-semibold text-white">{doc.title}</p>
-                                                                <p className="text-[10px] text-white/30">{doc.fileName}</p>
+                                                                <p className="text-xs text-white/30">{doc.fileName}</p>
                                                             </div>
                                                         </div>
                                                         <button onClick={() => handleDeleteDocument(doc.id)} className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-[#E61E32]/10 text-white/30 hover:text-[#E61E32] transition-all">
@@ -4752,10 +4787,10 @@ export default function AdminPortal() {
                                                     </div>
                                                     {doc.description && <p className="text-xs text-white/40 line-clamp-2">{doc.description}</p>}
                                                     <div className="flex items-center justify-between">
-                                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border ${categoryColors[doc.category] || categoryColors.other}`}>
+                                                        <span className={`text-xs font-bold px-2 py-0.5 border ${categoryColors[doc.category] || categoryColors.other}`}>
                                                             {doc.category}
                                                         </span>
-                                                        <span className="text-[10px] text-white/20">{new Date(doc.createdAt).toLocaleDateString()}</span>
+                                                        <span className="text-xs text-white/50">{new Date(doc.createdAt).toLocaleDateString()}</span>
                                                     </div>
                                                     <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 w-full py-2 bg-white/5 hover:bg-[#E61E32]/10 border border-white/10 hover:border-[#E61E32]/20 text-white/60 hover:text-[#E61E32] text-xs font-medium transition-all justify-center">
                                                         <Download className="w-3.5 h-3.5" /> View / Download
@@ -4772,53 +4807,53 @@ export default function AdminPortal() {
                         {activeTab === "declarations" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
                                 <div className="flex flex-wrap items-center gap-3 shrink-0">
-                                    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-none">
+                                    <span className="flex items-center gap-1.5 text-xs font-bold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-3 py-1.5 rounded-lg">
                                         <Hourglass className="w-3 h-3" />
                                         {adminDeclarations.filter(d => d.status === "pending").length} Pending
                                     </span>
-                                    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-none">
+                                    <span className="flex items-center gap-1.5 text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg">
                                         <CheckCheck className="w-3 h-3" />
                                         {adminDeclarations.filter(d => d.status === "reviewed").length} Reviewed
                                     </span>
                                 </div>
 
                                 {declarationsLoading ? (
-                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
                                 ) : adminDeclarations.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 gap-3">
                                         <FolderUp className="w-12 h-12 text-white/10" />
-                                        <p className="text-sm text-white/20">No declarations submitted by employees yet.</p>
+                                        <p className="text-sm text-white/50">No declarations submitted by employees yet.</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
                                         {adminDeclarations.map(decl => (
-                                            <div key={decl.id} className="bg-white/[0.02] border border-white/8 rounded-none p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-white/15 transition-all group">
+                                            <div key={decl.id} className="bg-white/[0.02] border border-white/8 rounded-lg p-5 flex flex-col md:flex-row md:items-center gap-4 hover:border-white/15 transition-all group">
                                                 {/* File icon + info */}
                                                 <div className="flex items-start gap-4 flex-1 min-w-0">
-                                                    <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
+                                                    <div className="w-10 h-10 rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/20 flex items-center justify-center shrink-0">
                                                         <FileText className="w-5 h-5 text-[#E61E32]" />
                                                     </div>
                                                     <div className="min-w-0 flex-1">
                                                         <div className="flex items-center gap-2 flex-wrap">
                                                             <p className="text-sm font-semibold text-white truncate">{decl.fileName}</p>
-                                                            <span className="text-[9px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">
+                                                            <span className="text-xs font-bold bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-lg">
                                                                 {decl.fileType.split('/')[1]?.toUpperCase() || decl.fileType}
                                                             </span>
-                                                            <span className="text-[9px] text-white/30">{(decl.fileSize / 1024).toFixed(1)} KB</span>
+                                                            <span className="text-xs text-white/30">{(decl.fileSize / 1024).toFixed(1)} KB</span>
                                                         </div>
                                                         <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                                                            <span className="flex items-center gap-1 text-[10px] text-white/50">
+                                                            <span className="flex items-center gap-1 text-xs text-white/50">
                                                                 <User className="w-3 h-3" />
                                                                 {decl.employee.name}
                                                             </span>
-                                                            <span className="text-[10px] text-white/30 bg-white/5 px-1.5 py-0.5 rounded-none">{decl.employee.role}</span>
+                                                            <span className="text-xs text-white/30 bg-white/5 px-1.5 py-0.5 rounded-lg">{decl.employee.role}</span>
                                                             {decl.clientName && (
-                                                                <span className="text-[10px] text-white/50">Client: <span className="text-white/70 font-medium">{decl.clientName}</span></span>
+                                                                <span className="text-xs text-white/50">Client: <span className="text-white/70 font-medium">{decl.clientName}</span></span>
                                                             )}
                                                             {decl.notes && (
-                                                                <span className="text-[10px] text-white/40 italic truncate max-w-[200px]">{decl.notes}</span>
+                                                                <span className="text-xs text-white/40 italic truncate min-w-0 flex-1">{decl.notes}</span>
                                                             )}
-                                                            <span className="text-[10px] text-white/25">{new Date(decl.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                                                            <span className="text-xs text-white/25">{new Date(decl.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4828,11 +4863,7 @@ export default function AdminPortal() {
                                                     {/* Status Badge + Toggle */}
                                                     <button
                                                         onClick={() => handleReviewDeclaration(decl.id, decl.status === "reviewed" ? "pending" : "reviewed")}
-                                                        className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border transition-all cursor-pointer ${
-                                                            decl.status === "reviewed"
-                                                                ? "text-green-400 bg-green-500/10 border-green-500/20 hover:bg-green-500/20"
-                                                                : "text-yellow-400 bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20"
-                                                        }`}
+                                                        className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${ decl.status ==="reviewed"?"text-green-400 bg-green-500/10 border-green-500/20 hover:bg-green-500/20":"text-yellow-400 bg-yellow-500/10 border-yellow-500/20 hover:bg-yellow-500/20"}`}
                                                         title={decl.status === "reviewed" ? "Mark as pending" : "Mark as reviewed"}
                                                     >
                                                         {decl.status === "reviewed" ? (
@@ -4845,7 +4876,7 @@ export default function AdminPortal() {
                                                     {/* Preview */}
                                                     <button
                                                         onClick={() => setPreviewFile({ name: decl.fileName, type: decl.fileType, data: decl.fileData })}
-                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                                                        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
                                                         title="Preview document"
                                                     >
                                                         <Eye className="w-3 h-3" /> Preview
@@ -4855,7 +4886,7 @@ export default function AdminPortal() {
                                                     <a
                                                         href={decl.fileData}
                                                         download={decl.fileName}
-                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-none border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                                                        className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
                                                         title="Download file"
                                                     >
                                                         <Download className="w-3 h-3" /> Download
@@ -4864,7 +4895,7 @@ export default function AdminPortal() {
                                                     {/* Delete */}
                                                     <button
                                                         onClick={() => handleDeleteDeclaration(decl.id)}
-                                                        className="w-8 h-8 flex items-center justify-center rounded-none bg-[#E61E32]/5 border border-[#E61E32]/10 text-[#E61E32]/50 hover:bg-[#E61E32]/15 hover:text-[#E61E32] hover:border-[#E61E32]/30 transition-all"
+                                                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#E61E32]/10 border border-[#E61E32]/10 text-[#E61E32]/50 hover:bg-[#E61E32]/15 hover:text-[#E61E32] hover:border-[#E61E32]/30 transition-all"
                                                         title="Delete declaration"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -4881,28 +4912,28 @@ export default function AdminPortal() {
                         {activeTab === "submissions" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
                                 <div className="flex flex-wrap items-center gap-3 shrink-0">
-                                    <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-none self-start sm:self-auto shrink-0">
+                                    <div className="flex items-center gap-2 text-xs text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
                                         <Send className="w-3.5 h-3.5" />
-                                        <span className="uppercase tracking-wider font-semibold">{filteredSubmissions.length} Submissions</span>
+                                        <span className="font-semibold">{filteredSubmissions.length} Submissions</span>
                                     </div>
                                 </div>
 
                                 {submissionsLoading ? (
-                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
                                 ) : filteredSubmissions.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 gap-3 border border-dashed border-white/5">
                                         <Send className="w-12 h-12 text-white/10" />
-                                        <p className="text-sm text-white/20">No work submissions found.</p>
+                                        <p className="text-sm text-white/50">No work submissions found.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         {filteredSubmissions.map(sub => (
-                                            <div key={sub.id} className="bg-white/[0.02] border border-white/8 rounded-none p-5 flex flex-col justify-between gap-4 hover:border-white/15 transition-all group">
+                                            <div key={sub.id} className="bg-white/[0.02] border border-white/8 rounded-lg p-5 flex flex-col justify-between gap-4 hover:border-white/15 transition-all group">
                                                 <div className="space-y-4">
                                                     {/* Header with Employee and Client Details */}
                                                     <div className="flex justify-between items-start gap-4">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-none bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
+                                                            <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
                                                                 {sub.employee?.avatar ? (
                                                                     <img src={sub.employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
                                                                 ) : (
@@ -4911,15 +4942,15 @@ export default function AdminPortal() {
                                                             </div>
                                                             <div>
                                                                 <p className="text-sm font-bold text-white leading-tight">{sub.employee?.name}</p>
-                                                                <span className="text-[10px] text-white/40">{sub.employee?.role}</span>
+                                                                <span className="text-xs text-white/40">{sub.employee?.role}</span>
                                                             </div>
                                                         </div>
                                                         <div className="text-right">
-                                                            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-none">
+                                                            <span className="text-xs font-bold bg-white/5 border border-white/10 text-white/40 px-2 py-0.5 rounded-lg">
                                                                 Client
                                                             </span>
                                                             <p className="text-xs font-semibold text-white/80 mt-1">{sub.client?.companyName}</p>
-                                                            <span className="text-[9px] text-white/40">({sub.client?.clientName})</span>
+                                                            <span className="text-xs text-white/40">({sub.client?.clientName})</span>
                                                         </div>
                                                     </div>
 
@@ -4927,11 +4958,11 @@ export default function AdminPortal() {
 
                                                     {/* Website and Git Repo Links */}
                                                     <div className="space-y-2">
-                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-none hover:bg-white/[0.03] transition-all">
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <Globe className="w-4 h-4 text-white/40 shrink-0" />
                                                                 <div className="min-w-0">
-                                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">Website Link</p>
+                                                                    <p className="text-xs text-white/30 font-semibold">Website Link</p>
                                                                     <p className="text-xs text-blue-400 font-medium truncate min-w-0" title={sub.websiteLink}>{sub.websiteLink}</p>
                                                                 </div>
                                                             </div>
@@ -4939,18 +4970,18 @@ export default function AdminPortal() {
                                                                 href={sub.websiteLink}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-8 h-8 rounded-none bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
                                                                 title="Open Website"
                                                             >
                                                                 <ExternalLink className="w-3.5 h-3.5" />
                                                             </a>
                                                         </div>
 
-                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-none hover:bg-white/[0.03] transition-all">
+                                                        <div className="flex items-center justify-between gap-2 p-2.5 bg-white/[0.01] border border-white/5 rounded-lg hover:bg-white/[0.03] transition-all">
                                                             <div className="flex items-center gap-2 min-w-0">
                                                                 <Building className="w-4 h-4 text-white/40 shrink-0" />
                                                                 <div className="min-w-0">
-                                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider font-semibold">Git Repository</p>
+                                                                    <p className="text-xs text-white/30 font-semibold">Git Repository</p>
                                                                     <p className="text-xs text-blue-400 font-medium truncate min-w-0" title={sub.gitRepoLink}>{sub.gitRepoLink}</p>
                                                                 </div>
                                                             </div>
@@ -4958,7 +4989,7 @@ export default function AdminPortal() {
                                                                 href={sub.gitRepoLink}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex items-center justify-center w-8 h-8 rounded-none bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
+                                                                className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-white/50 hover:bg-white/10 hover:text-white transition-all shrink-0"
                                                                 title="Open Repository"
                                                             >
                                                                 <ExternalLink className="w-3.5 h-3.5" />
@@ -4968,7 +4999,7 @@ export default function AdminPortal() {
                                                 </div>
 
                                                 {/* Date submitted */}
-                                                <div className="text-[10px] text-white/20 text-right mt-1">
+                                                <div className="text-xs text-white/50 text-right mt-1">
                                                     Submitted on {new Date(sub.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </div>
@@ -4981,15 +5012,34 @@ export default function AdminPortal() {
                         {/* ===== PAYROLLS TAB ===== */}
                         {activeTab === "payrolls" && (
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
+                                <div className="flex flex-wrap gap-2 shrink-0 border-b border-white/5 pb-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPayrollSubView("payouts"); setShowAddRevenueForm(false); }}
+                                        className={`px-4 py-2 text-xs font-semibold transition-all rounded-lg ${payrollSubView === "payouts" ? "bg-[#E61E32]/10 text-[#E61E32]" : "bg-white/5 text-white/50 hover:text-white hover:bg-white/10"}`}
+                                    >
+                                        Employee Payouts
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setPayrollSubView("amount-generated"); setShowAddPayrollForm(false); }}
+                                        className={`px-4 py-2 text-xs font-semibold transition-all rounded-lg ${payrollSubView === "amount-generated" ? "bg-[#E61E32]/10 text-[#E61E32]" : "bg-white/5 text-white/50 hover:text-white hover:bg-white/10"}`}
+                                    >
+                                        Amount Generated
+                                    </button>
+                                </div>
+
+                                {payrollSubView === "payouts" && (
+                                <>
                                 {showAddPayrollForm && (
                                     <form onSubmit={handleAllocatePayroll} className="bg-white/[0.02] border border-white/10 p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
                                         <div className="md:col-span-2 lg:col-span-4 flex items-center justify-between">
-                                            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Allocate New Payroll</h3>
+                                            <h3 className="text-sm font-bold text-white">Allocate Employee Payout</h3>
                                             <button type="button" onClick={() => setShowAddPayrollForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
                                         </div>
                                         
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Employee *</label>
+                                            <label className="text-xs font-bold text-white/40">Select Employee *</label>
                                             <select 
                                                 required 
                                                 value={newPayroll.employeeId} 
@@ -5006,7 +5056,7 @@ export default function AdminPortal() {
                                         </div>
 
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Month (e.g. May 2026) *</label>
+                                            <label className="text-xs font-bold text-white/40">Month (e.g. May 2026) *</label>
                                             <input 
                                                 required 
                                                 placeholder="e.g. May 2026" 
@@ -5017,7 +5067,7 @@ export default function AdminPortal() {
                                         </div>
 
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Amount (INR) *</label>
+                                            <label className="text-xs font-bold text-white/40">Amount (INR) *</label>
                                             <input 
                                                 required 
                                                 type="number" 
@@ -5030,7 +5080,7 @@ export default function AdminPortal() {
                                         </div>
 
                                         <div className="flex flex-col gap-1.5">
-                                            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Status *</label>
+                                            <label className="text-xs font-bold text-white/40">Status *</label>
                                             <select 
                                                 value={newPayroll.status} 
                                                 onChange={e => setNewPayroll(p => ({ ...p, status: e.target.value }))} 
@@ -5041,14 +5091,14 @@ export default function AdminPortal() {
                                             </select>
                                         </div>
 
-                                        <button type="submit" disabled={isSubmitting} className="md:col-span-2 lg:col-span-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2">
+                                        <button type="submit" disabled={isSubmitting} className="md:col-span-2 lg:col-span-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
                                             {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CreditCard className="w-4 h-4" /> Allocate Payroll</>}
                                         </button>
                                     </form>
                                 )}
 
                                 {payrollsLoading ? (
-                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
+                                    <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
                                 ) : (
                                     (() => {
                                         const filtered = payrolls.filter(p =>
@@ -5059,12 +5109,12 @@ export default function AdminPortal() {
                                         );
 
                                         return (
-                                            <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden">
+                                            <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col overflow-hidden">
                                                 <div className="overflow-x-auto">
                                                     {filtered.length > 0 ? (
                                                         <table className="w-full text-left text-xs">
                                                             <thead>
-                                                                <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                                <tr className="border-b border-white/10 text-white/30 text-xs font-bold">
                                                                     <th className="py-3">Employee</th>
                                                                     <th className="py-3">Month</th>
                                                                     <th className="py-3">Amount</th>
@@ -5079,17 +5129,13 @@ export default function AdminPortal() {
                                                                     <tr key={p.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.01]">
                                                                         <td className="py-3">
                                                                             <p className="font-semibold text-white">{p.employee.name}</p>
-                                                                            <p className="text-[10px] text-white/40">{p.employee.role}</p>
+                                                                            <p className="text-xs text-white/40">{p.employee.role}</p>
                                                                         </td>
                                                                         <td className="py-3 font-medium text-white/90">{p.month}</td>
                                                                         <td className="py-3 text-white font-semibold">₹{p.amount.toLocaleString('en-IN')}</td>
                                                                         <td className="py-3 font-mono text-white/40">{p.upiId || p.employee.upiId || "Not provided"}</td>
                                                                         <td className="py-3">
-                                                                            <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
-                                                                                p.status === 'paid'
-                                                                                    ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                                    : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
-                                                                            }`}>
+                                                                            <span className={`px-2 py-0.5 text-xs font-black border ${ p.status ==='paid'?'bg-green-500/10 text-green-400 border-green-500/20':'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'}`}>
                                                                                 {p.status}
                                                                             </span>
                                                                         </td>
@@ -5107,7 +5153,7 @@ export default function AdminPortal() {
                                                                                 {p.status === "pending" && (
                                                                                     <button 
                                                                                         onClick={() => handleMarkPayrollPaid(p.id)}
-                                                                                        className="px-2.5 py-1 bg-green-500 hover:bg-green-600 text-black text-[9px] font-extrabold uppercase tracking-wider transition-all rounded-none cursor-pointer"
+                                                                                        className="px-2.5 py-1 bg-green-500 hover:bg-green-600 text-black text-xs font-extrabold transition-all rounded-lg cursor-pointer"
                                                                                     >
                                                                                         Mark Paid
                                                                                     </button>
@@ -5126,7 +5172,7 @@ export default function AdminPortal() {
                                                             </tbody>
                                                         </table>
                                                     ) : (
-                                                        <div className="py-16 text-center text-white/20 text-sm">
+                                                        <div className="py-16 text-center text-white/50 text-sm">
                                                             No payroll records found. Click &ldquo;Allocate Payroll&rdquo; to add a new record.
                                                         </div>
                                                     )}
@@ -5134,6 +5180,193 @@ export default function AdminPortal() {
                                             </div>
                                         );
                                     })()
+                                )}
+                                </>
+                                )}
+
+                                {payrollSubView === "amount-generated" && (
+                                    <>
+                                        {showAddRevenueForm && (
+                                            <form onSubmit={handleAddClientRevenue} className="bg-white/[0.02] border border-white/10 rounded-xl p-5 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 shrink-0">
+                                                <div className="md:col-span-2 lg:col-span-3 flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="text-sm font-bold text-white">Record Amount From Client</h3>
+                                                        <p className="text-xs text-white/50 mt-1">Track revenue collected from clients (separate from employee payouts)</p>
+                                                    </div>
+                                                    <button type="button" onClick={() => setShowAddRevenueForm(false)}><X className="w-4 h-4 text-white/40 hover:text-white" /></button>
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-medium text-white/60">Registered Client</label>
+                                                    <select
+                                                        value={newRevenue.clientId}
+                                                        onChange={e => {
+                                                            const id = e.target.value;
+                                                            const client = clients.find(c => String(c.id) === id);
+                                                            setNewRevenue(p => ({
+                                                                ...p,
+                                                                clientId: id,
+                                                                clientName: client ? (client.companyName || client.clientName) : p.clientName,
+                                                            }));
+                                                        }}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg focus:outline-none focus:border-[#E61E32]"
+                                                    >
+                                                        <option value="" className="bg-[#111]">Select client (optional)</option>
+                                                        {clients.map(c => (
+                                                            <option key={c.id} value={c.id} className="bg-[#111]">{c.companyName} — {c.clientName}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-medium text-white/60">Client / Company Name *</label>
+                                                    <input
+                                                        required
+                                                        placeholder="e.g. Acme Corp"
+                                                        value={newRevenue.clientName}
+                                                        onChange={e => setNewRevenue(p => ({ ...p, clientName: e.target.value }))}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg placeholder-white/30 focus:outline-none focus:border-[#E61E32]"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-medium text-white/60">Month *</label>
+                                                    <input
+                                                        required
+                                                        placeholder="e.g. May 2026"
+                                                        value={newRevenue.month}
+                                                        onChange={e => setNewRevenue(p => ({ ...p, month: e.target.value }))}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg placeholder-white/30 focus:outline-none focus:border-[#E61E32]"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-medium text-white/60">Amount Received (INR) *</label>
+                                                    <input
+                                                        required
+                                                        type="number"
+                                                        min="0"
+                                                        placeholder="e.g. 150000"
+                                                        value={newRevenue.amount}
+                                                        onChange={e => setNewRevenue(p => ({ ...p, amount: e.target.value }))}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg placeholder-white/30 focus:outline-none focus:border-[#E61E32]"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-xs font-medium text-white/60">Received Date</label>
+                                                    <input
+                                                        type="date"
+                                                        value={newRevenue.receivedAt}
+                                                        onChange={e => setNewRevenue(p => ({ ...p, receivedAt: e.target.value }))}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg focus:outline-none focus:border-[#E61E32]"
+                                                    />
+                                                </div>
+
+                                                <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-3">
+                                                    <label className="text-xs font-medium text-white/60">Notes</label>
+                                                    <input
+                                                        placeholder="Invoice ref, project name, etc."
+                                                        value={newRevenue.notes}
+                                                        onChange={e => setNewRevenue(p => ({ ...p, notes: e.target.value }))}
+                                                        className="bg-white/5 border border-white/10 px-3 py-2 text-sm text-white rounded-lg placeholder-white/30 focus:outline-none focus:border-[#E61E32]"
+                                                    />
+                                                </div>
+
+                                                <button type="submit" disabled={isSubmitting} className="md:col-span-2 lg:col-span-3 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/80 text-white text-xs font-semibold transition-all flex items-center justify-center gap-2 rounded-lg">
+                                                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Briefcase className="w-4 h-4" /> Save Amount Generated</>}
+                                                </button>
+                                            </form>
+                                        )}
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 shrink-0">
+                                            <StatCard
+                                                icon={<Briefcase className="w-5 h-5" />}
+                                                label="Total Generated"
+                                                value={Math.round(clientRevenues.reduce((s, r) => s + r.amount, 0))}
+                                                sublabel="All recorded client revenue"
+                                                color="text-green-500"
+                                            />
+                                            <StatCard
+                                                icon={<CreditCard className="w-5 h-5" />}
+                                                label="Records"
+                                                value={clientRevenues.length}
+                                                sublabel="Client payment entries"
+                                                color="text-blue-500"
+                                            />
+                                            <StatCard
+                                                icon={<Users className="w-5 h-5" />}
+                                                label="Paid Payouts"
+                                                value={Math.round(payrolls.filter(p => p.status === "paid").reduce((s, p) => s + p.amount, 0))}
+                                                sublabel="Sent to employees (INR)"
+                                                color="text-[#E61E32]"
+                                            />
+                                        </div>
+
+                                        {clientRevenuesLoading ? (
+                                            <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/50" /></div>
+                                        ) : (
+                                            (() => {
+                                                const filtered = clientRevenues.filter(r =>
+                                                    r.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                    r.month.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                                    (r.notes && r.notes.toLowerCase().includes(searchQuery.toLowerCase()))
+                                                );
+
+                                                return (
+                                                    <div className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col overflow-hidden">
+                                                        <div className="overflow-x-auto">
+                                                            {filtered.length > 0 ? (
+                                                                <table className="w-full text-left text-xs min-w-[700px]">
+                                                                    <thead>
+                                                                        <tr className="border-b border-white/10 text-white/50 text-xs font-semibold">
+                                                                            <th className="py-3">Client</th>
+                                                                            <th className="py-3">Month</th>
+                                                                            <th className="py-3">Amount</th>
+                                                                            <th className="py-3">Received</th>
+                                                                            <th className="py-3">Notes</th>
+                                                                            <th className="py-3 text-right">Actions</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {filtered.map(r => (
+                                                                            <tr key={r.id} className="border-b border-white/5 text-white/70 hover:bg-white/[0.02]">
+                                                                                <td className="py-3">
+                                                                                    <p className="font-semibold text-white">{r.clientName}</p>
+                                                                                    {r.client && <p className="text-xs text-white/40">{r.client.clientName}</p>}
+                                                                                </td>
+                                                                                <td className="py-3 font-medium text-white/90">{r.month}</td>
+                                                                                <td className="py-3 text-green-400 font-semibold">₹{r.amount.toLocaleString("en-IN")}</td>
+                                                                                <td className="py-3 text-white/40">
+                                                                                    {r.receivedAt
+                                                                                        ? new Date(r.receivedAt).toLocaleDateString("en-IN", { dateStyle: "medium" })
+                                                                                        : "-"}
+                                                                                </td>
+                                                                                <td className="py-3 text-white/50 max-w-[200px] truncate" title={r.notes || ""}>{r.notes || "-"}</td>
+                                                                                <td className="py-3 text-right">
+                                                                                    <button
+                                                                                        onClick={() => handleDeleteClientRevenue(r.id)}
+                                                                                        className="p-1 text-white/35 hover:text-[#E61E32] transition-colors"
+                                                                                        title="Delete record"
+                                                                                    >
+                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                    </button>
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                    </tbody>
+                                                                </table>
+                                                            ) : (
+                                                                <div className="py-16 text-center text-white/50 text-sm">
+                                                                    No amount generated records yet. Click &ldquo;Add Amount Generated&rdquo; to log client revenue.
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
@@ -5152,11 +5385,7 @@ export default function AdminPortal() {
                                             <button
                                                 key={filter}
                                                 onClick={() => setLeaveStatusFilter(filter)}
-                                                className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition-all border rounded-none ${
-                                                    isActive
-                                                        ? "bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/35"
-                                                        : "bg-white/5 text-white/50 border-white/5 hover:text-white hover:bg-white/10"
-                                                }`}
+                                                className={`px-4 py-2 text-xs font-bold transition-all border rounded-lg ${ isActive ?"bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/35":"bg-white/5 text-white/50 border-white/5 hover:text-white hover:bg-white/10"}`}
                                             >
                                                 {filter} ({count})
                                             </button>
@@ -5166,7 +5395,7 @@ export default function AdminPortal() {
 
                                 {leavesLoading ? (
                                     <div className="flex items-center justify-center py-12">
-                                        <Loader2 className="w-6 h-6 animate-spin text-white/20" />
+                                        <Loader2 className="w-6 h-6 animate-spin text-white/50" />
                                     </div>
                                 ) : (
                                     (() => {
@@ -5189,20 +5418,14 @@ export default function AdminPortal() {
                                                         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
                                                         return (
-                                                            <div key={leave.id} className="bg-white/5 border border-white/5 p-6 flex flex-col justify-between space-y-4 hover:border-white/10 transition-colors">
+                                                            <div key={leave.id} className="bg-white/5 border border-white/5 rounded-xl p-6 flex flex-col justify-between space-y-4 hover:border-white/10 transition-colors">
                                                                 <div className="space-y-3">
                                                                     <div className="flex justify-between items-start gap-4">
                                                                         <div>
-                                                                            <h4 className="text-sm font-bold text-white uppercase tracking-wider">{leave.employee.name}</h4>
-                                                                            <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold mt-0.5">{leave.employee.role} &bull; {leave.employee.email}</p>
+                                                                            <h4 className="text-sm font-bold text-white">{leave.employee.name}</h4>
+                                                                            <p className="text-xs text-white/40 font-semibold mt-0.5">{leave.employee.role} &bull; {leave.employee.email}</p>
                                                                         </div>
-                                                                        <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border ${
-                                                                            leave.status === 'approved'
-                                                                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                                : leave.status === 'rejected'
-                                                                                ? 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
-                                                                                : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                                                                        }`}>
+                                                                        <span className={`px-2 py-0.5 text-xs font-black border ${ leave.status ==='approved'?'bg-green-500/10 text-green-400 border-green-500/20': leave.status ==='rejected'?'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20':'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
                                                                             {leave.status}
                                                                         </span>
                                                                     </div>
@@ -5211,30 +5434,30 @@ export default function AdminPortal() {
 
                                                                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                                                         <div>
-                                                                            <p className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Leave Duration</p>
+                                                                            <p className="text-xs text-white/30 font-bold">Leave Duration</p>
                                                                             <p className="font-semibold text-white mt-0.5">
                                                                                 {start.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
                                                                                 {" - "}
                                                                                 {end.toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata', day: '2-digit', month: 'short', year: 'numeric' })}
                                                                             </p>
-                                                                            <p className="text-[10px] text-white/40">{diffDays} {diffDays === 1 ? 'day' : 'days'}</p>
+                                                                            <p className="text-xs text-white/40">{diffDays} {diffDays === 1 ? 'day' : 'days'}</p>
                                                                         </div>
                                                                         <div>
-                                                                            <p className="text-[9px] text-white/30 uppercase tracking-wider font-bold text-right">Leave Type</p>
-                                                                            <span className="inline-block text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70 mt-1">
+                                                                            <p className="text-xs text-white/30 font-bold text-right">Leave Type</p>
+                                                                            <span className="inline-block text-xs font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70 mt-1">
                                                                                 {leave.type}
                                                                             </span>
                                                                         </div>
                                                                     </div>
 
                                                                     <div className="text-xs text-white/70 bg-black/20 p-3 border border-white/[0.02] break-words">
-                                                                        <p className="text-[9px] font-semibold text-white/45 uppercase tracking-wider mb-1">Employee Reason</p>
+                                                                        <p className="text-xs font-semibold text-white/45 mb-1">Employee Reason</p>
                                                                         {leave.reason}
                                                                     </div>
 
                                                                     {leave.adminNotes && (
-                                                                        <div className="text-xs text-white/70 bg-[#E61E32]/5 p-3 border border-[#E61E32]/10 break-words">
-                                                                            <p className="text-[9px] font-semibold text-[#E61E32] uppercase tracking-wider mb-1 font-bold">Admin Remarks</p>
+                                                                        <div className="text-xs text-white/70 bg-[#E61E32]/10 p-3 border border-[#E61E32]/10 break-words">
+                                                                            <p className="text-xs font-semibold text-[#E61E32] mb-1 font-bold">Admin Remarks</p>
                                                                             {leave.adminNotes}
                                                                         </div>
                                                                     )}
@@ -5243,25 +5466,25 @@ export default function AdminPortal() {
                                                                 {leave.status === "pending" && (
                                                                     <div className="space-y-3 pt-2">
                                                                         <div className="flex flex-col gap-1.5">
-                                                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-widest">Admin Notes / Remarks</label>
+                                                                            <label className="text-xs font-bold text-white/40">Admin Notes / Remarks</label>
                                                                             <textarea
                                                                                 placeholder="Enter approval/rejection remarks..."
                                                                                 value={leaveRemarks[leave.id] || ""}
                                                                                 onChange={(e) => setLeaveRemarks(prev => ({ ...prev, [leave.id]: e.target.value }))}
                                                                                 rows={2}
-                                                                                className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 rounded-none resize-none"
+                                                                                className="w-full bg-[#111111] border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 rounded-lg resize-none"
                                                                             />
                                                                         </div>
                                                                         <div className="grid grid-cols-2 gap-3">
                                                                             <button
                                                                                 onClick={() => handleReviewLeave(leave.id, "approved", leaveRemarks[leave.id] || "")}
-                                                                                className="py-2 bg-green-500 hover:bg-green-600 text-black text-xs font-black uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer text-center"
+                                                                                className="py-2 bg-green-500 hover:bg-green-600 text-black text-xs font-black transition-colors duration-200 rounded-lg cursor-pointer text-center"
                                                                             >
                                                                                 Approve
                                                                             </button>
                                                                             <button
                                                                                 onClick={() => handleReviewLeave(leave.id, "rejected", leaveRemarks[leave.id] || "")}
-                                                                                className="py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-black uppercase tracking-wider transition-colors duration-200 rounded-none cursor-pointer text-center"
+                                                                                className="py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-black transition-colors duration-200 rounded-lg cursor-pointer text-center"
                                                                             >
                                                                                 Reject
                                                                             </button>
@@ -5273,7 +5496,7 @@ export default function AdminPortal() {
                                                     })
                                                 ) : (
                                                     <div className="md:col-span-2 py-20 text-center border border-dashed border-white/5">
-                                                        <p className="text-white/20 text-sm">No leave requests found matching filters.</p>
+                                                        <p className="text-white/50 text-sm">No leave requests found matching filters.</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -5288,7 +5511,7 @@ export default function AdminPortal() {
                             <div className="h-full flex flex-col gap-6 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-6">
                                 <div className="bg-white/5 border border-white/5 p-6 space-y-6">
                                     <div className="border-b border-white/5 pb-4">
-                                        <h3 className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
                                             <Settings className="w-5 h-5 text-[#E61E32]" />
                                             System Administration Controls
                                         </h3>
@@ -5299,7 +5522,7 @@ export default function AdminPortal() {
                                     <div className="border border-white/10 bg-white/[0.02] p-6 space-y-4">
                                         <div className="flex items-center gap-2 text-white">
                                             <Settings className="w-5 h-5 shrink-0 text-[#E61E32]" />
-                                            <h4 className="font-extrabold uppercase text-xs tracking-wider">Pricing Card Slots Configuration</h4>
+                                            <h4 className="font-extrabold text-xs">Pricing Card Slots Configuration</h4>
                                         </div>
                                         <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
                                             Control the availability status and number of free slots shown on the public pricing section.
@@ -5307,14 +5530,14 @@ export default function AdminPortal() {
                                         
                                         {slotsLoading ? (
                                             <div className="flex items-center gap-2 py-4">
-                                                <Loader2 className="w-4 h-4 animate-spin text-white/20" />
+                                                <Loader2 className="w-4 h-4 animate-spin text-white/50" />
                                                 <span className="text-xs text-white/40">Loading configuration...</span>
                                             </div>
                                         ) : (
                                             <form onSubmit={handleSaveSlots} className="space-y-4 max-w-md pt-2">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Availability Status</label>
+                                                        <label className="text-xs font-bold text-white/40">Availability Status</label>
                                                         <select
                                                             value={slotsStatus}
                                                             onChange={e => setSlotsStatus(e.target.value as "available" | "booked")}
@@ -5325,7 +5548,7 @@ export default function AdminPortal() {
                                                         </select>
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Available Slots Count</label>
+                                                        <label className="text-xs font-bold text-white/40">Available Slots Count</label>
                                                         <input
                                                             type="number"
                                                             min="0"
@@ -5340,7 +5563,7 @@ export default function AdminPortal() {
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Current Month Override (Optional)</label>
+                                                        <label className="text-xs font-bold text-white/40">Current Month Override (Optional)</label>
                                                         <input
                                                             type="text"
                                                             placeholder="e.g. MAY"
@@ -5350,7 +5573,7 @@ export default function AdminPortal() {
                                                         />
                                                     </div>
                                                     <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Next Month Override (Optional)</label>
+                                                        <label className="text-xs font-bold text-white/40">Next Month Override (Optional)</label>
                                                         <input
                                                             type="text"
                                                             placeholder="e.g. JUNE"
@@ -5364,7 +5587,7 @@ export default function AdminPortal() {
                                                 <button
                                                     type="submit"
                                                     disabled={isSavingSlots}
-                                                    className="w-full py-3 bg-[#E61E32] hover:bg-[#ff1f34] disabled:bg-white/5 disabled:text-white/20 text-white text-xs font-bold uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                    className="w-full py-3 bg-[#E61E32] hover:bg-[#ff1f34] disabled:bg-white/5 disabled:text-white/50 text-white text-xs font-bold transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
                                                 >
                                                     {isSavingSlots ? (
                                                         <>
@@ -5384,7 +5607,7 @@ export default function AdminPortal() {
                                     <div className="border border-yellow-500/30 bg-yellow-500/[0.02] p-6 space-y-4">
                                         <div className="flex items-center gap-2 text-yellow-500">
                                             <AlertCircle className="w-5 h-5 shrink-0" />
-                                            <h4 className="font-extrabold uppercase text-xs tracking-wider">Selective Table Data Purge</h4>
+                                            <h4 className="font-extrabold text-xs">Selective Table Data Purge</h4>
                                         </div>
                                         <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
                                             Select a specific database table to purge all of its records. Unlike a factory reset, this will only remove the data in the selected table.
@@ -5392,7 +5615,7 @@ export default function AdminPortal() {
                                         
                                         <form onSubmit={handlePurgeTable} className="space-y-4 max-w-md pt-2">
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Select Database Table</label>
+                                                <label className="text-xs font-bold text-white/40">Select Database Table</label>
                                                 <select
                                                     value={selectedPurgeTable}
                                                     onChange={e => setSelectedPurgeTable(e.target.value)}
@@ -5416,7 +5639,7 @@ export default function AdminPortal() {
                                             </div>
 
                                             <div className="flex flex-col gap-1.5">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                                <label className="text-xs font-bold text-white/40">
                                                     Type <span className="text-yellow-500 select-all font-mono">CONFIRM</span> to proceed *
                                                 </label>
                                                 <input
@@ -5432,7 +5655,7 @@ export default function AdminPortal() {
                                             <button
                                                 type="submit"
                                                 disabled={!selectedPurgeTable || purgeConfirmInput !== "CONFIRM" || isPurgingTable}
-                                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-500 disabled:bg-white/5 disabled:text-white/20 disabled:border-transparent text-black font-bold text-xs uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                className="w-full py-3 bg-yellow-600 hover:bg-yellow-500 disabled:bg-white/5 disabled:text-white/50 disabled:border-transparent text-black font-bold text-xs transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
                                             >
                                                 {isPurgingTable ? (
                                                     <>
@@ -5448,10 +5671,10 @@ export default function AdminPortal() {
                                     </div>
 
                                     {/* Danger Zone */}
-                                    <div className="border border-[#E61E32]/30 bg-[#E61E32]/5 p-6 space-y-4">
+                                    <div className="border border-[#E61E32]/30 bg-[#E61E32]/10 p-6 space-y-4">
                                         <div className="flex items-center gap-2 text-[#E61E32]">
                                             <AlertCircle className="w-5 h-5 shrink-0" />
-                                            <h4 className="font-extrabold uppercase text-xs tracking-wider">Danger Zone — Permanent Action</h4>
+                                            <h4 className="font-extrabold text-xs">Danger Zone — Permanent Action</h4>
                                         </div>
                                         <p className="text-xs text-white/70 max-w-2xl leading-relaxed">
                                             Factory Reset will completely purge all data from your dashboard. This includes deleting all registered Employees, Tasks, Payouts, Documents, Support Tickets, Clients, and Meetings permanently. There is no way to recover this data.
@@ -5459,7 +5682,7 @@ export default function AdminPortal() {
                                         
                                         <form onSubmit={handleMasterReset} className="space-y-4 max-w-md pt-2">
                                             <div className="flex flex-col gap-2">
-                                                <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                                <label className="text-xs font-bold text-white/40">
                                                     Type <span className="text-[#E61E32] select-all font-mono">RESET</span> to confirm *
                                                 </label>
                                                 <input
@@ -5468,14 +5691,14 @@ export default function AdminPortal() {
                                                     placeholder="Type RESET"
                                                     value={resetInput}
                                                     onChange={e => setResetInput(e.target.value)}
-                                                    className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-none"
+                                                    className="w-full bg-[#111111] border border-white/10 px-4 py-2.5 text-sm focus:outline-none focus:border-[#E61E32] transition-colors rounded-lg"
                                                 />
                                             </div>
 
                                             <button
                                                 type="submit"
                                                 disabled={resetInput !== "RESET" || resetLoading}
-                                                className="w-full py-3 bg-[#E61E32] hover:bg-[#ff1f34] disabled:bg-white/5 disabled:text-white/20 disabled:border-transparent text-white text-xs font-bold uppercase tracking-widest transition-all rounded-none cursor-pointer flex items-center justify-center gap-2"
+                                                className="w-full py-3 bg-[#E61E32] hover:bg-[#ff1f34] disabled:bg-white/5 disabled:text-white/50 disabled:border-transparent text-white text-xs font-bold transition-all rounded-lg cursor-pointer flex items-center justify-center gap-2"
                                             >
                                                 {resetLoading ? (
                                                     <>
@@ -5601,16 +5824,12 @@ export default function AdminPortal() {
                                                 <button
                                                     key={type.id}
                                                     onClick={() => { setAlertType(type.id as typeof alertType); setAlertSendStatus('idle'); setAlertSendMessage(''); setAlertSelectedEmployeeIds([]); setAlertSelectedClientIds([]); setAlertSingleClientId(''); setAlertCustomMessage(''); setAlertCustomSubject(''); setAlertCustomBody(''); setAlertEffectiveDate(''); setAlertSelectAllClients(false); }}
-                                                    className={`relative p-4 border text-left transition-all duration-200 group ${
-                                                        alertType === type.id
-                                                            ? 'border-[#E61E32] bg-[#E61E32]/10 text-white'
-                                                            : 'border-white/10 bg-white/[0.02] text-white/50 hover:border-white/20 hover:text-white hover:bg-white/5'
-                                                    }`}
+                                                    className={`relative p-4 border text-left transition-all duration-200 group ${ alertType === type.id ?'border-[#E61E32] bg-[#E61E32]/10 text-white':'border-white/10 bg-white/[0.02] text-white/50 hover:border-white/20 hover:text-white hover:bg-white/5'}`}
                                                 >
                                                     {alertType === type.id && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#E61E32] animate-pulse" />}
-                                                    <div className={`mb-2 ${alertType === type.id ? 'text-[#E61E32]' : 'text-white/40 group-hover:text-white/70'}`}>{type.icon}</div>
+                                                    <div className={`mb-2 ${alertType === type.id ?'text-[#E61E32]':'text-white/40 group-hover:text-white/70'}`}>{type.icon}</div>
                                                     <p className="text-xs font-semibold leading-tight">{type.label}</p>
-                                                    <p className="text-[10px] text-white/30 mt-1 leading-relaxed">{type.desc}</p>
+                                                    <p className="text-xs text-white/30 mt-1 leading-relaxed">{type.desc}</p>
                                                 </button>
                                             ))}
                                         </div>
@@ -5624,7 +5843,7 @@ export default function AdminPortal() {
                                                 <div className="text-[#E61E32]">{currentType.icon}</div>
                                                 <div>
                                                     <h3 className="text-sm font-semibold">{currentType.label}</h3>
-                                                    <p className="text-[10px] text-white/30 mt-0.5">{currentType.desc}</p>
+                                                    <p className="text-xs text-white/30 mt-0.5">{currentType.desc}</p>
                                                 </div>
                                             </div>
 
@@ -5639,18 +5858,18 @@ export default function AdminPortal() {
                                                     </div>
                                                     <div className="max-h-48 overflow-y-auto space-y-1 border border-white/10 p-2 bg-black">
                                                         {employees.map(emp => (
-                                                            <label key={emp.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer rounded-none">
+                                                            <label key={emp.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-white/5 cursor-pointer rounded-lg">
                                                                 <input type="checkbox" checked={alertSelectedEmployeeIds.includes(emp.id)} onChange={() => toggleEmployee(emp.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
                                                                 <div className="flex-1 min-w-0">
                                                                     <p className="text-xs font-medium text-white/80 truncate">{emp.name}</p>
-                                                                    <p className="text-[10px] text-white/30 truncate font-mono">{emp.email}</p>
+                                                                    <p className="text-xs text-white/30 truncate font-mono">{emp.email}</p>
                                                                 </div>
-                                                                <span className="text-[9px] text-white/20 bg-white/5 px-1.5 py-0.5 shrink-0">{emp.role}</span>
+                                                                <span className="text-xs text-white/50 bg-white/5 px-1.5 py-0.5 shrink-0">{emp.role}</span>
                                                             </label>
                                                         ))}
                                                     </div>
                                                     {alertSelectedEmployeeIds.length > 0 && (
-                                                        <p className="text-[10px] text-[#E61E32] font-medium">{alertSelectedEmployeeIds.length} employee(s) selected</p>
+                                                        <p className="text-xs text-[#E61E32] font-medium">{alertSelectedEmployeeIds.length} employee(s) selected</p>
                                                     )}
                                                 </div>
                                             )}
@@ -5672,7 +5891,7 @@ export default function AdminPortal() {
                                                                     <input type="checkbox" checked={alertSelectedClientIds.includes(c.id)} onChange={() => toggleClient(c.id)} className="accent-[#E61E32] w-3.5 h-3.5" />
                                                                     <div className="flex-1 min-w-0">
                                                                         <p className="text-xs font-medium text-white/80 truncate">{c.companyName}</p>
-                                                                        <p className="text-[10px] text-white/30 truncate font-mono">{c.email}</p>
+                                                                        <p className="text-xs text-white/30 truncate font-mono">{c.email}</p>
                                                                     </div>
                                                                 </label>
                                                             ))}
@@ -5699,7 +5918,7 @@ export default function AdminPortal() {
                                                         return (
                                                             <div className="p-3 bg-white/[0.02] border border-white/5 space-y-1.5 animate-in fade-in duration-200">
                                                                 <p className="text-xs text-[#E61E32] font-semibold">Client details</p>
-                                                                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                                <div className="grid grid-cols-2 gap-2 text-sm">
                                                                     <div><span className="text-white/30 block">Company</span><span className="text-white/70 font-medium">{c.companyName}</span></div>
                                                                     <div><span className="text-white/30 block">Contact</span><span className="text-white/70 font-medium">{c.clientName}</span></div>
                                                                     <div className="col-span-2"><span className="text-white/30 block">Email</span><span className="text-white/70 font-mono">{c.email}</span></div>
@@ -5732,25 +5951,25 @@ export default function AdminPortal() {
                                             {alertType === 'push_notification' && (
                                                 <div className="space-y-4">
                                                     {/* Active subscribers indicator card */}
-                                                    <div className="p-4 bg-white/[0.02] border border-white/10 rounded-none space-y-3">
+                                                    <div className="p-4 bg-white/[0.02] border border-white/10 rounded-lg space-y-3">
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center gap-2">
-                                                                <div className={`w-2.5 h-2.5 rounded-full ${alertFcmCount > 0 ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'}`} />
-                                                                <span className="text-xs font-bold uppercase tracking-wider text-white/70">Broadcasting Audience</span>
+                                                                <div className={`w-2.5 h-2.5 rounded-full ${alertFcmCount > 0 ?'bg-green-500 animate-pulse':'bg-yellow-500'}`} />
+                                                                <span className="text-xs font-bold text-white/70">Broadcasting Audience</span>
                                                             </div>
-                                                            <span className="text-[10px] font-mono text-white/40">{alertFcmCount} device(s) registered</span>
+                                                            <span className="text-xs font-mono text-white/40">{alertFcmCount} device(s) registered</span>
                                                         </div>
                                                         
                                                         {alertFcmCount > 0 ? (
                                                             <div className="space-y-1.5">
-                                                                <p className="text-[10px] text-white/30 font-medium">Registered subscribers include:</p>
+                                                                <p className="text-xs text-white/30 font-medium">Registered subscribers include:</p>
                                                                 <div className="max-h-24 overflow-y-auto space-y-1 pr-1 scrollbar-thin">
                                                                     {alertFcmSubscribers.map((sub, index) => (
-                                                                        <div key={sub.id || index} className="flex items-center justify-between py-1 border-b border-white/5 last:border-b-0 text-[10px]">
+                                                                        <div key={sub.id || index} className="flex items-center justify-between py-1 border-b border-white/5 last:border-b-0 text-xs">
                                                                             <span className="text-white/80 font-medium truncate max-w-[150px]">
                                                                                 {sub.employee?.name || `Anonymous Device ${index + 1}`}
                                                                             </span>
-                                                                            <span className="text-white/30 shrink-0 font-mono text-[9px] bg-white/5 px-1">
+                                                                            <span className="text-white/30 shrink-0 font-mono text-xs bg-white/5 px-1">
                                                                                 {sub.employee?.role || "Token: " + sub.token.substring(0, 8) + "..."}
                                                                             </span>
                                                                         </div>
@@ -5758,7 +5977,7 @@ export default function AdminPortal() {
                                                                 </div>
                                                             </div>
                                                         ) : (
-                                                            <p className="text-[11px] text-yellow-500/70 leading-relaxed">
+                                                            <p className="text-sm text-yellow-500/70 leading-relaxed">
                                                                 No employees have enabled notifications yet. Buttons will remain disabled until at least one device registers.
                                                             </p>
                                                         )}
@@ -5806,8 +6025,9 @@ export default function AdminPortal() {
 
                                             {/* Status */}
                                             {alertSendStatus === 'success' && (
-                                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center">
-                                                    ✓ {alertSendMessage}
+                                                <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium text-center flex items-center justify-center gap-2">
+                                                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                    {alertSendMessage}
                                                 </div>
                                             )}
                                             {alertSendStatus === 'error' && (
@@ -5830,7 +6050,7 @@ export default function AdminPortal() {
                                                 </span>
                                             </div>
                                             {alertType === 'push_notification' ? (
-                                                <div className="flex-grow flex items-center justify-center bg-black/40 p-6 rounded-none min-h-[400px]">
+                                                <div className="flex-grow flex items-center justify-center bg-black/40 p-6 rounded-lg min-h-[400px]">
                                                     {/* Phone frame container */}
                                                     <div className="relative w-[280px] h-[500px] bg-[#1a1a1a] border-4 border-white/10 rounded-[36px] shadow-2xl overflow-hidden flex flex-col items-center">
                                                         {/* Speaker Notch */}
@@ -5842,7 +6062,7 @@ export default function AdminPortal() {
                                                         
                                                         {/* System clock/date info */}
                                                         <div className="relative w-full px-6 pt-9 z-10 flex flex-col items-center justify-center text-center">
-                                                            <span className="text-[10px] text-white/60 tracking-widest font-mono uppercase">Tuesday, June 9</span>
+                                                            <span className="text-xs text-white/60 font-mono">Tuesday, June 9</span>
                                                             <span className="text-4xl font-extralight text-white mt-1 select-none tracking-tight">23:17</span>
                                                         </div>
 
@@ -5856,13 +6076,13 @@ export default function AdminPortal() {
                                                                 {/* Notification Content */}
                                                                 <div className="flex-1 min-w-0 text-left">
                                                                     <div className="flex justify-between items-center mb-0.5">
-                                                                        <span className="text-[10px] font-bold text-white/50 tracking-wider uppercase font-sans">REDLIX EMS</span>
-                                                                        <span className="text-[9px] text-white/30">now</span>
+                                                                        <span className="text-xs font-bold text-white/50 font-sans">REDLIX EMS</span>
+                                                                        <span className="text-xs text-white/30">now</span>
                                                                     </div>
                                                                     <h4 className="text-xs font-bold text-white truncate font-sans">
                                                                         {alertPushTitle || 'Push Notification Title'}
                                                                     </h4>
-                                                                    <p className="text-[11px] text-white/70 mt-0.5 leading-snug break-words font-sans">
+                                                                    <p className="text-sm text-white/70 mt-0.5 leading-snug break-words font-sans">
                                                                         {alertPushBody || 'Type a title and body message in the form to see it live here.'}
                                                                     </p>
                                                                 </div>
@@ -5876,7 +6096,7 @@ export default function AdminPortal() {
                                             ) : (
                                                 <div className="flex-grow bg-white text-black p-4 overflow-y-auto max-h-[620px] text-left text-[13px] font-sans">
                                                     {/* Email header meta */}
-                                                    <div style={{borderBottom:'1px solid #e5e7eb',paddingBottom:'10px',marginBottom:'16px',fontSize:'11px',color:'#6b7280'}}>
+                                                    <div style={{borderBottom:'1px solid #e5e7eb',paddingBottom:'10px',marginBottom:'16px',fontSize: '13px',color:'#6b7280'}}>
                                                         <div><strong style={{color:'#111'}}>From:</strong> Redlix Admin &lt;{process.env.SMTP_EMAIL || 'admin@redlix.co.in'}&gt;</div>
                                                         <div style={{marginTop:'3px'}}><strong style={{color:'#111'}}>To:</strong> {alertType === 'custom' ? (alertCustomRecipients || '[Recipients]') : alertType === 'terms_update' ? (alertSelectAllClients ? 'All Clients' : alertSelectedClientIds.length > 0 ? `${alertSelectedClientIds.length} client(s)` : '[Select Clients]') : alertType === 'new_client_welcome' || alertType === 'client_info_update' ? (clients.find(c => c.id === alertSingleClientId)?.email || '[Client Email]') : alertSelectedEmployeeIds.length > 0 ? `${alertSelectedEmployeeIds.length} employee(s)` : '[Select Employees]'}</div>
                                                         <div style={{marginTop:'3px'}}><strong style={{color:'#111'}}>Subject:</strong> {previewSubject}</div>
@@ -5885,7 +6105,7 @@ export default function AdminPortal() {
                                                     <div style={{maxWidth:'560px',margin:'0 auto',border:'1px solid #e0e0e0',backgroundColor:'#fff'}}>
                                                         <div style={{backgroundColor:'#0a0a0a',padding:'18px 28px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                                                             <img src="https://res.cloudinary.com/dsqqrpzfl/image/upload/v1776288139/Screenshot_2026-04-16_at_02.51.43-removebg-preview_ytpg09.png" alt="Redlix" style={{height:'24px',filter:'brightness(0) invert(1)'}} />
-                                                            <span style={{fontSize:'8px',fontWeight:700,letterSpacing:'0.2em',color:'#E61E32',textTransform:'uppercase'}}>
+                                                            <span style={{fontSize: '12px',fontWeight:700,color:'#E61E32'}}>
                                                                 {alertType === 'dashboard_access_pending' ? 'Portal Alert' : alertType === 'profile_pending' ? 'Profile Reminder' : alertType === 'terms_update' ? 'Terms Update' : alertType === 'client_info_update' ? 'Info Update' : alertType === 'new_client_welcome' ? 'Welcome' : 'Admin Alert'}
                                                             </span>
                                                         </div>
@@ -5913,13 +6133,13 @@ export default function AdminPortal() {
                                                                 </div>
                                                             )}
                                                             <div style={{marginTop:'24px',paddingTop:'16px',borderTop:'1px solid #eee'}}>
-                                                                <p style={{margin:0,fontSize:'10px',fontWeight:700,color:'#E61E32',textTransform:'uppercase',letterSpacing:'0.1em'}}>
+                                                                <p style={{margin:0,fontSize: '12px',fontWeight:700,color:'#E61E32'}}>
                                                                     {alertType === 'profile_pending' ? 'Redlix HR Team' : alertType === 'terms_update' ? 'Redlix Legal & Compliance' : alertType === 'client_info_update' ? 'Redlix Client Relations' : alertType === 'new_client_welcome' ? 'Redlix Client Success' : 'Redlix Admin Team'}
                                                                 </p>
                                                             </div>
                                                         </div>
                                                         <div style={{backgroundColor:'#fafafa',padding:'16px 28px',borderTop:'1px solid #eee'}}>
-                                                            <p style={{margin:0,fontSize:'10px',color:'#999',lineHeight:1.8}}>© 2026 Redlix Studio · www.redlix.co.in<br/>This is an automated notification.</p>
+                                                            <p style={{margin:0,fontSize: '12px',color:'#999',lineHeight:1.8}}>© 2026 Redlix Studio · www.redlix.co.in<br/>This is an automated notification.</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -5971,14 +6191,14 @@ export default function AdminPortal() {
                                     <div className="flex items-center gap-2 border-b border-white/10 pb-4">
                                         <Printer className="w-5 h-5 text-[#E61E32]" />
                                         <div>
-                                            <h3 className="text-md font-bold uppercase tracking-tight text-white">Receipt Control Form</h3>
-                                            <p className="text-[10px] text-white/40">Select client and configure receipt parameters.</p>
+                                            <h3 className="text-md font-bold tracking-tight text-white">Receipt Control Form</h3>
+                                            <p className="text-xs text-white/40">Select client and configure receipt parameters.</p>
                                         </div>
                                     </div>
 
                                     {/* Client Dropdown selector */}
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest block">Select Registered Client</label>
+                                        <label className="text-xs font-bold text-white/40 block">Select Registered Client</label>
                                         <select
                                             value={receiptClientId}
                                             onChange={(e) => setReceiptClientId(e.target.value === "" ? "" : Number(e.target.value))}
@@ -5995,11 +6215,11 @@ export default function AdminPortal() {
 
                                     {/* Bill-To Details Fields */}
                                     <div className="space-y-4 pt-2 border-t border-white/5">
-                                        <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Bill-To Recipient Details</h4>
+                                        <h4 className="text-xs font-bold text-[#E61E32]">Bill-To Recipient Details</h4>
                                         
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Company Name</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Company Name</label>
                                                 <input
                                                     type="text"
                                                     value={receiptBillToCompany}
@@ -6009,7 +6229,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Contact Name</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Contact Name</label>
                                                 <input
                                                     type="text"
                                                     value={receiptBillToName}
@@ -6020,9 +6240,9 @@ export default function AdminPortal() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Email Address</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Email Address</label>
                                                 <input
                                                     type="email"
                                                     value={receiptBillToEmail}
@@ -6032,7 +6252,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Phone (Optional)</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Phone (Optional)</label>
                                                 <input
                                                     type="text"
                                                     value={receiptBillToPhone}
@@ -6046,11 +6266,11 @@ export default function AdminPortal() {
 
                                     {/* Invoice Metadata Fields */}
                                     <div className="space-y-4 pt-2 border-t border-white/5">
-                                        <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Invoice / Receipt Meta</h4>
+                                        <h4 className="text-xs font-bold text-[#E61E32]">Invoice / Receipt Meta</h4>
                                         
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Invoice Number</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Invoice Number</label>
                                                 <input
                                                     type="text"
                                                     value={receiptInvoiceNumber}
@@ -6060,7 +6280,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Currency Symbol</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Currency Symbol</label>
                                                 <input
                                                     type="text"
                                                     value={receiptCurrency}
@@ -6071,9 +6291,9 @@ export default function AdminPortal() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Invoice Date</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Invoice Date</label>
                                                 <input
                                                     type="date"
                                                     value={receiptInvoiceDate}
@@ -6082,7 +6302,7 @@ export default function AdminPortal() {
                                                 />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider font-semibold">Due Date</label>
+                                                <label className="text-xs font-bold text-white/40 font-semibold">Due Date</label>
                                                 <input
                                                     type="date"
                                                     value={receiptDueDate}
@@ -6096,11 +6316,11 @@ export default function AdminPortal() {
                                     {/* Dynamic Items Builder */}
                                     <div className="space-y-4 pt-2 border-t border-white/5">
                                         <div className="flex justify-between items-center">
-                                            <h4 className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider">Line Items (Charges)</h4>
+                                            <h4 className="text-xs font-bold text-[#E61E32]">Line Items (Charges)</h4>
                                             <button
                                                 type="button"
                                                 onClick={handleAddReceiptItem}
-                                                className="text-[9px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 hover:bg-green-500/20"
+                                                className="text-xs font-bold text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 hover:bg-green-500/20"
                                             >
                                                 + Add Line
                                             </button>
@@ -6113,15 +6333,15 @@ export default function AdminPortal() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleRemoveReceiptItem(item.id)}
-                                                            className="absolute top-1 right-1 text-[8px] font-bold uppercase text-red-500 hover:text-red-400 px-1"
+                                                            className="absolute top-1 right-1 text-xs font-bold text-red-500 hover:text-red-400 px-1"
                                                         >
                                                             Remove
                                                         </button>
                                                     )}
-                                                    <div className="text-[9px] font-bold text-white/30">Item #{index + 1}</div>
+                                                    <div className="text-xs font-bold text-white/30">Item #{index + 1}</div>
                                                     
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Category (e.g. Service type) *</label>
+                                                        <label className="text-xs font-bold text-white/40 block">Category (e.g. Service type) *</label>
                                                         <input
                                                             type="text"
                                                             required
@@ -6133,19 +6353,19 @@ export default function AdminPortal() {
                                                     </div>
 
                                                     <div className="space-y-1">
-                                                        <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Description Details</label>
+                                                        <label className="text-xs font-bold text-white/40 block">Description Details</label>
                                                         <input
                                                             type="text"
                                                             placeholder="e.g. Apr 29 - May 28, 2026 support"
                                                             value={item.description}
                                                             onChange={(e) => handleUpdateReceiptItem(item.id, "description", e.target.value)}
-                                                            className="w-full bg-black border border-white/10 px-2 py-1.5 text-[11px] focus:outline-none focus:border-white/30 text-white/80"
+                                                            className="w-full bg-black border border-white/10 px-2 py-1.5 text-sm focus:outline-none focus:border-white/30 text-white/80"
                                                         />
                                                     </div>
 
                                                     <div className="grid grid-cols-2 gap-3">
                                                         <div className="space-y-1">
-                                                            <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Quantity</label>
+                                                            <label className="text-xs font-bold text-white/40 block">Quantity</label>
                                                             <input
                                                                 type="number"
                                                                 min="0.0001"
@@ -6156,7 +6376,7 @@ export default function AdminPortal() {
                                                             />
                                                         </div>
                                                         <div className="space-y-1">
-                                                            <label className="text-[8px] font-bold text-white/40 uppercase tracking-wider block">Rate per unit</label>
+                                                            <label className="text-xs font-bold text-white/40 block">Rate per unit</label>
                                                             <input
                                                                 type="number"
                                                                 min="0"
@@ -6175,21 +6395,21 @@ export default function AdminPortal() {
                                     {/* Company Address and Memo Config */}
                                     <div className="grid grid-cols-1 gap-4 pt-2 border-t border-white/5">
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block">Sender Office Address</label>
+                                            <label className="text-xs font-bold text-white/40 block">Sender Office Address</label>
                                             <textarea
                                                 rows={3}
                                                 value={receiptCompanyAddress}
                                                 onChange={(e) => setReceiptCompanyAddress(e.target.value)}
-                                                className="w-full bg-black border border-white/10 px-3 py-2 text-[10px] focus:outline-none focus:border-white/30 text-white resize-none"
+                                                className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white resize-none"
                                             />
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[9px] font-bold text-white/40 uppercase tracking-wider block">Invoice Memo & Terms</label>
+                                            <label className="text-xs font-bold text-white/40 block">Invoice Memo & Terms</label>
                                             <textarea
                                                 rows={3}
                                                 value={receiptMemo}
                                                 onChange={(e) => setReceiptMemo(e.target.value)}
-                                                className="w-full bg-black border border-white/10 px-3 py-2 text-[10px] focus:outline-none focus:border-white/30 text-white resize-none"
+                                                className="w-full bg-black border border-white/10 px-3 py-2 text-xs focus:outline-none focus:border-white/30 text-white resize-none"
                                             />
                                         </div>
                                     </div>
@@ -6199,7 +6419,7 @@ export default function AdminPortal() {
                                         <button
                                             type="button"
                                             onClick={() => window.print()}
-                                            className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#ff1f34] text-white py-3 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                                            className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#ff1f34] text-white py-3 text-xs font-bold transition-colors cursor-pointer"
                                         >
                                             <Printer className="w-4 h-4" />
                                             Print / Save as PDF
@@ -6210,7 +6430,7 @@ export default function AdminPortal() {
                                                 type="button"
                                                 onClick={handleSendGeneratedReceiptEmail}
                                                 disabled={receiptSendStatus === 'sending'}
-                                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:bg-green-700/50 text-white py-3 text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer disabled:cursor-not-allowed"
+                                                className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:bg-green-700/50 text-white py-3 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 {receiptSendStatus === 'sending' ? (
                                                     <>
@@ -6227,18 +6447,19 @@ export default function AdminPortal() {
                                         )}
 
                                         {receiptSendStatus === 'success' && (
-                                            <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-semibold text-center uppercase tracking-wider animate-in fade-in duration-150">
-                                                ✓ Payment confirmation email dispatched successfully!
+                                            <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold text-center animate-in fade-in duration-150 flex items-center justify-center gap-2">
+                                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                Payment confirmation email dispatched successfully!
                                             </div>
                                         )}
                                         {receiptSendStatus === 'error' && (
-                                            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-semibold text-center flex flex-col items-center gap-1 uppercase tracking-wider animate-in fade-in duration-150">
+                                            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold text-center flex flex-col items-center gap-1 animate-in fade-in duration-150">
                                                 <div className="flex items-center gap-1">
                                                     <AlertCircle className="w-3.5 h-3.5" />
                                                     <span>Failed to send email</span>
                                                 </div>
                                                 {receiptErrorMessage && (
-                                                    <p className="text-[9px] text-red-400/80 mt-1 font-mono normal-case">{receiptErrorMessage}</p>
+                                                    <p className="text-xs text-red-400/80 mt-1 font-mono normal-case">{receiptErrorMessage}</p>
                                                 )}
                                             </div>
                                         )}
@@ -6264,18 +6485,18 @@ export default function AdminPortal() {
                                                             alt="Redlix Logo"
                                                             className="h-[28px] w-auto brightness-0"
                                                         />
-                                                        <span className="text-black text-[20px] font-black tracking-tighter uppercase">
+                                                        <span className="text-black text-[20px] font-black tracking-tighter">
                                                             Redlix
                                                         </span>
                                                     </div>
                                                     
                                                     {/* Sender Details */}
-                                                    <div className="text-[11px] text-gray-500 leading-relaxed font-normal whitespace-pre-line text-left">
+                                                    <div className="text-sm text-gray-500 leading-relaxed font-normal whitespace-pre-line text-left">
                                                         {receiptCompanyAddress}
                                                     </div>
                                                 </div>
 
-                                                <h1 className="text-3xl font-light tracking-widest text-gray-800 uppercase text-right">
+                                                <h1 className="text-3xl font-light text-gray-800 text-right">
                                                     Invoice
                                                 </h1>
                                             </div>
@@ -6284,7 +6505,7 @@ export default function AdminPortal() {
                                             <div className="grid grid-cols-2 gap-12 text-xs">
                                                 {/* Bill To */}
                                                 <div className="space-y-2 text-left">
-                                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bill to:</div>
+                                                    <div className="text-xs font-bold text-gray-400">Bill to:</div>
                                                     <div className="space-y-1">
                                                         <div className="font-bold text-gray-900 text-sm">{receiptBillToCompany || "[Client Company Org]"}</div>
                                                         {receiptBillToName && <div className="text-gray-700">{receiptBillToName}</div>}
@@ -6298,11 +6519,11 @@ export default function AdminPortal() {
                                                     <table className="w-fit text-left">
                                                         <tbody>
                                                             <tr className="border-b border-gray-50">
-                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Invoice number</td>
+                                                                <td className="pr-8 py-2 text-xs font-bold text-gray-400 text-left">Invoice number</td>
                                                                 <td className="py-2 font-mono text-gray-800 font-semibold">{receiptInvoiceNumber || "RED-2026-00000"}</td>
                                                             </tr>
                                                             <tr className="border-b border-gray-50">
-                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Invoice date</td>
+                                                                <td className="pr-8 py-2 text-xs font-bold text-gray-400 text-left">Invoice date</td>
                                                                 <td className="py-2 text-gray-700">
                                                                     {receiptInvoiceDate 
                                                                         ? new Date(receiptInvoiceDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -6311,7 +6532,7 @@ export default function AdminPortal() {
                                                                 </td>
                                                             </tr>
                                                             <tr className="border-b border-gray-50">
-                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Due date</td>
+                                                                <td className="pr-8 py-2 text-xs font-bold text-gray-400 text-left">Due date</td>
                                                                 <td className="py-2 text-gray-700">
                                                                     {receiptDueDate 
                                                                         ? new Date(receiptDueDate).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -6320,7 +6541,7 @@ export default function AdminPortal() {
                                                                 </td>
                                                             </tr>
                                                             <tr>
-                                                                <td className="pr-8 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left">Amount due</td>
+                                                                <td className="pr-8 py-2 text-xs font-bold text-gray-400 text-left">Amount due</td>
                                                                 <td className="py-2 font-bold text-gray-900 text-[15px]">
                                                                     {receiptCurrency}
                                                                     {receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -6335,7 +6556,7 @@ export default function AdminPortal() {
                                             <div className="pt-4">
                                                 <table className="w-full text-left border-collapse">
                                                     <thead>
-                                                        <tr className="border-b border-gray-200 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                        <tr className="border-b border-gray-200 text-xs font-bold text-gray-400">
                                                             <th className="pb-3 font-bold">Description</th>
                                                             <th className="pb-3 text-right font-bold w-24">Quantity</th>
                                                             <th className="pb-3 text-right font-bold w-28">Rate</th>
@@ -6348,7 +6569,7 @@ export default function AdminPortal() {
                                                                 <td className="py-4 pr-4">
                                                                     <div className="font-bold text-gray-900 text-left">{item.category || "[Category]"}</div>
                                                                     {item.description && (
-                                                                        <div className="text-gray-500 text-[11px] mt-0.5 font-normal leading-relaxed text-left">{item.description}</div>
+                                                                        <div className="text-gray-500 text-sm mt-0.5 font-normal leading-relaxed text-left">{item.description}</div>
                                                                     )}
                                                                 </td>
                                                                 <td className="py-4 text-right font-mono text-gray-700">
@@ -6378,7 +6599,7 @@ export default function AdminPortal() {
                                                             </td>
                                                         </tr>
                                                         <tr className="border-t border-gray-200 text-sm font-bold">
-                                                            <td className="py-3 text-gray-900 font-extrabold uppercase tracking-wide text-right">Amount due</td>
+                                                            <td className="py-3 text-gray-900 font-extrabold tracking-wide text-right">Amount due</td>
                                                             <td className="py-3 font-mono font-black text-gray-900 text-[16px]">
                                                                 {receiptCurrency}
                                                                 {receiptItems.reduce((acc, item) => acc + (item.quantity * item.rate), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -6390,11 +6611,11 @@ export default function AdminPortal() {
                                         </div>
 
                                         {/* Bottom Memo & Footer Details */}
-                                        <div className="pt-12 border-t border-gray-100 flex justify-between items-end text-[10px] text-gray-400">
+                                        <div className="pt-12 border-t border-gray-100 flex justify-between items-end text-xs text-gray-400">
                                             <div className="max-w-md font-normal leading-relaxed whitespace-pre-line text-left">
                                                 {receiptMemo}
                                             </div>
-                                            <div className="font-mono uppercase tracking-widest shrink-0 text-right">
+                                            <div className="font-mono shrink-0 text-right">
                                                 Page 1 of 1
                                             </div>
                                         </div>
@@ -6409,16 +6630,16 @@ export default function AdminPortal() {
             {/* Document Preview Modal */}
             {previewFile && (
                 <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#0f0f0f] border border-white/10 w-full max-w-4xl h-[85vh] flex flex-col rounded-none overflow-hidden shadow-2xl">
+                    <div className="bg-[#0f0f0f] border border-white/10 w-full max-w-4xl h-[85vh] flex flex-col rounded-lg overflow-hidden shadow-2xl">
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                             <div className="min-w-0">
                                 <h3 className="font-bold text-sm text-white truncate max-w-md sm:max-w-lg" title={previewFile.name}>{previewFile.name}</h3>
-                                <p className="text-[10px] text-white/30 mt-0.5">{previewFile.type}</p>
+                                <p className="text-xs text-white/30 mt-0.5">{previewFile.type}</p>
                             </div>
                             <button
                                 onClick={() => setPreviewFile(null)}
-                                className="p-1.5 rounded-none bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+                                className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -6431,13 +6652,13 @@ export default function AdminPortal() {
                                     <img 
                                         src={previewFile.data} 
                                         alt={previewFile.name} 
-                                        className="max-w-full max-h-full object-contain rounded-none"
+                                        className="max-w-full max-h-full object-contain rounded-lg"
                                     />
                                 </div>
                             ) : previewFile.type.includes("pdf") ? (
                                 <iframe 
                                     src={previewFile.data} 
-                                    className="w-full h-full rounded-none border border-white/5 bg-white"
+                                    className="w-full h-full rounded-lg border border-white/5 bg-white"
                                     title={previewFile.name}
                                 />
                             ) : (
@@ -6447,7 +6668,7 @@ export default function AdminPortal() {
                                     <a
                                         href={previewFile.data}
                                         download={previewFile.name}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold rounded-lg transition-colors"
                                     >
                                         <Download className="w-3.5 h-3.5" /> Download File
                                     </a>
@@ -6456,8 +6677,9 @@ export default function AdminPortal() {
                         </div>
                     </div>
                 </div>
-            )}\n
-            {/* ─── PINK SLIP CONFIRMATION MODAL ─── */}
+            )}
+
+            {/* Pink slip confirmation modal */}
             {showPinkSlipModal && pinkSlipModalEmployeeId && (() => {
                 const emp = employees.find(e => e.id === pinkSlipModalEmployeeId);
                 if (!emp) return null;
@@ -6468,18 +6690,19 @@ export default function AdminPortal() {
                             {/* Red top bar */}
                             <div className="h-1 w-full bg-[#E61E32]" />
 
-                            <div className="p-8">
+                            <div className="p-5 sm:p-8">
                                 {/* Header */}
                                 <div className="flex items-start justify-between mb-6">
                                     <div>
-                                        <p className="text-[10px] font-black text-[#E61E32] tracking-[0.2em] uppercase mb-1">HR — Confidential Action</p>
-                                        <h2 className="text-2xl font-black text-white tracking-tight">Allocate Pink Slip</h2>
+                                        <p className="text-xs font-semibold text-[#E61E32] mb-1">HR — Confidential Action</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-white">Allocate Pink Slip</h2>
                                     </div>
                                     <button
                                         onClick={() => setShowPinkSlipModal(false)}
                                         className="p-1.5 text-white/30 hover:text-white transition-colors"
+                                        aria-label="Close"
                                     >
-                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
@@ -6490,18 +6713,18 @@ export default function AdminPortal() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-white text-sm">{emp.name}</p>
-                                        <p className="text-[11px] text-white/40">{emp.role} · {emp.email}</p>
+                                        <p className="text-sm text-white/40">{emp.role} · {emp.email}</p>
                                     </div>
                                 </div>
 
                                 {/* Warning content */}
-                                <div className="bg-[#E61E32]/5 border border-[#E61E32]/20 p-5 mb-6 space-y-3">
-                                    <p className="text-xs font-black text-[#E61E32] uppercase tracking-widest">⚠ This action will immediately:</p>
+                                <div className="bg-[#E61E32]/10 border border-[#E61E32]/20 p-5 mb-6 space-y-3">
+                                    <p className="text-xs font-semibold text-[#E61E32]"><AlertCircle className="w-3.5 h-3.5 inline mr-1 text-[#E61E32]" /> This action will immediately:</p>
                                     <ul className="space-y-2 text-sm text-white/70">
-                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Send a formal employment review notice to <strong className="text-white">{emp.email}</strong></li>
-                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Freeze the employee portal with only the appeal window visible</li>
-                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Start a <strong className="text-white">32-hour countdown</strong> for the employee to submit an appeal</li>
-                                        <li className="flex items-start gap-2"><span className="text-[#E61E32] mt-0.5 flex-shrink-0">→</span>Automatically <strong className="text-white">delete the account</strong> if no appeal is submitted by <strong className="text-white">{deadline.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} IST</strong></li>
+                                        <li className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-[#E61E32] mt-0.5 flex-shrink-0" />Send a formal employment review notice to <strong className="text-white">{emp.email}</strong></li>
+                                        <li className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-[#E61E32] mt-0.5 flex-shrink-0" />Freeze the employee portal with only the appeal window visible</li>
+                                        <li className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-[#E61E32] mt-0.5 flex-shrink-0" />Start a <strong className="text-white">32-hour countdown</strong> for the employee to submit an appeal</li>
+                                        <li className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-[#E61E32] mt-0.5 flex-shrink-0" />Automatically <strong className="text-white">delete the account</strong> if no appeal is submitted by <strong className="text-white">{deadline.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} IST</strong></li>
                                     </ul>
                                 </div>
 
@@ -6509,14 +6732,14 @@ export default function AdminPortal() {
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => setShowPinkSlipModal(false)}
-                                        className="flex-1 py-3 text-sm font-bold text-white/50 border border-white/10 hover:border-white/20 hover:text-white/70 transition-all uppercase tracking-wider"
+                                        className="flex-1 py-3 text-sm font-bold text-white/50 border border-white/10 hover:border-white/20 hover:text-white/70 transition-all"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={() => handleAllocatePinkSlip(pinkSlipModalEmployeeId)}
                                         disabled={isPinkSlipAllocating}
-                                        className="flex-1 py-3 text-sm font-black text-white bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest"
+                                        className="flex-1 py-3 text-sm font-semibold text-white bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                     >
                                         {isPinkSlipAllocating ? (
                                             <span className="flex items-center justify-center gap-2">
@@ -6557,11 +6780,38 @@ const renderTextWithLinks = (text: string) => {
     });
 };
 
+function formatLabel(value: string) {
+    return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function getTaskStatusStyles(status: string) {
+    switch (status) {
+        case "completed":
+            return {
+                badge: "bg-green-500/10 text-green-400",
+                accent: "",
+                ring: "",
+            };
+        case "in_progress":
+            return {
+                badge: "bg-blue-500/10 text-blue-400",
+                accent: "",
+                ring: "",
+            };
+        default:
+            return {
+                badge: "bg-amber-500/10 text-amber-400",
+                accent: "",
+                ring: "",
+            };
+    }
+}
+
 function InfoBlock({ label, value }: { label: string, value?: string }) {
     if (!value) return null;
     return (
         <div className="space-y-0.5">
-            <p className="text-[11px] font-medium text-white/20">{label}</p>
+            <p className="text-sm font-medium text-white/50">{label}</p>
             <p className="text-sm text-white/80 whitespace-pre-wrap">{renderTextWithLinks(value)}</p>
         </div>
     );
@@ -6569,16 +6819,16 @@ function InfoBlock({ label, value }: { label: string, value?: string }) {
 
 function StatCard({ icon, label, value, sublabel, color }: { icon: React.ReactNode, label: string, value: number, sublabel: string, color: string }) {
     return (
-        <div className="bg-white/[0.02] border border-white/5 p-4 space-y-3 hover:border-white/10 transition-colors group">
-            <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 ${color}`}>
+        <div className="bg-white/[0.02] border border-white/5 p-4 space-y-3 hover:border-white/10 transition-colors group rounded-xl">
+            <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 rounded-lg ${color}`}>
                 <div className="w-4 h-4 flex items-center justify-center">
                     {icon}
                 </div>
             </div>
             <div>
-                <p className="text-[11px] font-medium text-white/40">{label}</p>
+                <p className="text-sm font-medium text-white/40">{label}</p>
                 <h4 className="text-xl font-semibold mt-0.5">{value}</h4>
-                <p className="text-[10px] text-white/20 mt-0.5">{sublabel}</p>
+                <p className="text-xs text-white/50 mt-0.5">{sublabel}</p>
             </div>
         </div>
     );
@@ -6589,6 +6839,25 @@ interface SharpLineChartProps {
     labels: string[];
     color: string;
     gradientId: string;
+}
+
+function buildSmoothLinePath(points: { x: number; y: number }[]) {
+    if (points.length === 0) return "";
+    if (points.length === 1) return `M ${points[0].x} ${points[0].y}`;
+
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i - 1] ?? points[i];
+        const p1 = points[i];
+        const p2 = points[i + 1];
+        const p3 = points[i + 2] ?? p2;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1.y + (p2.y - p0.y) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2.y - (p3.y - p1.y) / 6;
+        path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return path;
 }
 
 function SharpLineChart({ data, labels, color, gradientId }: SharpLineChartProps) {
@@ -6611,7 +6880,7 @@ function SharpLineChart({ data, labels, color, gradientId }: SharpLineChartProps
         return { x, y, val, label: labels[idx] };
     });
 
-    const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+    const linePath = buildSmoothLinePath(points);
     const areaPath = points.length > 0
         ? `${linePath} L ${points[points.length - 1].x} ${paddingTop + chartHeight} L ${points[0].x} ${paddingTop + chartHeight} Z`
         : "";
@@ -6677,15 +6946,15 @@ function SharpLineChart({ data, labels, color, gradientId }: SharpLineChartProps
                     />
                 )}
 
-                {/* Sharp line */}
+                {/* Smooth line */}
                 {linePath && (
                     <path
                         d={linePath}
                         fill="none"
                         stroke={color}
                         strokeWidth="2"
-                        strokeLinecap="square"
-                        strokeLinejoin="miter"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                     />
                 )}
 
@@ -6740,9 +7009,9 @@ function CombinedSharpLineChart({ datasets, labels }: CombinedSharpLineChartProp
     const chartHeight = height - paddingTop - paddingBottom;
 
     return (
-        <div className="relative w-full bg-white/[0.01] border border-white/5 p-6 rounded-none space-y-4">
+        <div className="relative w-full bg-white/[0.01] border border-white/5 p-6 rounded-lg space-y-4">
             {/* Legend */}
-            <div className="flex flex-wrap gap-6 justify-center text-[10px] uppercase font-bold tracking-widest border-b border-white/5 pb-4">
+            <div className="flex flex-wrap gap-6 justify-center text-xs font-bold border-b border-white/5 pb-4">
                 {datasets.map((dataset, dIdx) => {
                     const lastVal = dataset.data[dataset.data.length - 1];
                     const formattedVal = dataset.unit === "₹" ? `₹${lastVal.toLocaleString()}` : `${lastVal}${dataset.unit || ""}`;
@@ -6805,19 +7074,19 @@ function CombinedSharpLineChart({ datasets, labels }: CombinedSharpLineChartProp
                             return { x, y, val };
                         });
 
-                        const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
+                        const linePath = buildSmoothLinePath(points);
 
                         return (
                             <g key={dIdx}>
-                                {/* Sharp line */}
+                                {/* Smooth line */}
                                 {linePath && (
                                     <path
                                         d={linePath}
                                         fill="none"
                                         stroke={dataset.color}
                                         strokeWidth="2"
-                                        strokeLinecap="square"
-                                        strokeLinejoin="miter"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
                                     />
                                 )}
 

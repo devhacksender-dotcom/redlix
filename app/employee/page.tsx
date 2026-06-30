@@ -189,6 +189,26 @@ const TOUR_STEPS: TourStep[] = [
     }
 ];
 
+const cleanObjEmojis = <T,>(obj: T): T => {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof obj === "string") {
+        return obj.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim() as unknown as T;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(item => cleanObjEmojis(item)) as unknown as T;
+    }
+    if (typeof obj === "object") {
+        const cleaned: any = {};
+        for (const key in obj) {
+            if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                cleaned[key] = cleanObjEmojis(obj[key]);
+            }
+        }
+        return cleaned as T;
+    }
+    return obj;
+};
+
 export default function EmployeePortal() {
     const router = useRouter();
     const [employeeInfo, setEmployeeInfo] = useState<{
@@ -838,7 +858,7 @@ export default function EmployeePortal() {
                 const res = await fetch("/api/employee/me");
                 const data = await res.json();
                 if (data.success) {
-                    setEmployeeInfo(data.data);
+                    setEmployeeInfo(cleanObjEmojis(data.data));
                     setSettingsName(data.data.name || "");
                     setSettingsEmail(data.data.email || "");
                     setSettingsPhone(data.data.phone || "");
@@ -985,7 +1005,7 @@ export default function EmployeePortal() {
         try {
             const res = await fetch("/api/employee/meetings");
             const data = await res.json();
-            if (data.success) setEmployeeMeetings(data.data);
+            if (data.success) setEmployeeMeetings(cleanObjEmojis(data.data));
         } catch (error) {
             console.error("Failed to fetch meetings:", error);
         } finally {
@@ -998,7 +1018,7 @@ export default function EmployeePortal() {
         try {
             const res = await fetch("/api/employee/documents");
             const data = await res.json();
-            if (data.success) setEmployeeDocuments(data.data);
+            if (data.success) setEmployeeDocuments(cleanObjEmojis(data.data));
         } catch (error) {
             console.error("Failed to fetch documents:", error);
         } finally {
@@ -1011,7 +1031,7 @@ export default function EmployeePortal() {
         try {
             const res = await fetch("/api/employee/payrolls");
             const data = await res.json();
-            if (data.success) setEmployeePayrolls(data.data);
+            if (data.success) setEmployeePayrolls(cleanObjEmojis(data.data));
         } catch (error) {
             console.error("Failed to fetch payrolls:", error);
         } finally {
@@ -1024,7 +1044,7 @@ export default function EmployeePortal() {
         try {
             const res = await fetch("/api/employee/leaves");
             const data = await res.json();
-            if (data.success) setEmployeeLeaves(data.data);
+            if (data.success) setEmployeeLeaves(cleanObjEmojis(data.data));
         } catch (error) {
             console.error("Failed to fetch leaves:", error);
         } finally {
@@ -1038,7 +1058,7 @@ export default function EmployeePortal() {
             const res = await fetch("/api/employee/tasks");
             const data = await res.json();
             if (data.success) {
-                setEmployeeTasks(data.data);
+                setEmployeeTasks(cleanObjEmojis(data.data));
             }
         } catch (error) {
             console.error("Failed to fetch employee tasks:", error);
@@ -1052,7 +1072,7 @@ export default function EmployeePortal() {
         try {
             const res = await fetch("/api/employee/declarations");
             const data = await res.json();
-            if (data.success) setDeclarations(data.data);
+            if (data.success) setDeclarations(cleanObjEmojis(data.data));
         } catch (error) {
             console.error("Failed to fetch declarations:", error);
         } finally {
@@ -1120,7 +1140,7 @@ export default function EmployeePortal() {
                 if (!data.success) {
                     throw new Error(data.message || "Upload failed");
                 }
-                setDeclarations(prev => [data.data, ...prev]);
+                setDeclarations(prev => [cleanObjEmojis(data.data), ...prev]);
             }
 
             setDeclarationFiles([]);
@@ -1139,11 +1159,11 @@ export default function EmployeePortal() {
         try {
             const clientRes = await fetch("/api/employee/clients");
             const clientJson = await clientRes.json();
-            if (clientJson.success) setClients(clientJson.data);
+            if (clientJson.success) setClients(cleanObjEmojis(clientJson.data));
 
             const subRes = await fetch("/api/employee/submissions");
             const subJson = await subRes.json();
-            if (subJson.success) setSubmissions(subJson.data);
+            if (subJson.success) setSubmissions(cleanObjEmojis(subJson.data));
         } catch (error) {
             console.error("Error fetching submissions data:", error);
         }
@@ -1180,7 +1200,7 @@ export default function EmployeePortal() {
                 setSubmitWebsiteLink("");
                 setSubmitGitRepoLink("");
                 setSubmitClientId("");
-                setSubmissions(prev => [data.data, ...prev]);
+                setSubmissions(prev => [cleanObjEmojis(data.data), ...prev]);
                 setTimeout(() => setSubmissionSuccess(""), 5000);
             } else {
                 setSubmissionError(data.message || "Failed to submit work.");
@@ -1199,7 +1219,7 @@ export default function EmployeePortal() {
             const res = await fetch("/api/employee/community");
             const data = await res.json();
             if (data.success) {
-                setCommunityUpdates(data.data);
+                setCommunityUpdates(cleanObjEmojis(data.data));
             }
         } catch (error) {
             console.error("Failed to fetch community updates:", error);
@@ -1233,7 +1253,7 @@ export default function EmployeePortal() {
                 setGained("");
                 setDocLink("");
                 setIsStandupModalOpen(false);
-                setCommunityUpdates(prev => [data.data, ...prev]);
+                setCommunityUpdates(prev => [cleanObjEmojis(data.data), ...prev]);
             } else {
                 alert(data.message || "Failed to post update");
             }
@@ -1371,7 +1391,7 @@ export default function EmployeePortal() {
             });
             const data = await res.json();
             if (data.success) {
-                setEmployeeLeaves(prev => [data.data, ...prev]);
+                setEmployeeLeaves(prev => [cleanObjEmojis(data.data), ...prev]);
                 setLeaveStartDate("");
                 setLeaveEndDate("");
                 setLeaveType("sick");
@@ -1395,7 +1415,7 @@ export default function EmployeePortal() {
             if (res.status === 401) return router.push("/employee/login");
             const data = await res.json();
             if (data.success) {
-                setInternTickets(data.data);
+                setInternTickets(cleanObjEmojis(data.data));
             }
         } catch (error) {
             console.error(error);
@@ -1598,7 +1618,7 @@ export default function EmployeePortal() {
                                     Your appeal has been received and is under review by the Redlix HR team. A confirmation has been sent to your email. No further action is required.
                                 </p>
                                 <div className="bg-white/[0.02] border border-white/5 p-5 text-left">
-                                    <p className="text-[10px] text-white/25 uppercase tracking-widest mb-3">Submitted Appeal</p>
+                                    <p className="text-[10px] text-white/25 tracking-widest mb-3">Submitted Appeal</p>
                                     <p className="text-sm text-white/50 leading-relaxed whitespace-pre-wrap">{pinkSlipStatus.pinkSlipRequest || `Reason: ${pinkSlipAppealReason}\n\nDetails: ${pinkSlipAppealDetails}`}</p>
                                 </div>
                             </div>
@@ -1609,7 +1629,7 @@ export default function EmployeePortal() {
                                 <div className="h-[3px] w-full bg-[#E61E32]" />
 
                                 <div className="px-10 py-8 border-b border-white/5">
-                                    <p className="text-[10px] text-white/25 uppercase tracking-[0.18em] mb-2">Human Resources — Confidential</p>
+                                    <p className="text-[10px] text-white/25 tracking-[0.18em] mb-2">Human Resources — Confidential</p>
                                     <h1 className="text-lg text-white">Portal Access Suspended</h1>
                                     <p className="text-sm text-white/40 mt-1.5 leading-relaxed">
                                         A Pink Slip has been issued to your account. Your portal access is frozen pending your response below.
@@ -1621,15 +1641,15 @@ export default function EmployeePortal() {
                                     {!pinkSlipStatus.isExpired && pinkSlipTimeLeft && (
                                         <div className="mb-8 flex items-start gap-8 p-6 border border-white/5 bg-white/[0.02]">
                                             <div>
-                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">Time Remaining</p>
+                                                <p className="text-[10px] text-white/25 tracking-widest mb-2">Time Remaining</p>
                                                 <div className="text-3xl text-white font-mono tracking-widest">{pinkSlipTimeLeft}</div>
                                             </div>
                                             <div className="border-l border-white/5 pl-8">
-                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mb-2">Issued</p>
+                                                <p className="text-[10px] text-white/25 tracking-widest mb-2">Issued</p>
                                                 <p className="text-xs text-white/40">
                                                     {new Date(pinkSlipStatus.allocatedAt!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
                                                 </p>
-                                                <p className="text-[10px] text-white/25 uppercase tracking-widest mt-3 mb-2">Deadline</p>
+                                                <p className="text-[10px] text-white/25 tracking-widest mt-3 mb-2">Deadline</p>
                                                 <p className="text-xs text-[#E61E32]">
                                                     {new Date(pinkSlipStatus.deadline!).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })} IST
                                                 </p>
@@ -1650,7 +1670,7 @@ export default function EmployeePortal() {
                                             <div className="h-[1px] bg-white/5" />
 
                                             <div className="space-y-2">
-                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Primary Reason for Appeal <span className="text-[#E61E32]">*</span></label>
+                                                <label className="text-[10px] text-white/30 tracking-widest">Primary Reason for Appeal <span className="text-[#E61E32]">*</span></label>
                                                 <input
                                                     type="text"
                                                     required
@@ -1662,7 +1682,7 @@ export default function EmployeePortal() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Detailed Explanation <span className="text-[#E61E32]">*</span></label>
+                                                <label className="text-[10px] text-white/30 tracking-widest">Detailed Explanation <span className="text-[#E61E32]">*</span></label>
                                                 <textarea
                                                     required
                                                     rows={7}
@@ -1674,7 +1694,7 @@ export default function EmployeePortal() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <label className="text-[10px] text-white/30 uppercase tracking-widest">Additional Contact Information <span className="text-white/15">(Optional)</span></label>
+                                                <label className="text-[10px] text-white/30 tracking-widest">Additional Contact Information <span className="text-white/15">(Optional)</span></label>
                                                 <input
                                                     type="text"
                                                     value={pinkSlipContactInfo}
@@ -1694,7 +1714,7 @@ export default function EmployeePortal() {
                                                 <button
                                                     type="submit"
                                                     disabled={pinkSlipSubmitting}
-                                                    className="w-full py-4 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm uppercase tracking-widest transition-all"
+                                                    className="w-full py-4 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm tracking-widest transition-all"
                                                 >
                                                     {pinkSlipSubmitting ? (
                                                         <span className="flex items-center justify-center gap-2">
@@ -1746,13 +1766,13 @@ export default function EmployeePortal() {
                             className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>My Work</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openWorkspace ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openWorkspace ?"rotate-0":"-rotate-90"}`} />
                         </button>
                         {openWorkspace && (
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("overview")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'overview' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='overview'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Globe className="w-4 h-4 text-white/60" />
                                     <span>Overview</span>
@@ -1760,7 +1780,7 @@ export default function EmployeePortal() {
                                 <button
                                     id="tour-sidebar-tasks"
                                     onClick={() => setActiveTab("tasks")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'tasks' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='tasks'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <ListTodo className="w-4 h-4 text-white/60" />
@@ -1775,7 +1795,7 @@ export default function EmployeePortal() {
                                 <button
                                     id="tour-sidebar-submissions"
                                     onClick={() => setActiveTab("submissions")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'submissions' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='submissions'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Send className="w-4 h-4 text-white/60" />
@@ -1801,20 +1821,20 @@ export default function EmployeePortal() {
                             className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>My Time</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openPresence ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openPresence ?"rotate-0":"-rotate-90"}`} />
                         </button>
                         {openPresence && (
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("attendance")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'attendance' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='attendance'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <Clock className="w-4 h-4 text-white/60" />
                                     <span>Attendance</span>
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("meetings")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'meetings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='meetings'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Video className="w-4 h-4 text-white/60" />
@@ -1828,7 +1848,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("leaves")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'leaves' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='leaves'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4 text-white/60" />
@@ -1854,13 +1874,13 @@ export default function EmployeePortal() {
                             className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>Documents & Pay</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openFinanceDocs ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openFinanceDocs ?"rotate-0":"-rotate-90"}`} />
                         </button>
                         {openFinanceDocs && (
                             <div className="space-y-1 pl-1">
                                 <button
                                     onClick={() => setActiveTab("documents")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'documents' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='documents'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-4 h-4 text-white/60" />
@@ -1874,7 +1894,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("declarations")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'declarations' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='declarations'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FolderUp className="w-4 h-4 text-white/60" />
@@ -1888,7 +1908,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("payrolls")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'payrolls' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='payrolls'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <CreditCard className="w-4 h-4 text-white/60" />
                                     <span>Payrolls</span>
@@ -1907,14 +1927,14 @@ export default function EmployeePortal() {
                             className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-white/80 hover:text-white cursor-pointer select-none group"
                         >
                             <span>Community & Profile</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openAccount ? "rotate-0" : "-rotate-90"}`} />
+                            <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-white/70 transition-transform duration-200 ${openAccount ?"rotate-0":"-rotate-90"}`} />
                         </button>
                         {openAccount && (
                             <div className="space-y-1 pl-1">
                                 <button
                                     id="tour-sidebar-community"
                                     onClick={() => setActiveTab("community")}
-                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'community' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-between text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='community'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <MessageSquare className="w-4 h-4 text-white/60" />
@@ -1928,7 +1948,7 @@ export default function EmployeePortal() {
                                 </button>
                                 <button
                                     onClick={() => setActiveTab("settings")}
-                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab === 'settings' ? 'bg-white/10 text-white' : 'text-white/50 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center justify-start text-left gap-3 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-none ${activeTab ==='settings'?'bg-white/10 text-white':'text-white/50 hover:text-white hover:bg-white/5'}`}
                                 >
                                     <User className="w-4 h-4 text-white/60" />
                                     <span>Profile & Settings</span>
@@ -1954,11 +1974,11 @@ export default function EmployeePortal() {
                                 <div className="text-[12px] font-bold text-white tracking-tight truncate" title={employeeInfo?.name}>
                                     {employeeInfo?.name || "Loading..."}
                                 </div>
-                                <div className="text-[9px] text-white/40 uppercase font-semibold tracking-wider truncate" title={employeeInfo?.role}>
+                                <div className="text-[9px] text-white/40 font-semibold tracking-wider truncate" title={employeeInfo?.role}>
                                     {employeeInfo?.role || "Team Member"}
                                 </div>
                                 {employeeInfo?.division && (
-                                    <div className="text-[9px] text-[#E61E32] uppercase font-bold tracking-wider truncate mt-0.5" title={employeeInfo.division}>
+                                    <div className="text-[9px] text-[#E61E32] font-bold tracking-wider truncate mt-0.5" title={employeeInfo.division}>
                                         {employeeInfo.division}
                                     </div>
                                 )}
@@ -2043,9 +2063,7 @@ export default function EmployeePortal() {
                                     >
                                         {isRaisingHand ? (
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                        ) : (
-                                            <Hand className="w-3.5 h-3.5" />
-                                        )}
+                                        ) : null}
                                         Raise Hand
                                     </button>
                                     
@@ -2063,12 +2081,12 @@ export default function EmployeePortal() {
                     </div>
                 </div>
 
-                <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-                    <div className="space-y-8 h-full flex flex-col">
+                <div className="flex-1 p-4 md:p-8 flex flex-col min-h-0 overflow-hidden">
+                    <div className="space-y-6 flex-1 flex flex-col min-h-0 overflow-hidden">
                     {/* Conditional Rendering of Tabs */}
-                    <div className="flex-grow overflow-hidden">
+                    <div className="flex-grow min-h-0 overflow-hidden flex flex-col">
                         {activeTab === "overview" && (
-                            <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2">
+                            <div className="h-full space-y-8 animate-in fade-in duration-500 overflow-y-auto pr-2 pb-8">
                                 {/* Welcome message */}
                                 <div className="bg-white/[0.01] border border-white/5 p-4 md:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl">
                                     <div>
@@ -2116,7 +2134,7 @@ export default function EmployeePortal() {
                                     return (
                                         <div id="tour-overview-stats" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 md:gap-4">
                                             <MainStatCard
-                                                icon={<Activity className={`w-5 h-5 ${activeAttendanceSession ? 'animate-pulse text-red-400' : 'text-white'}`} />}
+                                                icon={<Activity className={`w-5 h-5 ${activeAttendanceSession ?'animate-pulse text-red-400':'text-white'}`} />}
                                                 label="Overall Activeness"
                                                 value={`${activenessPercentage}%`}
                                                 sublabel={activeAttendanceSession 
@@ -2182,7 +2200,7 @@ export default function EmployeePortal() {
                                                             <p className="text-[10px] text-white/30">Due {new Date(task.deadline).toLocaleDateString()}</p>
                                                         )}
                                                     </div>
-                                                    <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${task.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                    <span className={`px-1.5 py-0.5 text-[8px] tracking-widest font-black rounded-md ${task.status ==='in_progress'?'bg-blue-500/10 text-blue-500':'bg-yellow-500/10 text-yellow-500'}`}>
                                                         {task.status.replace("_", " ")}
                                                     </span>
                                                 </div>
@@ -2217,7 +2235,7 @@ export default function EmployeePortal() {
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] tracking-widest font-black rounded-md ${att.status ==='Present'?'bg-green-500/10 text-green-500': att.status ==='Pending'?'bg-yellow-500/10 text-yellow-500':'bg-[#E61E32]/10 text-[#E61E32]'}`}>
                                                             {att.status}
                                                         </span>
                                                         <p className="text-[9px] text-white/30 mt-0.5">{att.statusReason}</p>
@@ -2234,9 +2252,9 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "tasks" && (
-                            <div id="tour-tasks-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full">
+                            <div id="tour-tasks-container" className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 h-full min-h-0">
                                 {/* Tasks List */}
-                                <div className={`overflow-y-auto space-y-3 pr-2 scrollbar-thin ${selectedEmployeeTask ? 'hidden lg:block' : 'block'}`}>
+                                <div className={`overflow-y-auto space-y-3 pr-2 scrollbar-thin ${selectedEmployeeTask ?'hidden lg:block':'block'}`}>
                                     {tasksLoading ? (
                                         <p className="text-white/20 text-center py-10 animate-pulse">Loading tasks...</p>
                                     ) : employeeTasks.length > 0 ? (
@@ -2244,17 +2262,17 @@ export default function EmployeePortal() {
                                             <div
                                                 key={t.id}
                                                 onClick={() => setSelectedEmployeeTask(t)}
-                                                className={`p-5 border transition-all cursor-pointer rounded-xl ${selectedEmployeeTask?.id === t.id ? 'bg-white/5 border-white/20' : 'bg-transparent border-white/5 hover:border-white/10'}`}
+                                                className={`p-5 border transition-all cursor-pointer rounded-xl ${selectedEmployeeTask?.id === t.id ?'bg-white/5 border-white/20':'bg-transparent border-white/5 hover:border-white/10'}`}
                                             >
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                                                     <h3 className="font-bold text-white flex items-center gap-2 flex-wrap min-w-0">
                                                         {t.title}
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${t.status === 'completed' ? 'bg-green-500/10 text-green-500' : t.status === 'in_progress' ? 'bg-blue-500/10 text-blue-500' : 'bg-yellow-500/10 text-yellow-500'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] tracking-widest font-black rounded-md ${t.status ==='completed'?'bg-green-500/10 text-green-500': t.status ==='in_progress'?'bg-blue-500/10 text-blue-500':'bg-yellow-500/10 text-yellow-500'}`}>
                                                             {t.status.replace("_", " ")}
                                                         </span>
                                                     </h3>
                                                     {t.deadline && (
-                                                        <span className="text-[9px] text-white/20 uppercase tracking-wider shrink-0">
+                                                        <span className="text-[9px] text-white/20 tracking-wider shrink-0">
                                                             Due {new Date(t.deadline).toLocaleDateString()}
                                                         </span>
                                                     )}
@@ -2276,7 +2294,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Task Details & Progress Action Panel */}
-                                <div className={`bg-white/5 border border-white/5 p-5 md:p-8 overflow-y-auto rounded-xl ${selectedEmployeeTask ? 'block' : 'hidden lg:block'}`}>
+                                <div className={`bg-white/5 border border-white/5 p-5 md:p-8 overflow-y-auto rounded-xl ${selectedEmployeeTask ?'block':'hidden lg:block'}`}>
                                     {selectedEmployeeTask ? (
                                         <div className="space-y-8 animate-in fade-in duration-300">
                                             {/* Mobile Back Button */}
@@ -2291,7 +2309,7 @@ export default function EmployeePortal() {
                                                 <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/30 font-medium">
                                                     <span className="flex items-center gap-1.5">
                                                         Status: 
-                                                        <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${selectedEmployeeTask.status === 'completed' ? 'bg-green-500/10 text-green-400' : selectedEmployeeTask.status === 'in_progress' ? 'bg-blue-500/10 text-blue-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                                                        <span className={`px-1.5 py-0.5 text-[8px] tracking-widest font-black rounded-md ${selectedEmployeeTask.status ==='completed'?'bg-green-500/10 text-green-400': selectedEmployeeTask.status ==='in_progress'?'bg-blue-500/10 text-blue-400':'bg-yellow-500/10 text-yellow-400'}`}>
                                                             {selectedEmployeeTask.status.replace("_", " ")}
                                                         </span>
                                                     </span>
@@ -2302,27 +2320,20 @@ export default function EmployeePortal() {
                                             </div>
 
                                             <div className="space-y-3">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Task Description</h4>
+                                                <h4 className="text-xs font-bold tracking-wider text-white/40">Task Description</h4>
                                                 <p className="text-sm leading-relaxed text-white/70 whitespace-pre-wrap">
                                                     {renderTextWithLinks(selectedEmployeeTask.description || "No description provided.")}
                                                 </p>
                                             </div>
 
                                             <div className="space-y-3 pt-6 border-t border-white/5">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-white/40">Update Task Status</h4>
+                                                <h4 className="text-xs font-bold tracking-wider text-white/40">Update Task Status</h4>
                                                 <div className="flex gap-3">
                                                     {(["pending", "in_progress", "completed"] as const).map((status) => (
                                                         <button
                                                             key={status}
                                                             onClick={() => handleUpdateEmployeeTaskStatus(selectedEmployeeTask.id, status)}
-                                                            className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest border transition-all cursor-pointer rounded-lg ${selectedEmployeeTask.status === status
-                                                                ? status === 'completed'
-                                                                    ? 'bg-green-500/20 border-green-500/50 text-green-400'
-                                                                    : status === 'in_progress'
-                                                                        ? 'bg-blue-500/20 border-blue-500/50 text-blue-400'
-                                                                        : 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
-                                                                : 'bg-white/5 border-white/10 text-white/50 hover:text-white'
-                                                            }`}
+                                                            className={`flex-1 py-3 text-[10px] font-bold tracking-widest border transition-all cursor-pointer rounded-lg ${selectedEmployeeTask.status === status ? status ==='completed'?'bg-green-500/20 border-green-500/50 text-green-400': status ==='in_progress'?'bg-blue-500/20 border-blue-500/50 text-blue-400':'bg-yellow-500/20 border-yellow-500/50 text-yellow-400':'bg-white/5 border-white/10 text-white/50 hover:text-white'}`}
                                                         >
                                                             {status.replace("_", " ")}
                                                         </button>
@@ -2332,7 +2343,7 @@ export default function EmployeePortal() {
                                         </div>
                                     ) : (
                                         <div className="h-full flex items-center justify-center text-center opacity-20">
-                                            <p className="text-sm uppercase tracking-widest font-medium">Select a task to view details</p>
+                                            <p className="text-sm tracking-widest font-medium">Select a task to view details</p>
                                         </div>
                                     )}
                                 </div>
@@ -2340,7 +2351,7 @@ export default function EmployeePortal() {
                         )}
 
                         {activeTab === "attendance" && (
-                            <div className="space-y-6 h-auto lg:h-full flex flex-col overflow-visible lg:overflow-y-auto pr-2 pb-6">
+                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-8">
                                 {/* Attendance Statistics */}
                                 {(() => {
                                     const stats = getAttendanceStats(getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt));
@@ -2432,13 +2443,13 @@ export default function EmployeePortal() {
                                     {/* Attendance History Table */}
                                     <div className="bg-white/5 border border-white/5 p-4 sm:p-8 flex flex-col lg:overflow-hidden h-auto lg:h-full rounded-xl">
                                         <div className="mb-4 shrink-0 flex justify-between items-center">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Your Daily Attendance Logs</h3>
+                                            <h3 className="text-xs font-bold tracking-wider text-white/40">Your Daily Attendance Logs</h3>
                                             {/* Summary badges */}
                                             <div className="flex gap-2">
-                                                <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-widest rounded-md">
+                                                <div className="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold tracking-widest rounded-md">
                                                     Present: {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).filter(d => d.status === "Present").length}
                                                 </div>
-                                                <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold uppercase tracking-widest rounded-md">
+                                                <div className="px-2.5 py-1 bg-[#E61E32]/10 border border-[#E61E32]/20 text-[#E61E32] text-[10px] font-bold tracking-widest rounded-md">
                                                     Absent: {getDailyAttendanceList(combinedHistory, employeeInfo?.joinedAt).filter(d => d.status === "Absent").length}
                                                 </div>
                                             </div>
@@ -2451,7 +2462,7 @@ export default function EmployeePortal() {
                                                 <div className="overflow-x-auto scrollbar-thin">
                                                     <table className="w-full text-left text-xs min-w-[500px] md:min-w-0">
                                                         <thead>
-                                                            <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                            <tr className="border-b border-white/10 text-white/30 tracking-wider text-[9px] font-bold">
                                                                 <th className="py-2.5">Date</th>
                                                                 <th className="py-2.5">Punch In</th>
                                                                 <th className="py-2.5">Punch Out</th>
@@ -2473,12 +2484,12 @@ export default function EmployeePortal() {
                                                                         <td className="py-2.5">{att.punchIn}</td>
                                                                         <td className="py-2.5">{att.punchOut}</td>
                                                                         <td className="py-2.5 flex items-center gap-2">
-                                                                            <span className={`px-1.5 py-0.5 text-[8px] uppercase tracking-widest font-black rounded-md ${att.status === 'Present' ? 'bg-green-500/10 text-green-500' : att.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500' : 'bg-[#E61E32]/10 text-[#E61E32]'}`}>
+                                                                            <span className={`px-1.5 py-0.5 text-[8px] tracking-widest font-black rounded-md ${att.status ==='Present'?'bg-green-500/10 text-green-500': att.status ==='Pending'?'bg-yellow-500/10 text-yellow-500':'bg-[#E61E32]/10 text-[#E61E32]'}`}>
                                                                                 {att.status}
                                                                             </span>
                                                                             <span className="text-[9px] text-white/20 hidden md:inline">({att.statusReason})</span>
                                                                         </td>
-                                                                        <td className={`py-2.5 text-right font-semibold ${att.isActive ? 'text-[#E61E32] animate-pulse' : 'text-white/50'}`}>{durationStr}</td>
+                                                                        <td className={`py-2.5 text-right font-semibold ${att.isActive ?'text-[#E61E32] animate-pulse':'text-white/50'}`}>{durationStr}</td>
                                                                     </tr>
                                                                 );
                                                             })}
@@ -2526,7 +2537,7 @@ export default function EmployeePortal() {
                                         {/* Hover Edit Overlay */}
                                         <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 opacity-0 group-hover/banner:opacity-100 transition-opacity cursor-pointer text-white text-xs font-semibold z-10">
                                             <Pencil className="w-3.5 h-3.5 text-white" />
-                                            <span className="text-[9px] uppercase tracking-wider text-white/70">Change Cover Photo</span>
+                                            <span className="text-[9px] tracking-wider text-white/70">Change Cover Photo</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -2588,7 +2599,7 @@ export default function EmployeePortal() {
                                                 <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight leading-none">{employeeInfo?.name}</h2>
                                                 <div className="flex items-center gap-2 flex-wrap mt-1.5">
                                                     {employeeInfo?.role && (
-                                                        <span className="bg-[#E61E32] text-white text-[8px] font-semibold px-2 py-0.5 rounded-none tracking-widest uppercase">
+                                                        <span className="bg-[#E61E32] text-white text-[8px] font-semibold px-2 py-0.5 rounded-none tracking-widest">
                                                             {employeeInfo.role}
                                                         </span>
                                                     )}
@@ -2641,7 +2652,7 @@ export default function EmployeePortal() {
                                                 <form onSubmit={handleSaveSettings} className="space-y-6 text-left">
                                                     {/* Avatar System */}
                                                     <div className="space-y-3">
-                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Profile Avatar Selection</label>
+                                                        <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Profile Avatar Selection</label>
                                                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none">
                                                             {/* Large Preview */}
                                                             <div className="relative w-20 h-20 rounded-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
@@ -2665,16 +2676,14 @@ export default function EmployeePortal() {
                                                                             key={idx}
                                                                             type="button"
                                                                             onClick={() => setSettingsAvatar(avatarUrl)}
-                                                                            className={`w-10 h-10 rounded-none overflow-hidden border bg-white/5 hover:scale-105 transition-all ${
-                                                                                settingsAvatar === avatarUrl ? "border-[#E61E32] ring-2 ring-[#E61E32]" : "border-white/10"
-                                                                            }`}
+                                                                            className={`w-10 h-10 rounded-none overflow-hidden border bg-white/5 hover:scale-105 transition-all ${ settingsAvatar === avatarUrl ?"border-[#E61E32] ring-2 ring-[#E61E32]":"border-white/10"}`}
                                                                         >
                                                                             <img src={avatarUrl} alt="Avatar option" className="w-full h-full object-cover" />
                                                                         </button>
                                                                     ))}
                                                                 </div>
                                                                 <div className="flex items-center gap-3">
-                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors">
                                                                         <Upload className="w-3.5 h-3.5" />
                                                                         Upload Custom Photo
                                                                         <input 
@@ -2707,7 +2716,7 @@ export default function EmployeePortal() {
  
                                                     {/* Profile Banner Image */}
                                                     <div className="space-y-3">
-                                                        <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Profile Banner Image</label>
+                                                        <label className="block text-[10px] font-bold text-white/40 tracking-widest">Profile Banner Image</label>
                                                         <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-white/[0.02] border border-white/5 rounded-none">
                                                             <div className="relative w-full sm:w-48 h-20 rounded-none border border-white/10 overflow-hidden bg-black flex items-center justify-center shrink-0">
                                                                 <img 
@@ -2718,7 +2727,7 @@ export default function EmployeePortal() {
                                                             </div>
                                                             <div className="flex-1 space-y-3">
                                                                 <div className="flex items-center gap-3">
-                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors">
+                                                                    <label className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors">
                                                                         <Upload className="w-3.5 h-3.5" />
                                                                         Upload Custom Banner
                                                                         <input 
@@ -2746,7 +2755,7 @@ export default function EmployeePortal() {
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => setSettingsBanner("")}
-                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold uppercase tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent border-none"
+                                                                        className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white text-[10px] font-bold tracking-wider rounded-none cursor-pointer flex items-center gap-1.5 transition-colors bg-transparent border-none"
                                                                     >
                                                                         Reset Default
                                                                     </button>
@@ -2760,7 +2769,7 @@ export default function EmployeePortal() {
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         {/* Name */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Full Name</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Full Name</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsName}
@@ -2773,7 +2782,7 @@ export default function EmployeePortal() {
 
                                                         {/* Bio */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Bio / Role Description</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans font-medium">Bio / Role Description</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsBio}
@@ -2785,7 +2794,7 @@ export default function EmployeePortal() {
 
                                                         {/* College */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">College / Institution</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">College / Institution</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsCollege}
@@ -2797,7 +2806,7 @@ export default function EmployeePortal() {
 
                                                         {/* Division */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Division</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Division</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={employeeInfo?.division || ""} 
@@ -2809,7 +2818,7 @@ export default function EmployeePortal() {
 
                                                         {/* Phone */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Phone Number</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Phone Number</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsPhone}
@@ -2821,7 +2830,7 @@ export default function EmployeePortal() {
 
                                                         {/* Alternate Email */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Alternate Email</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Alternate Email</label>
                                                             <input 
                                                                 type="email" 
                                                                 value={settingsAltEmail}
@@ -2833,7 +2842,7 @@ export default function EmployeePortal() {
 
                                                         {/* Mobile */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Emergency Mobile</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Emergency Mobile</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsMobile}
@@ -2845,7 +2854,7 @@ export default function EmployeePortal() {
 
                                                         {/* UPI ID */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">UPI ID (for payments)</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans font-medium">UPI ID (for payments)</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsUpiId}
@@ -2857,7 +2866,7 @@ export default function EmployeePortal() {
 
                                                         {/* Father's Name */}
                                                         <div className="space-y-1.5 text-left">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Father&apos;s Name</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Father&apos;s Name</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsFatherName}
@@ -2869,7 +2878,7 @@ export default function EmployeePortal() {
 
                                                         {/* Address */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans">Permanent Address</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans">Permanent Address</label>
                                                             <textarea 
                                                                 value={settingsAddress}
                                                                 onChange={(e) => setSettingsAddress(e.target.value)}
@@ -2881,7 +2890,7 @@ export default function EmployeePortal() {
 
                                                         {/* Portfolio Link */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Portfolio Link</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans font-medium">Portfolio Link</label>
                                                             <input 
                                                                 type="text" 
                                                                 value={settingsPortfolioLink}
@@ -2893,7 +2902,7 @@ export default function EmployeePortal() {
 
                                                         {/* 5-Year Vision Statement */}
                                                         <div className="space-y-1.5 text-left md:col-span-2">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest font-sans font-medium">Where you want to see yourself in the next 5 years?</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest font-sans font-medium">Where you want to see yourself in the next 5 years?</label>
                                                             <textarea 
                                                                 value={settingsFutureGoals}
                                                                 onChange={(e) => setSettingsFutureGoals(e.target.value)}
@@ -2905,7 +2914,7 @@ export default function EmployeePortal() {
 
                                                         {/* Social Media Links */}
                                                         <div className="space-y-2 md:col-span-2 text-left font-sans">
-                                                            <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Social Media Links</label>
+                                                            <label className="block text-[10px] font-bold text-white/40 tracking-widest">Social Media Links</label>
                                                             <div className="space-y-2">
                                                                 {settingsSocialLinks.map((link, idx) => (
                                                                     <div key={idx} className="flex items-center gap-2 bg-[#121212] border border-white/5 px-3 py-2 rounded-none">
@@ -2963,14 +2972,14 @@ export default function EmployeePortal() {
                                                         <button
                                                             type="button"
                                                             onClick={() => setIsEditingProfile(false)}
-                                                            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors cursor-pointer"
+                                                            className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs tracking-widest rounded-none transition-colors cursor-pointer"
                                                         >
                                                             Cancel
                                                         </button>
                                                         <button
                                                             type="submit"
                                                             disabled={isSavingSettings}
-                                                            className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors flex items-center gap-2 cursor-pointer"
+                                                            className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs tracking-widest rounded-none transition-colors flex items-center gap-2 cursor-pointer"
                                                         >
                                                             {isSavingSettings ? "Saving..." : "Save Changes"}
                                                         </button>
@@ -2984,19 +2993,19 @@ export default function EmployeePortal() {
                                                 <div className="lg:col-span-2 space-y-5">
                                                     {/* Bio & Vision */}
                                                     <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
-                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                        <h3 className="text-xs font-bold text-white/40 tracking-widest mb-3 flex items-center gap-2">
                                                             <User className="w-3.5 h-3.5 text-[#E61E32]" />
                                                             About Me & Vision
                                                         </h3>
                                                         <div className="space-y-4">
                                                             <div className="space-y-1">
-                                                                <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider">Bio</p>
+                                                                <p className="text-[10px] text-white/30 font-semibold tracking-wider">Bio</p>
                                                                 <p className="text-xs text-white/80 leading-relaxed">
                                                                     {employeeInfo?.bio || "No profile bio has been written yet."}
                                                                 </p>
                                                             </div>
                                                             <div className="space-y-1 pt-2 border-t border-white/5">
-                                                                <p className="text-[10px] text-white/30 font-semibold uppercase tracking-wider">5-Year Career Vision</p>
+                                                                <p className="text-[10px] text-white/30 font-semibold tracking-wider">5-Year Career Vision</p>
                                                                 <p className="text-xs text-white/70 leading-relaxed italic">
                                                                     {employeeInfo?.futureGoals || "No vision goals declared yet."}
                                                                 </p>
@@ -3006,39 +3015,39 @@ export default function EmployeePortal() {
 
                                                     {/* Profile Metadata & Contact */}
                                                     <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
-                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                        <h3 className="text-xs font-bold text-white/40 tracking-widest mb-4 flex items-center gap-2">
                                                             <Building className="w-3.5 h-3.5 text-[#E61E32]" />
                                                             Information & Contact
                                                         </h3>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Email Address</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Email Address</p>
                                                                 <p className="text-xs text-white/80 mt-0.5 truncate">{employeeInfo?.email || "-"}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Alternate Email</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Alternate Email</p>
                                                                 <p className="text-xs text-white/80 mt-0.5 truncate">{employeeInfo?.altEmail || "-"}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Phone Number</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Phone Number</p>
                                                                 <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.phone || employeeInfo?.mobile || "-"}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">UPI ID (Payments)</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">UPI ID (Payments)</p>
                                                                 <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.upiId || "-"}</p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Date Joined</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Date Joined</p>
                                                                 <p className="text-xs text-white/80 mt-0.5">
                                                                     {employeeInfo?.joinedAt ? new Date(employeeInfo.joinedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : "-"}
                                                                 </p>
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Father's Name</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Father's Name</p>
                                                                 <p className="text-xs text-white/80 mt-0.5">{employeeInfo?.fatherName || "-"}</p>
                                                             </div>
                                                             <div className="sm:col-span-2">
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider">Permanent Address</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider">Permanent Address</p>
                                                                 <p className="text-xs text-white/80 mt-0.5 leading-relaxed">{employeeInfo?.address || "-"}</p>
                                                             </div>
                                                         </div>
@@ -3046,7 +3055,7 @@ export default function EmployeePortal() {
                                                         {/* Portfolio & Socials */}
                                                         <div className="mt-5 pt-4 border-t border-white/5 space-y-3">
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider mb-1.5">Portfolio Website</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider mb-1.5">Portfolio Website</p>
                                                                 {employeeInfo?.portfolioLink ? (
                                                                     <a href={employeeInfo.portfolioLink.startsWith("http") ? employeeInfo.portfolioLink : `https://${employeeInfo.portfolioLink}`} target="_blank" rel="noopener noreferrer" className="text-[#E61E32] hover:underline inline-flex items-center gap-1 text-xs font-medium">
                                                                         <Globe className="w-3 h-3" />{employeeInfo.portfolioLink}
@@ -3054,7 +3063,7 @@ export default function EmployeePortal() {
                                                                 ) : <span className="text-xs text-white/35 italic">None</span>}
                                                             </div>
                                                             <div>
-                                                                <p className="text-[9px] text-white/30 font-semibold uppercase tracking-wider mb-2">Connected Networks</p>
+                                                                <p className="text-[9px] text-white/30 font-semibold tracking-wider mb-2">Connected Networks</p>
                                                                 {(() => {
                                                                     let links: string[] = [];
                                                                     try { if (employeeInfo?.socialLinks) links = JSON.parse(employeeInfo.socialLinks); } catch (e) {}
@@ -3079,7 +3088,7 @@ export default function EmployeePortal() {
                                                 <div className="lg:col-span-1 space-y-5">
                                                     {/* Work & Attendance Stats */}
                                                     <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
-                                                        <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                        <h3 className="text-xs font-bold text-white/40 tracking-widest mb-4 flex items-center gap-2">
                                                             <BarChart3 className="w-3.5 h-3.5 text-[#E61E32]" />
                                                             Work & Attendance
                                                         </h3>
@@ -3114,22 +3123,22 @@ export default function EmployeePortal() {
                                                         {/* Mini Stats Grid */}
                                                         <div className="grid grid-cols-2 gap-3">
                                                             <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
-                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Active Streak</p>
+                                                                <p className="text-[9px] text-white/40 font-bold tracking-wider">Active Streak</p>
                                                                 <p className="text-sm font-bold text-white mt-0.5 flex items-center gap-1">
-                                                                    <Flame className="w-3.5 h-3.5 text-orange-500 fill-current" />
+                                                                    
                                                                     {streakCount} d
                                                                 </p>
                                                             </div>
                                                             <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
-                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Days Present</p>
+                                                                <p className="text-[9px] text-white/40 font-bold tracking-wider">Days Present</p>
                                                                 <p className="text-sm font-bold text-white mt-0.5">{presentCount} d</p>
                                                             </div>
                                                             <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
-                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Late Arrivals</p>
+                                                                <p className="text-[9px] text-white/40 font-bold tracking-wider">Late Arrivals</p>
                                                                 <p className="text-sm font-bold text-white mt-0.5">{lateCount} d</p>
                                                             </div>
                                                             <div className="bg-white/[0.02] border border-white/5 p-3 rounded-none">
-                                                                <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">Leaves Taken</p>
+                                                                <p className="text-[9px] text-white/40 font-bold tracking-wider">Leaves Taken</p>
                                                                 <p className="text-sm font-bold text-white mt-0.5">{approvedLeavesCount}</p>
                                                             </div>
                                                         </div>
@@ -3138,7 +3147,7 @@ export default function EmployeePortal() {
                                                     {/* Recent Deliverables */}
                                                     <div className="bg-white/[0.01] border border-white/5 p-5 rounded-none text-left">
                                                         <div className="flex justify-between items-center mb-3">
-                                                            <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest flex items-center gap-2">
+                                                            <h3 className="text-xs font-bold text-white/40 tracking-widest flex items-center gap-2">
                                                                 <FileText className="w-3.5 h-3.5 text-[#E61E32]" />
                                                                 Recent Tasks
                                                             </h3>
@@ -3154,7 +3163,7 @@ export default function EmployeePortal() {
                                                                 <div key={task.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-none hover:bg-white/[0.04] transition-colors">
                                                                     <p className="text-xs font-bold text-white/90 truncate">{task.title}</p>
                                                                     <div className="flex justify-between items-center mt-1.5">
-                                                                        <span className="text-[8px] uppercase tracking-wider px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/60">
+                                                                        <span className="text-[8px] tracking-wider px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/60">
                                                                             {task.status.replace("_", " ")}
                                                                         </span>
                                                                         {task.deadline && (
@@ -3180,9 +3189,9 @@ export default function EmployeePortal() {
 
                         {/* ===== MEETINGS TAB ===== */}
                         {activeTab === "meetings" && (
-                            <div className="h-full flex flex-col lg:flex-row gap-6 animate-in fade-in duration-500 overflow-hidden">
+                            <div className="h-full flex flex-col lg:flex-row gap-6 animate-in fade-in duration-500 overflow-hidden min-h-0">
                                 {/* Left: meetings list */}
-                                <div className={`w-full lg:w-[380px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-1 ${selectedEmpMeeting ? 'hidden lg:flex' : 'flex'}`}>
+                                <div className={`w-full lg:w-[380px] shrink-0 flex flex-col gap-3 overflow-y-auto pr-1 ${selectedEmpMeeting ?'hidden lg:flex':'flex'}`}>
                                     {meetingsLoading ? (
                                         <div className="flex items-center justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-white/20" /></div>
                                     ) : employeeMeetings.length === 0 ? (
@@ -3195,22 +3204,14 @@ export default function EmployeePortal() {
                                             <div
                                                 key={meeting.id}
                                                 onClick={() => setSelectedEmpMeeting(meeting)}
-                                                className={`p-4 border cursor-pointer transition-all space-y-2 rounded-xl ${
-                                                    selectedEmpMeeting?.id === meeting.id
-                                                        ? 'border-[#E61E32]/40 bg-[#E61E32]/5'
-                                                        : 'border-white/5 bg-white/[0.02] hover:border-white/15'
-                                                }`}
+                                                className={`p-4 border cursor-pointer transition-all space-y-2 rounded-xl ${ selectedEmpMeeting?.id === meeting.id ?'border-[#E61E32]/40 bg-[#E61E32]/5':'border-white/5 bg-white/[0.02] hover:border-white/15'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-2">
                                                     <div>
                                                         <p className="text-sm font-semibold text-white">{meeting.title}</p>
                                                         <p className="text-[10px] text-white/40 mt-0.5">Lead: {meeting.meetingLead}</p>
                                                     </div>
-                                                    <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 ${
-                                                        new Date(meeting.scheduledAt) > new Date()
-                                                            ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                                            : 'bg-white/5 text-white/30 border border-white/10'
-                                                    }`}>
+                                                    <span className={`text-[9px] font-bold tracking-wider px-2 py-0.5 ${ new Date(meeting.scheduledAt) > new Date() ?'bg-green-500/10 text-green-400 border border-green-500/20':'bg-white/5 text-white/30 border border-white/10'}`}>
                                                         {new Date(meeting.scheduledAt) > new Date() ? 'Upcoming' : 'Done'}
                                                     </span>
                                                 </div>
@@ -3224,7 +3225,7 @@ export default function EmployeePortal() {
                                 </div>
 
                                 {/* Right: detail panel */}
-                                <div className={`flex-grow bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6 rounded-xl ${selectedEmpMeeting ? 'block' : 'hidden lg:block'}`}>
+                                <div className={`flex-grow bg-white/[0.02] border border-white/5 p-6 overflow-y-auto space-y-6 rounded-xl ${selectedEmpMeeting ?'block':'hidden lg:block'}`}>
                                     {selectedEmpMeeting ? (
                                         <div className="space-y-6">
                                             {/* Mobile Back Button */}
@@ -3241,18 +3242,18 @@ export default function EmployeePortal() {
 
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
-                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider">Meeting Lead</p>
+                                                    <p className="text-[10px] text-white/30 tracking-wider">Meeting Lead</p>
                                                     <p className="text-sm font-semibold text-white">{selectedEmpMeeting.meetingLead}</p>
                                                 </div>
                                                 <div className="bg-white/[0.03] border border-white/5 p-4 space-y-1 rounded-lg">
-                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider">Date & Time</p>
+                                                    <p className="text-[10px] text-white/30 tracking-wider">Date & Time</p>
                                                     <p className="text-sm font-semibold text-white">{new Date(selectedEmpMeeting.scheduledAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })}</p>
                                                 </div>
                                             </div>
 
                                             {selectedEmpMeeting.meetingLink && (
                                                 <div className="bg-white/[0.03] border border-white/5 p-4 rounded-lg">
-                                                    <p className="text-[10px] text-white/30 uppercase tracking-wider mb-2">Join Meeting</p>
+                                                    <p className="text-[10px] text-white/30 tracking-wider mb-2">Join Meeting</p>
                                                     <a href={selectedEmpMeeting.meetingLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#E61E32] text-sm hover:underline break-all">
                                                         <LinkIcon className="w-4 h-4 shrink-0" />{selectedEmpMeeting.meetingLink}
                                                     </a>
@@ -3260,7 +3261,7 @@ export default function EmployeePortal() {
                                             )}
 
                                             <div>
-                                                <p className="text-[10px] text-white/30 uppercase tracking-wider mb-3">All Attendees ({selectedEmpMeeting.attendees.length})</p>
+                                                <p className="text-[10px] text-white/30 tracking-wider mb-3">All Attendees ({selectedEmpMeeting.attendees.length})</p>
                                                 <div className="space-y-2">
                                                     {selectedEmpMeeting.attendees.map(att => (
                                                         <div key={att.id} className="flex items-center gap-3 p-3 bg-white/[0.03] border border-white/5 rounded-lg">
@@ -3316,7 +3317,7 @@ export default function EmployeePortal() {
                                                     </div>
                                                     {doc.description && <p className="text-xs text-white/40 line-clamp-2">{doc.description}</p>}
                                                     <div className="flex items-center justify-between">
-                                                        <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border rounded-md ${categoryColors[doc.category] || categoryColors.other}`}>
+                                                        <span className={`text-[9px] font-bold tracking-wider px-2 py-0.5 border rounded-md ${categoryColors[doc.category] || categoryColors.other}`}>
                                                             {doc.category}
                                                         </span>
                                                         <span className="text-[10px] text-white/20">{new Date(doc.createdAt).toLocaleDateString()}</span>
@@ -3347,12 +3348,12 @@ export default function EmployeePortal() {
                                     return (
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 shrink-0">
                                             <div className="bg-white/[0.02] border border-white/5 p-5 space-y-2 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-bold text-green-400 uppercase tracking-widest">Total Paid</p>
+                                                <p className="text-[10px] font-bold text-green-400 tracking-widest">Total Paid</p>
                                                 <h4 className="text-2xl font-bold text-white">₹{totalPaid.toLocaleString('en-IN')}</h4>
                                                 <p className="text-[10px] text-white/30">Transferred to your linked UPI ID</p>
                                             </div>
                                             <div className="bg-white/[0.02] border border-white/5 p-5 space-y-2 hover:border-white/10 transition-colors rounded-xl">
-                                                <p className="text-[10px] font-bold text-[#E61E32] uppercase tracking-widest font-black">Total Pending</p>
+                                                <p className="text-[10px] font-bold text-[#E61E32] tracking-widest font-black">Total Pending</p>
                                                 <h4 className="text-2xl font-bold text-white">₹{totalPending.toLocaleString('en-IN')}</h4>
                                                 <p className="text-[10px] text-white/30">Awaiting bank/admin processing</p>
                                             </div>
@@ -3363,7 +3364,7 @@ export default function EmployeePortal() {
                                 {/* Payroll History Table */}
                                 <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full rounded-xl">
                                     <div className="mb-4 shrink-0">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Monthly Payrolls & Payouts</h3>
+                                        <h3 className="text-xs font-bold tracking-wider text-white/40">Monthly Payrolls & Payouts</h3>
                                     </div>
 
                                     <div className="overflow-y-auto pr-1 flex-grow scrollbar-thin">
@@ -3373,7 +3374,7 @@ export default function EmployeePortal() {
                                             <div className="overflow-x-auto scrollbar-thin">
                                                 <table className="w-full text-left text-xs min-w-[500px] md:min-w-0">
                                                     <thead>
-                                                        <tr className="border-b border-white/10 text-white/30 uppercase tracking-wider text-[9px] font-bold">
+                                                        <tr className="border-b border-white/10 text-white/30 tracking-wider text-[9px] font-bold">
                                                             <th className="py-3">Payout Month</th>
                                                             <th className="py-3">Amount</th>
                                                             <th className="py-3">UPI Address</th>
@@ -3388,11 +3389,7 @@ export default function EmployeePortal() {
                                                                 <td className="py-3 text-white/90 font-semibold">₹{payroll.amount.toLocaleString('en-IN')}</td>
                                                                 <td className="py-3 font-mono text-[11px] text-white/40">{payroll.upiId || employeeInfo?.upiId || "No UPI ID set"}</td>
                                                                 <td className="py-3">
-                                                                    <span className={`px-2 py-0.5 text-[8px] uppercase tracking-widest font-black border rounded-md ${
-                                                                        payroll.status === 'paid'
-                                                                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                            : 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
-                                                                    }`}>
+                                                                    <span className={`px-2 py-0.5 text-[8px] tracking-widest font-black border rounded-md ${ payroll.status ==='paid'?'bg-green-500/10 text-green-400 border-green-500/20':'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'}`}>
                                                                         {payroll.status}
                                                                     </span>
                                                                 </td>
@@ -3432,10 +3429,10 @@ export default function EmployeePortal() {
                                 {/* Left Column: Leave Form (5 cols) */}
                                 <div className="lg:col-span-5 space-y-6">
                                     <div id="tour-leaves-form" className="bg-white/5 border border-white/5 p-6 rounded-xl">
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white mb-4">Request Time Off</h3>
+                                        <h3 className="text-sm font-bold tracking-wider text-white mb-4">Request Time Off</h3>
                                         <form onSubmit={handleSubmitLeave} className="space-y-4">
                                             <div>
-                                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Leave Type</label>
+                                                <label className="block text-[10px] font-bold text-white/40 tracking-wider mb-2">Leave Type</label>
                                                 <select
                                                     value={leaveType}
                                                     onChange={(e) => setLeaveType(e.target.value)}
@@ -3452,7 +3449,7 @@ export default function EmployeePortal() {
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Start Date</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-wider mb-2">Start Date</label>
                                                     <input
                                                         type="date"
                                                         value={leaveStartDate}
@@ -3462,7 +3459,7 @@ export default function EmployeePortal() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">End Date</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-wider mb-2">End Date</label>
                                                     <input
                                                         type="date"
                                                         value={leaveEndDate}
@@ -3474,7 +3471,7 @@ export default function EmployeePortal() {
                                             </div>
 
                                             <div>
-                                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Reason</label>
+                                                <label className="block text-[10px] font-bold text-white/40 tracking-wider mb-2">Reason</label>
                                                 <textarea
                                                     value={leaveReason}
                                                     onChange={(e) => setLeaveReason(e.target.value)}
@@ -3488,7 +3485,7 @@ export default function EmployeePortal() {
                                             <button
                                                 type="submit"
                                                 disabled={leaveIsSubmitting}
-                                                className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-3 text-xs font-black uppercase tracking-widest transition-colors duration-200 disabled:opacity-50 rounded-lg"
+                                                className="w-full bg-[#E61E32] hover:bg-[#C81428] text-white py-3 text-xs font-black tracking-widest transition-colors duration-200 disabled:opacity-50 rounded-lg"
                                             >
                                                 {leaveIsSubmitting ? "Submitting..." : "Submit Request"}
                                             </button>
@@ -3500,7 +3497,7 @@ export default function EmployeePortal() {
                                 <div className="lg:col-span-7 flex flex-col h-full overflow-hidden">
                                     <div className="bg-white/5 border border-white/5 p-6 flex flex-col overflow-hidden h-full rounded-xl">
                                         <div className="mb-4 shrink-0 flex justify-between items-center">
-                                            <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Request History</h3>
+                                            <h3 className="text-xs font-bold tracking-wider text-white/40">Request History</h3>
                                             <span className="text-[10px] text-white/30">{employeeLeaves.length} requests</span>
                                         </div>
 
@@ -3518,7 +3515,7 @@ export default function EmployeePortal() {
                                                         <div key={leave.id} className="bg-white/[0.02] border border-white/5 p-4 space-y-3 hover:border-white/10 transition-colors rounded-lg">
                                                             <div className="flex justify-between items-start">
                                                                 <div>
-                                                                    <span className="text-[9px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70 rounded-md">
+                                                                    <span className="text-[9px] tracking-wider font-extrabold px-1.5 py-0.5 bg-white/5 border border-white/10 text-white/70 rounded-md">
                                                                         {leave.type} leave
                                                                     </span>
                                                                     <h4 className="text-xs font-semibold text-white mt-2">
@@ -3529,25 +3526,19 @@ export default function EmployeePortal() {
                                                                     <p className="text-[10px] text-white/30 mt-0.5">{diffDays} {diffDays === 1 ? 'day' : 'days'}</p>
                                                                 </div>
  
-                                                                <span className={`px-2.5 py-0.5 text-[8px] uppercase tracking-widest font-black border rounded-md ${
-                                                                    leave.status === 'approved'
-                                                                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                                                                        : leave.status === 'rejected'
-                                                                        ? 'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20'
-                                                                        : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
-                                                                }`}>
+                                                                <span className={`px-2.5 py-0.5 text-[8px] tracking-widest font-black border rounded-md ${ leave.status ==='approved'?'bg-green-500/10 text-green-400 border-green-500/20': leave.status ==='rejected'?'bg-[#E61E32]/10 text-[#E61E32] border-[#E61E32]/20':'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
                                                                     {leave.status}
                                                                 </span>
                                                             </div>
  
                                                             <div className="text-xs text-white/70 bg-black/20 p-2.5 border border-white/[0.02] break-words rounded-md">
-                                                                <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-1">Reason</p>
+                                                                <p className="text-[10px] font-semibold text-white/40 tracking-wider mb-1">Reason</p>
                                                                 {leave.reason}
                                                             </div>
  
                                                             {leave.adminNotes && (
                                                                 <div className="text-xs text-white/70 bg-[#E61E32]/5 p-2.5 border border-[#E61E32]/10 break-words rounded-md">
-                                                                    <p className="text-[10px] font-semibold text-[#E61E32] uppercase tracking-wider mb-1">Admin Remarks</p>
+                                                                    <p className="text-[10px] font-semibold text-[#E61E32] tracking-wider mb-1">Admin Remarks</p>
                                                                     {leave.adminNotes}
                                                                 </div>
                                                             )}
@@ -3567,7 +3558,7 @@ export default function EmployeePortal() {
 
                         {/* ===== COMMUNITY TAB ===== */}
                         {activeTab === "community" && (
-                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-6 animate-in fade-in duration-500 relative w-full">
+                            <div className="space-y-6 h-full flex flex-col overflow-y-auto pr-2 pb-8 animate-in fade-in duration-500 relative w-full">
                                 {/* Top Header Bar */}
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 w-full">
                                     <div>
@@ -3576,7 +3567,7 @@ export default function EmployeePortal() {
                                     </div>
                                     <button
                                         onClick={() => setIsStandupModalOpen(true)}
-                                        className="bg-[#E61E32] hover:bg-[#C81428] text-white px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-colors duration-200 rounded-none flex items-center justify-center gap-2 self-start sm:self-auto shadow-md"
+                                        className="bg-[#E61E32] hover:bg-[#C81428] text-white px-5 py-2.5 text-xs font-black tracking-widest transition-colors duration-200 rounded-none flex items-center justify-center gap-2 self-start sm:self-auto shadow-md"
                                     >
                                         <Send className="w-3.5 h-3.5" />
                                         + Write Daily Standup
@@ -3586,7 +3577,7 @@ export default function EmployeePortal() {
                                 {/* Feed of Cards */}
                                 <div id="tour-community-feed" className="bg-white/5 border border-white/5 p-6 flex flex-col rounded-none max-w-2xl mx-auto w-full">
                                     <div className="mb-4 shrink-0 flex justify-between items-center">
-                                        <h3 className="text-xs font-bold uppercase tracking-wider text-white/40">Today&apos;s Standups</h3>
+                                        <h3 className="text-xs font-bold tracking-wider text-white/40">Today&apos;s Standups</h3>
                                         <span className="text-[10px] text-white/30 bg-white/5 px-2 py-0.5 border border-white/5 rounded-none">{communityUpdates.length} updates</span>
                                     </div>
 
@@ -3642,7 +3633,7 @@ export default function EmployeePortal() {
                                                         {/* Top row: profile & handles & X Logo */}
                                                         <div className="flex justify-between items-start gap-4">
                                                             <div className="flex gap-3 min-w-0">
-                                                                <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] font-black text-sm uppercase shrink-0">
+                                                                <div className="w-10 h-10 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32] font-black text-sm shrink-0">
                                                                     {initials}
                                                                 </div>
                                                                 <div className="min-w-0">
@@ -3657,7 +3648,7 @@ export default function EmployeePortal() {
                                                                         <span className="text-white/45 text-[11px] shrink-0">·</span>
                                                                         <span className="text-white/40 text-[11px] hover:underline cursor-pointer shrink-0">{timeFormatted}</span>
                                                                     </div>
-                                                                    <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold mt-0.5">{update.employee?.role || "Team Member"}</p>
+                                                                    <p className="text-[10px] text-white/30 tracking-widest font-bold mt-0.5">{update.employee?.role || "Team Member"}</p>
                                                                 </div>
                                                             </div>
                                                             <a href="https://x.com" target="_blank" rel="noopener noreferrer">
@@ -3671,19 +3662,19 @@ export default function EmployeePortal() {
                                                         <div className="space-y-3.5 text-xs">
                                                             {/* Tasks Done */}
                                                             <div className="space-y-1">
-                                                                <span className="text-[10px] font-bold text-[#E61E32] uppercase tracking-wider block">Tasks Completed</span>
+                                                                <span className="text-[10px] font-bold text-[#E61E32] tracking-wider block">Tasks Completed</span>
                                                                 <p className="text-white/90 leading-relaxed break-words whitespace-pre-wrap">{update.tasksDone}</p>
                                                             </div>
 
                                                             {/* What You Learnt */}
                                                             <div className="space-y-1">
-                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Learning & Discoveries</span>
+                                                                <span className="text-[10px] font-bold text-white/40 tracking-wider block">Learning & Discoveries</span>
                                                                 <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.learnt}</p>
                                                             </div>
 
                                                             {/* Progress Gained */}
                                                             <div className="space-y-1">
-                                                                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Gained / Key Progress</span>
+                                                                <span className="text-[10px] font-bold text-white/40 tracking-wider block">Gained / Key Progress</span>
                                                                 <p className="text-white/80 leading-relaxed break-words whitespace-pre-wrap">{update.gained}</p>
                                                             </div>
 
@@ -3700,7 +3691,7 @@ export default function EmployeePortal() {
                                                                             <LinkIcon className="w-4 h-4" />
                                                                         </div>
                                                                         <div className="min-w-0 flex-1">
-                                                                            <p className="text-[10px] font-black text-white/90 truncate uppercase tracking-widest">Shared Document</p>
+                                                                            <p className="text-[10px] font-black text-white/90 truncate tracking-widest">Shared Document</p>
                                                                             <p className="text-[11px] text-[#E61E32] truncate mt-0.5 flex items-center gap-1">
                                                                                 {update.docLink}
                                                                                 <ExternalLink className="w-2.5 h-2.5 inline" />
@@ -3738,7 +3729,7 @@ export default function EmployeePortal() {
                                                     <div className="w-7 h-7 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
                                                         <Send className="w-3.5 h-3.5" />
                                                     </div>
-                                                    <h3 className="text-xs font-bold uppercase tracking-widest text-white">Create Standup Update</h3>
+                                                    <h3 className="text-xs font-bold tracking-widest text-white">Create Standup Update</h3>
                                                 </div>
                                                 <button 
                                                     onClick={() => setIsStandupModalOpen(false)} 
@@ -3750,7 +3741,7 @@ export default function EmployeePortal() {
 
                                             <form onSubmit={handleSubmitCommunityUpdate} className="space-y-4">
                                                 <div className="space-y-1.5">
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Tasks You Have Done</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-widest">Tasks You Have Done</label>
                                                     <textarea
                                                         value={tasksDone}
                                                         onChange={(e) => setTasksDone(e.target.value)}
@@ -3761,7 +3752,7 @@ export default function EmployeePortal() {
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">What You Have Learnt</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-widest">What You Have Learnt</label>
                                                     <textarea
                                                         value={learnt}
                                                         onChange={(e) => setLearnt(e.target.value)}
@@ -3772,7 +3763,7 @@ export default function EmployeePortal() {
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">How Much You Have Gained Till Now</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-widest">How Much You Have Gained Till Now</label>
                                                     <textarea
                                                         value={gained}
                                                         onChange={(e) => setGained(e.target.value)}
@@ -3783,7 +3774,7 @@ export default function EmployeePortal() {
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Document/Resource Link (Optional)</label>
+                                                    <label className="block text-[10px] font-bold text-white/40 tracking-widest">Document/Resource Link (Optional)</label>
                                                     <input
                                                         type="text"
                                                         value={docLink}
@@ -3803,7 +3794,7 @@ export default function EmployeePortal() {
                                                     <button
                                                         type="submit"
                                                         disabled={submittingCommunityUpdate || !tasksDone.trim() || !learnt.trim() || !gained.trim()}
-                                                        className="px-5 py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50 rounded-none flex items-center gap-1.5"
+                                                        className="px-5 py-2 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold tracking-widest transition-colors disabled:opacity-50 rounded-none flex items-center gap-1.5"
                                                     >
                                                         {submittingCommunityUpdate ? (
                                                             <>
@@ -3827,7 +3818,7 @@ export default function EmployeePortal() {
 
                         {/* ─── DECLARATIONS TAB ─────────────────────────────────── */}
                         {activeTab === "declarations" && (
-                            <div className="space-y-6 h-auto lg:h-full animate-in fade-in duration-500 overflow-visible lg:overflow-y-auto pr-2">
+                            <div className="space-y-6 h-full animate-in fade-in duration-500 overflow-y-auto pr-2 pb-8">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h2 className="text-lg font-bold text-white">Client Declarations</h2>
@@ -3835,13 +3826,13 @@ export default function EmployeePortal() {
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
                                         <FolderUp className="w-3.5 h-3.5" />
-                                        <span className="uppercase tracking-wider font-semibold">{declarations.filter(d => d.status === "pending").length} Pending</span>
+                                        <span className="tracking-wider font-semibold">{declarations.filter(d => d.status === "pending").length} Pending</span>
                                     </div>
                                 </div>
 
                                 {/* Upload Section */}
                                 <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-5">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                    <h3 className="text-xs font-bold tracking-wider text-white/50 flex items-center gap-2">
                                         <Upload className="w-3.5 h-3.5" />
                                         Drop Documents Here
                                     </h3>
@@ -3851,11 +3842,7 @@ export default function EmployeePortal() {
                                         onDragOver={(e) => { e.preventDefault(); setDeclarationDragOver(true); }}
                                         onDragLeave={() => setDeclarationDragOver(false)}
                                         onDrop={handleDeclarationDrop}
-                                        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center transition-all duration-200 cursor-pointer group ${
-                                            declarationDragOver
-                                                ? "border-[#E61E32] bg-[#E61E32]/5 scale-[1.01]"
-                                                : "border-white/10 hover:border-white/25 hover:bg-white/[0.02]"
-                                        }`}
+                                        className={`relative border-2 border-dashed rounded-2xl p-6 sm:p-10 text-center transition-all duration-200 cursor-pointer group ${ declarationDragOver ?"border-[#E61E32] bg-[#E61E32]/5 scale-[1.01]":"border-white/10 hover:border-white/25 hover:bg-white/[0.02]"}`}
                                         onClick={() => document.getElementById('decl-file-input')?.click()}
                                     >
                                         <input
@@ -3867,15 +3854,11 @@ export default function EmployeePortal() {
                                             onChange={handleDeclarationFileInput}
                                         />
                                         <div className="flex flex-col items-center gap-3">
-                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${
-                                                declarationDragOver ? "bg-[#E61E32]/20 text-[#E61E32]" : "bg-white/5 text-white/30 group-hover:bg-white/10 group-hover:text-white/60"
-                                            }`}>
+                                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${ declarationDragOver ?"bg-[#E61E32]/20 text-[#E61E32]":"bg-white/5 text-white/30 group-hover:bg-white/10 group-hover:text-white/60"}`}>
                                                 <FolderUp className="w-7 h-7" />
                                             </div>
                                             <div>
-                                                <p className={`text-sm font-semibold transition-colors ${
-                                                    declarationDragOver ? "text-[#E61E32]" : "text-white/50 group-hover:text-white/70"
-                                                }`}>
+                                                <p className={`text-sm font-semibold transition-colors ${ declarationDragOver ?"text-[#E61E32]":"text-white/50 group-hover:text-white/70"}`}>
                                                     {declarationDragOver ? "Release to drop files" : "Drag & drop files here"}
                                                 </p>
                                                 <p className="text-xs text-white/25 mt-1">or click to browse — PDF, Images, Word docs • Max 10MB each</p>
@@ -3886,7 +3869,7 @@ export default function EmployeePortal() {
                                     {/* Selected Files Preview */}
                                     {declarationFiles.length > 0 && (
                                         <div className="space-y-2">
-                                            <p className="text-[10px] text-white/40 uppercase tracking-wider font-semibold">{declarationFiles.length} file{declarationFiles.length > 1 ? 's' : ''} selected</p>
+                                            <p className="text-[10px] text-white/40 tracking-wider font-semibold">{declarationFiles.length} file{declarationFiles.length > 1 ? 's' : ''} selected</p>
                                             <div className="space-y-2 max-h-48 overflow-y-auto">
                                                 {declarationFiles.map((file, i) => (
                                                     <div key={i} className="flex items-center justify-between gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
@@ -3914,7 +3897,7 @@ export default function EmployeePortal() {
                                     {/* Metadata Fields */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Client Name <span className="text-white/20">(optional)</span></label>
+                                            <label className="text-[10px] font-bold tracking-wider text-white/40">Client Name <span className="text-white/20">(optional)</span></label>
                                             <input
                                                 type="text"
                                                 value={declarationClientName}
@@ -3924,7 +3907,7 @@ export default function EmployeePortal() {
                                             />
                                         </div>
                                         <div className="space-y-1.5">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-white/40">Notes <span className="text-white/20">(optional)</span></label>
+                                            <label className="text-[10px] font-bold tracking-wider text-white/40">Notes <span className="text-white/20">(optional)</span></label>
                                             <input
                                                 type="text"
                                                 value={declarationNotes}
@@ -3952,7 +3935,7 @@ export default function EmployeePortal() {
                                     <button
                                         onClick={handleSubmitDeclarations}
                                         disabled={declarationSubmitting || declarationFiles.length === 0}
-                                        className="w-full py-3.5 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#E61E32]/10"
+                                        className="w-full py-3.5 bg-[#E61E32] hover:bg-[#C81428] disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-bold tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#E61E32]/10"
                                     >
                                         {declarationSubmitting ? (
                                             <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>
@@ -3964,7 +3947,7 @@ export default function EmployeePortal() {
 
                                 {/* Submitted Declarations History */}
                                 <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
-                                    <h3 className="text-xs font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                    <h3 className="text-xs font-bold tracking-wider text-white/50 flex items-center gap-2">
                                         <FileText className="w-3.5 h-3.5" />
                                         Submitted Declarations
                                         <span className="ml-auto text-white/20 font-normal normal-case tracking-normal">{declarations.length} total</span>
@@ -4005,7 +3988,7 @@ export default function EmployeePortal() {
                                                         {decl.fileData && (
                                                             <button
                                                                 onClick={() => setPreviewFile({ name: decl.fileName, type: decl.fileType, data: decl.fileData! })}
-                                                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+                                                                className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
                                                                 title="Preview document"
                                                             >
                                                                 <Eye className="w-3 h-3" /> Preview
@@ -4015,18 +3998,18 @@ export default function EmployeePortal() {
                                                             <a
                                                                 href={decl.fileData}
                                                                 download={decl.fileName}
-                                                                className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+                                                                className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1.5 rounded-full border text-white/50 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
                                                                 title="Download file"
                                                             >
                                                                 <Download className="w-3 h-3" /> Download
                                                             </a>
                                                         )}
                                                         {decl.status === "reviewed" ? (
-                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-full">
+                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1.5 rounded-full">
                                                                 <CheckCheck className="w-3 h-3" /> Reviewed
                                                             </span>
                                                         ) : (
-                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1.5 rounded-full">
+                                                            <span className="flex items-center gap-1.5 text-[10px] font-bold tracking-wider text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2.5 py-1.5 rounded-full">
                                                                 <Hourglass className="w-3 h-3" /> Pending
                                                             </span>
                                                         )}
@@ -4041,7 +4024,7 @@ export default function EmployeePortal() {
 
                         {/* ─── WORK SUBMISSIONS TAB ─────────────────────────────── */}
                         {activeTab === "submissions" && (
-                            <div className="space-y-6 h-auto lg:h-full animate-in fade-in duration-500 overflow-visible lg:overflow-y-auto pr-2 pb-6">
+                            <div className="space-y-6 h-full animate-in fade-in duration-500 overflow-y-auto pr-2 pb-8">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div>
                                         <h2 className="text-lg font-bold text-white">Work Submissions</h2>
@@ -4049,14 +4032,14 @@ export default function EmployeePortal() {
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] text-white/30 bg-white/5 border border-white/10 px-3 py-2 rounded-lg self-start sm:self-auto shrink-0">
                                         <Send className="w-3.5 h-3.5" />
-                                        <span className="uppercase tracking-wider font-semibold">{submissions.length} Total Submissions</span>
+                                        <span className="tracking-wider font-semibold">{submissions.length} Total Submissions</span>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                                     {/* Submission Form */}
                                     <div id="tour-submission-form" className="lg:col-span-1 bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white">New Submission</h3>
+                                        <h3 className="text-sm font-bold tracking-wider text-white">New Submission</h3>
                                         <form onSubmit={handleSubmitWork} className="space-y-4">
                                             <div className="space-y-2">
                                                 <label className="text-xs font-semibold text-white/60">Select Client</label>
@@ -4119,7 +4102,7 @@ export default function EmployeePortal() {
                                             <button
                                                 type="submit"
                                                 disabled={isSubmittingWork}
-                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white font-bold py-2 px-4 rounded-xl text-xs uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer"
+                                                className="w-full flex items-center justify-center gap-2 bg-[#E61E32] hover:bg-[#E61E32]/90 text-white font-bold py-2 px-4 rounded-xl text-xs tracking-wider transition-all disabled:opacity-50 cursor-pointer"
                                             >
                                                 {isSubmittingWork ? (
                                                     <>
@@ -4138,7 +4121,7 @@ export default function EmployeePortal() {
 
                                     {/* History List */}
                                     <div className="lg:col-span-2 bg-white/[0.02] border border-white/8 rounded-2xl p-6 space-y-4">
-                                        <h3 className="text-sm font-bold uppercase tracking-wider text-white/50 flex items-center gap-2">
+                                        <h3 className="text-sm font-bold tracking-wider text-white/50 flex items-center gap-2">
                                             <Briefcase className="w-4 h-4" />
                                             Submission History
                                             <span className="ml-auto text-white/20 font-normal normal-case tracking-normal">{submissions.length} total</span>
@@ -4210,9 +4193,7 @@ export default function EmployeePortal() {
                         setActiveTab("overview");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
-                        activeTab === "overview" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${ activeTab ==="overview"&& !isMobileMenuOpen ?"text-[#E61E32]":"text-white/40 hover:text-white"}`}
                 >
                     <Globe className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Overview</span>
@@ -4222,9 +4203,7 @@ export default function EmployeePortal() {
                         setActiveTab("tasks");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${
-                        activeTab === "tasks" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${ activeTab ==="tasks"&& !isMobileMenuOpen ?"text-[#E61E32]":"text-white/40 hover:text-white"}`}
                 >
                     <div className="relative">
                         <ListTodo className="w-5 h-5" />
@@ -4241,9 +4220,7 @@ export default function EmployeePortal() {
                         setActiveTab("attendance");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
-                        activeTab === "attendance" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${ activeTab ==="attendance"&& !isMobileMenuOpen ?"text-[#E61E32]":"text-white/40 hover:text-white"}`}
                 >
                     <Clock className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Attendance</span>
@@ -4253,9 +4230,7 @@ export default function EmployeePortal() {
                         setActiveTab("meetings");
                         setIsMobileMenuOpen(false);
                     }}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${
-                        activeTab === "meetings" && !isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors relative ${ activeTab ==="meetings"&& !isMobileMenuOpen ?"text-[#E61E32]":"text-white/40 hover:text-white"}`}
                 >
                     <div className="relative">
                         <Video className="w-5 h-5" />
@@ -4269,9 +4244,7 @@ export default function EmployeePortal() {
                 </button>
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${
-                        isMobileMenuOpen ? "text-[#E61E32]" : "text-white/40 hover:text-white"
-                    }`}
+                    className={`flex flex-col items-center justify-center gap-1 text-center transition-colors ${ isMobileMenuOpen ?"text-[#E61E32]":"text-white/40 hover:text-white"}`}
                 >
                     <Menu className="w-5 h-5" />
                     <span className="text-[10px] font-medium">Menu</span>
@@ -4293,18 +4266,14 @@ export default function EmployeePortal() {
                         <div className="w-12 h-1 bg-white/20 rounded-full mx-auto -mt-2 mb-2" />
                         
                         <div className="space-y-4">
-                            <h3 className="text-xs font-bold uppercase tracking-widest text-white/40 px-2">Additional Pages</h3>
+                            <h3 className="text-xs font-bold tracking-widest text-white/40 px-2">Additional Pages</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => {
                                         setActiveTab("documents");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                        activeTab === "documents"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${ activeTab ==="documents"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FileText className="w-4 h-4" />
@@ -4321,11 +4290,7 @@ export default function EmployeePortal() {
                                         setActiveTab("payrolls");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                                        activeTab === "payrolls"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${ activeTab ==="payrolls"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <CreditCard className="w-4 h-4" />
                                     <span className="text-xs font-semibold">Payrolls</span>
@@ -4335,11 +4300,7 @@ export default function EmployeePortal() {
                                         setActiveTab("leaves");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                        activeTab === "leaves"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${ activeTab ==="leaves"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Calendar className="w-4 h-4" />
@@ -4356,11 +4317,7 @@ export default function EmployeePortal() {
                                         setActiveTab("settings");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                                        activeTab === "settings"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${ activeTab ==="settings"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <User className="w-4 h-4" />
                                     <span className="text-xs font-semibold">Profile Settings</span>
@@ -4370,11 +4327,7 @@ export default function EmployeePortal() {
                                         setActiveTab("community");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                        activeTab === "community"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${ activeTab ==="community"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <MessageSquare className="w-4 h-4" />
@@ -4391,11 +4344,7 @@ export default function EmployeePortal() {
                                         setActiveTab("declarations");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                        activeTab === "declarations"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${ activeTab ==="declarations"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <FolderUp className="w-4 h-4" />
@@ -4412,11 +4361,7 @@ export default function EmployeePortal() {
                                         setActiveTab("submissions");
                                         setIsMobileMenuOpen(false);
                                     }}
-                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
-                                        activeTab === "submissions"
-                                            ? "bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]"
-                                            : "bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"
-                                    }`}
+                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all ${ activeTab ==="submissions"?"bg-[#E61E32]/10 border-[#E61E32]/20 text-[#E61E32]":"bg-white/[0.02] border-white/5 text-white/70 hover:border-white/10"}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <Send className="w-4 h-4" />
@@ -4443,9 +4388,9 @@ export default function EmployeePortal() {
                                 </div>
                                 <div className="min-w-0">
                                     <p className="text-xs font-bold text-white truncate">{employeeInfo?.name}</p>
-                                    <p className="text-[10px] text-white/40 uppercase tracking-wider truncate mt-0.5">{employeeInfo?.role || "Team Member"}</p>
+                                    <p className="text-[10px] text-white/40 tracking-wider truncate mt-0.5">{employeeInfo?.role || "Team Member"}</p>
                                     {employeeInfo?.division && (
-                                        <p className="text-[9px] text-[#E61E32] font-semibold uppercase tracking-wider truncate mt-0.5">{employeeInfo.division}</p>
+                                        <p className="text-[9px] text-[#E61E32] font-semibold tracking-wider truncate mt-0.5">{employeeInfo.division}</p>
                                     )}
                                 </div>
                             </div>
@@ -4461,7 +4406,7 @@ export default function EmployeePortal() {
                                 setIsMobileMenuOpen(false);
                                 handleLogout();
                             }}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 bg-[#E61E32] hover:bg-[#E61E32]/95 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-[#E61E32]/10"
+                            className="w-full flex items-center justify-center gap-3 py-3.5 bg-[#E61E32] hover:bg-[#E61E32]/95 text-white font-bold text-xs tracking-widest rounded-xl transition-all shadow-lg shadow-[#E61E32]/10"
                         >
                             <LogOut className="w-4 h-4" />
                             Logout
@@ -4525,7 +4470,7 @@ export default function EmployeePortal() {
                                     <a
                                         href={previewFile.data}
                                         download={previewFile.name}
-                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors"
+                                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#E61E32] hover:bg-[#C81428] text-white text-xs font-bold tracking-wider rounded-lg transition-colors"
                                     >
                                         <Download className="w-3.5 h-3.5" /> Download File
                                     </a>
@@ -4554,7 +4499,7 @@ export default function EmployeePortal() {
                                 <div className="w-7 h-7 rounded-none bg-[#E61E32]/10 border border-[#E61E32]/25 flex items-center justify-center text-[#E61E32]">
                                     <KeyRound className="w-3.5 h-3.5" />
                                 </div>
-                                <h3 className="text-xs font-bold uppercase tracking-widest text-white">Change Account Password</h3>
+                                <h3 className="text-xs font-bold tracking-widest text-white">Change Account Password</h3>
                             </div>
                             <button 
                                 onClick={() => setIsChangePasswordModalOpen(false)} 
@@ -4581,7 +4526,7 @@ export default function EmployeePortal() {
                         <form onSubmit={handleChangePassword} className="space-y-4">
                             {/* Current Password */}
                             <div className="space-y-1.5">
-                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Current Password</label>
+                                <label className="block text-[10px] font-bold text-white/40 tracking-widest">Current Password</label>
                                 <input 
                                     type="password" 
                                     value={changePasswordCurrent}
@@ -4595,7 +4540,7 @@ export default function EmployeePortal() {
 
                             {/* New Password */}
                             <div className="space-y-1.5">
-                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">New Password</label>
+                                <label className="block text-[10px] font-bold text-white/40 tracking-widest">New Password</label>
                                 <input 
                                     type="password" 
                                     value={changePasswordNew}
@@ -4608,7 +4553,7 @@ export default function EmployeePortal() {
 
                             {/* Confirm Password */}
                             <div className="space-y-1.5">
-                                <label className="block text-[10px] font-bold text-white/40 uppercase tracking-widest">Confirm New Password</label>
+                                <label className="block text-[10px] font-bold text-white/40 tracking-widest">Confirm New Password</label>
                                 <input 
                                     type="password" 
                                     value={changePasswordConfirm}
@@ -4624,14 +4569,14 @@ export default function EmployeePortal() {
                                 <button
                                     type="button"
                                     onClick={() => setIsChangePasswordModalOpen(false)}
-                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors cursor-pointer"
+                                    className="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-bold text-xs tracking-widest rounded-none transition-colors cursor-pointer"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={isSavingPassword}
-                                    className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest rounded-none transition-colors flex items-center gap-2 cursor-pointer"
+                                    className="px-4 py-2.5 bg-[#E61E32] hover:bg-[#E61E32]/90 disabled:opacity-50 text-white font-bold text-xs tracking-widest rounded-none transition-colors flex items-center gap-2 cursor-pointer"
                                 >
                                     {isSavingPassword ? (
                                         <>
@@ -4654,7 +4599,7 @@ export default function EmployeePortal() {
 
 function StatCard({ icon, label, value, sublabel, color, className }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, color: string, className?: string }) {
     return (
-        <div className={`bg-white/[0.02] border border-white/5 p-3 flex items-center gap-3 hover:border-white/10 transition-colors group rounded-xl ${className || ""}`}>
+        <div className={`bg-white/[0.02] border border-white/5 p-3 flex items-center gap-3 hover:border-white/10 transition-colors group rounded-xl ${className ||""}`}>
             <div className={`w-8 h-8 bg-white/5 flex items-center justify-center border border-white/10 rounded-lg ${color} shrink-0`}>
                 <div className="w-4 h-4 flex items-center justify-center">
                     {icon}
@@ -4671,7 +4616,7 @@ function StatCard({ icon, label, value, sublabel, color, className }: { icon: Re
 
 function MainStatCard({ icon, label, value, sublabel, className }: { icon: React.ReactNode, label: string, value: string | number, sublabel: string, className?: string }) {
     return (
-        <div className={`bg-[#E61E32] text-white p-3 flex items-center gap-3 hover:bg-[#C81428] transition-colors group rounded-xl border border-transparent shadow-lg shadow-[#E61E32]/5 ${className || ""}`}>
+        <div className={`bg-[#E61E32] text-white p-3 flex items-center gap-3 hover:bg-[#C81428] transition-colors group rounded-xl border border-transparent shadow-lg shadow-[#E61E32]/5 ${className ||""}`}>
             <div className="w-8 h-8 bg-white/15 flex items-center justify-center border border-white/20 rounded-lg shrink-0">
                 <div className="w-4 h-4 flex items-center justify-center text-white">
                     {icon}
