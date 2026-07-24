@@ -12,7 +12,7 @@ const testimonials = [
     tempId: 0,
     testimonial: "An incredible collaboration. Redlix was professional, highly responsive, and transformed our vision into a beautiful, functional platform.",
     by: "NSS CMRIT, Student Chapter",
-    imgSrc: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSiY63DjvYa-bL8ci8s5_KTiLm_9Mw_Wy0Xdw&s",
+    imgSrc: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/National_Service_Scheme_logo.svg/1280px-National_Service_Scheme_logo.svg.png",
     bgColor: "#f5f3ff", // Soft Lavender
     borderColor: "#ddd6fe"
   },
@@ -82,10 +82,10 @@ interface TestimonialCardProps {
   cardHeight: number;
 }
 
-const TestimonialCard: React.FC<TestimonialCardProps> = ({ 
-  position, 
-  testimonial, 
-  handleMove, 
+const TestimonialCard: React.FC<TestimonialCardProps> = ({
+  position,
+  testimonial,
+  handleMove,
   cardWidth,
   cardHeight
 }) => {
@@ -96,8 +96,8 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       onClick={() => handleMove(position)}
       className={cn(
         "absolute left-1/2 top-1/2 cursor-pointer border-2 p-7 sm:p-8 transition-all duration-500 ease-in-out select-none",
-        isCenter 
-          ? "z-10 text-zinc-950 shadow-[0_12px_32px_rgba(0,0,0,0.06)]" 
+        isCenter
+          ? "z-10 text-zinc-950 shadow-[0_12px_32px_rgba(0,0,0,0.06)]"
           : "z-0 text-zinc-500 shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
       )}
       style={{
