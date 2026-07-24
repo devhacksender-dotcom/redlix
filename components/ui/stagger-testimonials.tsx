@@ -128,6 +128,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       <img
         src={testimonial.imgSrc}
         alt={`${testimonial.by.split(',')[0]}`}
+        suppressHydrationWarning
         className="mb-4 h-14 w-14 shrink-0 bg-zinc-100/50 object-cover object-top rounded-lg border border-zinc-200 shadow-[2px_2px_0px_rgba(0,0,0,0.04)]"
       />
       <h3 className={cn(
@@ -157,13 +158,13 @@ export const StaggerTestimonials: React.FC = () => {
       for (let i = steps; i > 0; i--) {
         const item = newList.shift();
         if (!item) return;
-        newList.push({ ...item, tempId: Math.random() });
+        newList.push(item);
       }
     } else {
       for (let i = steps; i < 0; i++) {
         const item = newList.pop();
         if (!item) return;
-        newList.unshift({ ...item, tempId: Math.random() });
+        newList.unshift(item);
       }
     }
     setTestimonialsList(newList);
