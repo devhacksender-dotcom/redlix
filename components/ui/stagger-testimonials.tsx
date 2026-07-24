@@ -129,6 +129,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         src={testimonial.imgSrc}
         alt={`${testimonial.by.split(',')[0]}`}
         suppressHydrationWarning
+        referrerPolicy="no-referrer"
         className="mb-4 h-14 w-14 shrink-0 bg-zinc-100/50 object-cover object-top rounded-lg border border-zinc-200 shadow-[2px_2px_0px_rgba(0,0,0,0.04)]"
       />
       <h3 className={cn(
