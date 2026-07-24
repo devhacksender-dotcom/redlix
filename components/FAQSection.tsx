@@ -50,100 +50,73 @@ const faqs = [
 ];
 
 export default function FAQSection() {
-    const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const [openIndex, setOpenIndex] = useState<number | null>(0);
 
     const toggleFAQ = (index: number) => {
         setOpenIndex(openIndex === index ? null : index);
     };
 
     return (
-        <section id="faq" className="w-full bg-[#fafafa] py-16 sm:py-24 lg:py-32 border-t border-gray-100 font-sans">
-            <div className="max-w-[1200px] mx-auto px-6 sm:px-10">
-                <div className="flex flex-col lg:flex-row gap-12 lg:gap-16">
-                    
-                    {/* Left Column */}
-                    <div className="w-full lg:w-[35%] flex flex-col items-start text-left">
-                        <div className="lg:sticky lg:top-28 space-y-4">
-                            {/* Pill Badge */}
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-zinc-200/80 rounded-full text-[12px] font-medium text-zinc-700 shadow-[0_2px_8px_rgba(0,0,0,0.01)] select-none">
-                                <svg className="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                FAQs
-                            </span>
-                            
-                            {/* Title */}
-                            <h2 className="text-[28px] sm:text-[34px] lg:text-[38px] font-semibold text-zinc-900 tracking-tight leading-tight lg:whitespace-nowrap">
-                                Can&apos;t find your answer?
-                            </h2>
-                            
-                            {/* Subtext */}
-                            <p className="text-zinc-500 text-[14px] sm:text-[15px] leading-relaxed max-w-[280px] font-normal">
-                                Book a call or send us a message on Telegram
-                            </p>
-                            
-                            {/* Button */}
-                            <div className="pt-2">
-                                <a
-                                    href="https://cal.com/redlix.co.in"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-zinc-950 hover:bg-zinc-800 text-white rounded-full text-[13.5px] font-medium transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 hover:shadow-[0_6px_16px_rgba(0,0,0,0.1)]"
-                                >
-                                    <img
-                                        src="https://www.gstatic.com/images/branding/productlogos/meet_2026/v2/web-96dp/logo_meet_2026_color_2x_web_96dp.png"
-                                        alt="Google Meet Logo"
-                                        className="w-4 h-4 flex-shrink-0"
-                                    />
-                                    Intro call
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+        <section id="faq" className="w-full bg-[#f4f4f5] py-16 sm:py-24 font-sans">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6">
+                {/* Section Title */}
+                <h2 className="text-3xl sm:text-4xl font-semibold text-center text-zinc-900 tracking-tight mb-10 sm:mb-12">
+                    FAQs
+                </h2>
 
-                    {/* Right Column: Accordion Cards */}
-                    <div className="w-full lg:w-[65%] flex flex-col gap-4">
-                        {faqs.map((faq, index) => {
-                            const isOpen = openIndex === index;
-                            return (
-                                <div
-                                    key={index}
-                                    className="bg-white border border-zinc-200/50 rounded-[20px] shadow-[0_2px_12px_rgba(0,0,0,0.015)] transition-all duration-300 hover:border-zinc-300/80"
+                {/* FAQ Container Card */}
+                <div className="bg-white rounded-lg border border-zinc-200/80 shadow-sm divide-y divide-zinc-200">
+                    {faqs.map((faq, index) => {
+                        const isOpen = openIndex === index;
+                        return (
+                            <div key={index} className="transition-colors">
+                                <button
+                                    onClick={() => toggleFAQ(index)}
+                                    className="w-full flex items-center justify-between px-6 py-5 text-left focus:outline-none cursor-pointer group"
                                 >
-                                    <button
-                                        onClick={() => toggleFAQ(index)}
-                                        className="w-full flex items-center justify-between p-6 text-left focus:outline-none"
-                                    >
-                                        <span className="text-[15px] sm:text-[16.5px] font-semibold text-zinc-900 leading-snug pr-4">
-                                            {faq.question}
-                                        </span>
+                                    <span className="text-[15px] sm:text-[16.5px] font-semibold text-zinc-900 leading-snug pr-4">
+                                        Q{index + 1}. {faq.question}
+                                    </span>
+                                    {isOpen ? (
                                         <svg
-                                            className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform duration-300 ${isOpen ? "rotate-180 text-zinc-800" : ""}`}
+                                            className="w-5 h-5 text-zinc-900 shrink-0 transition-transform duration-200"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
                                             strokeWidth={2.5}
                                         >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
                                         </svg>
-                                    </button>
-                                    
-                                    <div
-                                        className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"}`}
-                                    >
-                                        <div className="px-6 pb-6 pt-0">
-                                            <p className="text-[13.5px] sm:text-[14.5px] text-zinc-500 leading-relaxed font-normal">
-                                                {faq.answer}
-                                            </p>
-                                        </div>
+                                    ) : (
+                                        <svg
+                                            className="w-5 h-5 text-zinc-900 shrink-0 transition-transform duration-200"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2.5}
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+                                    )}
+                                </button>
+
+                                <div
+                                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                                        isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                                    }`}
+                                >
+                                    <div className="px-6 pb-6 pt-1">
+                                        <p className="text-[13.5px] sm:text-[14.5px] text-zinc-600 leading-relaxed font-normal">
+                                            {faq.answer}
+                                        </p>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </section>
     );
 }
+

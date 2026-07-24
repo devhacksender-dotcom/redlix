@@ -207,7 +207,6 @@ const ContactPopup = () => {
                                                 className="flex items-center gap-1.5 border border-r-0 border-gray-300 px-2.5 bg-gray-100 shrink-0 cursor-pointer hover:bg-gray-200 transition-colors"
                                                 style={{ borderRadius: 0 }}
                                             >
-                                                <img src={`https://flagcdn.com/w20/${selectedCountry.flag}.png`} alt={selectedCountry.name} className="w-4 h-auto" />
                                                 <span className="text-[12px] text-gray-600">{selectedCountry.code}</span>
                                                 <ChevronDown className="w-3.5 h-3.5 text-gray-500 shrink-0" />
                                             </div>
@@ -242,7 +241,6 @@ const ContactPopup = () => {
                                                                     }}
                                                                     className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 cursor-pointer transition-colors border-b border-gray-100 last:border-0"
                                                                 >
-                                                                    <img src={`https://flagcdn.com/w20/${c.flag}.png`} className="w-4 h-auto" alt={c.name} />
                                                                     <span className="text-[13px] text-gray-800 font-medium">{c.name}</span>
                                                                     <span className="ml-auto text-[11px] text-gray-400">{c.code}</span>
                                                                 </div>

@@ -220,16 +220,8 @@ export default function BlogsPage() {
                                             }}
                                             className="flex flex-col group cursor-pointer bg-white border border-zinc-200/60 rounded-[20px] shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden"
                                         >
-                                            <div className="w-full h-[180px] overflow-hidden bg-zinc-50 relative border-b border-zinc-100">
-                                                <img
-                                                    src={post.image}
-                                                    alt={post.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 group-hover:opacity-95 transition-all duration-500 ease-in-out"
-                                                />
-                                            </div>
-
-                                            <div className="p-5 flex flex-col flex-grow">
-                                                <div className="flex items-center gap-2 mb-2.5">
+                                            <div className="p-6 flex flex-col flex-grow">
+                                                <div className="flex items-center gap-2 mb-3">
                                                     <span className="text-[9.5px] font-bold bg-[#E61E32]/10 text-[#E61E32] px-2 py-0.5 tracking-wide rounded-sm uppercase">
                                                         {post.tag}
                                                     </span>
@@ -279,7 +271,7 @@ export default function BlogsPage() {
                             </button>
 
                             {/* Article Header info */}
-                            <div className="space-y-3 mb-6">
+                            <div className="space-y-3 mb-8 border-b border-zinc-100 pb-6">
                                 <div className="flex items-center gap-3">
                                     <span className="text-[10px] font-bold bg-[#E61E32]/10 text-[#E61E32] px-2.5 py-1 tracking-wide rounded-sm uppercase">
                                         {blogPosts[activePostIndex].tag}
@@ -294,15 +286,6 @@ export default function BlogsPage() {
                                 <p className="text-[15px] sm:text-[16px] text-zinc-500 leading-relaxed font-light italic">
                                     {blogPosts[activePostIndex].description}
                                 </p>
-                            </div>
-
-                            {/* Hero Image */}
-                            <div className="w-full h-[220px] sm:h-[300px] overflow-hidden rounded-[20px] mb-6 border border-zinc-200/50">
-                                <img
-                                    src={blogPosts[activePostIndex].image}
-                                    alt={blogPosts[activePostIndex].title}
-                                    className="w-full h-full object-cover"
-                                />
                             </div>
 
                             {/* Article Content */}

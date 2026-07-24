@@ -56,14 +56,6 @@ export default function BlogsSection() {
                             rel="noopener noreferrer"
                             className="flex flex-col group cursor-pointer bg-white border border-gray-200 rounded-none shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                         >
-                            <div className="w-full h-[180px] overflow-hidden bg-gray-100 rounded-none relative border-b border-gray-100">
-                                <img
-                                    src={post.image}
-                                    alt={post.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 group-hover:opacity-90 transition-all duration-500 ease-in-out"
-                                />
-                            </div>
-
                             <div className="p-6 flex flex-col flex-grow">
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className="text-[10px] font-medium bg-[#E61E32]/10 text-[#E61E32] px-2 py-0.5 tracking-wide rounded-sm">
