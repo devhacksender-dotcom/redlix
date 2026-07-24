@@ -94,6 +94,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   return (
     <div
       onClick={() => handleMove(position)}
+      suppressHydrationWarning
       className={cn(
         "absolute left-1/2 top-1/2 cursor-pointer border-2 p-7 sm:p-8 transition-all duration-500 ease-in-out select-none",
         isCenter
@@ -129,7 +130,6 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         src={testimonial.imgSrc}
         alt={`${testimonial.by.split(',')[0]}`}
         suppressHydrationWarning
-        referrerPolicy="no-referrer"
         className="mb-4 h-14 w-14 shrink-0 bg-zinc-100/50 object-cover object-top rounded-lg border border-zinc-200 shadow-[2px_2px_0px_rgba(0,0,0,0.04)]"
       />
       <h3 className={cn(
