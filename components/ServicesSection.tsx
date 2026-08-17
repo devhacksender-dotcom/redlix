@@ -2,50 +2,47 @@ import React from "react";
 import Link from "next/link";
 import { Sparkles, Globe, Smartphone, Cpu, Layers } from "lucide-react";
 
-// Prepend high-fidelity SVGs inside technology pills using jsDelivr CDN (to bypass ad-blockers) styled to match theme.
+// Prepend high-fidelity colored SVGs inside technology pills using jsDelivr CDN (whitelisted in CSP)
 function getPillIcon(pill: string) {
-    const slugMap: Record<string, string> = {
-        "TypeScript": "typescript",
-        "JavaScript": "javascript",
-        "Python": "python",
-        "Go": "go",
-        "Rust": "rust",
-        "C++": "cplusplus",
-        "C": "c",
-        "PHP": "php",
-        "Ruby": "ruby",
-        "Swift": "swift",
-        "Kotlin": "kotlin",
-        "HTML5": "html5",
-        "CSS3": "css3",
-        "Dart": "dart",
-        "Zig": "zig",
-        "React": "react",
-        "Next.js": "nextdotjs",
-        "Node.js": "nodedotjs",
-        "PostgreSQL": "postgresql",
-        "MongoDB": "mongodb",
-        "Redis": "redis",
-        "Docker": "docker",
-        "Kubernetes": "kubernetes",
-        "GraphQL": "graphql",
-        "Prisma": "prisma",
-        "Stripe": "stripe",
-        "Firebase": "firebase",
-        "Git": "git",
-        "Java": "java",
-        "AWS": "amazonwebservices"
+    const iconMap: Record<string, string> = {
+        "TypeScript": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+        "JavaScript": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+        "Python": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+        "Go": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/go/go-original.svg",
+        "Rust": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/rust/rust-original.svg",
+        "C++": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/cplusplus/cplusplus-original.svg",
+        "C": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/c/c-original.svg",
+        "PHP": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg",
+        "Ruby": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/ruby/ruby-original.svg",
+        "Swift": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/swift/swift-original.svg",
+        "Kotlin": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kotlin/kotlin-original.svg",
+        "HTML5": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
+        "CSS3": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg",
+        "Dart": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dart/dart-original.svg",
+        "Zig": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/zig/zig-original.svg",
+        "React": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+        "Next.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+        "Node.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+        "PostgreSQL": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+        "MongoDB": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+        "Redis": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/redis/redis-original.svg",
+        "Docker": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+        "Kubernetes": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/kubernetes/kubernetes-plain.svg",
+        "GraphQL": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/graphql/graphql-plain.svg",
+        "Prisma": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prisma/prisma-original.svg",
+        "Stripe": "https://cdn.jsdelivr.net/npm/simple-icons@6.23.0/icons/stripe.svg",
+        "Firebase": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/firebase/firebase-plain.svg",
+        "Git": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+        "Java": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/java/java-original.svg",
+        "AWS": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-plain-wordmark.svg"
     };
-    const slug = slugMap[pill];
-    if (!slug) return null;
+    const iconUrl = iconMap[pill];
+    if (!iconUrl) return null;
     return (
         <img
-            src={`https://cdn.jsdelivr.net/npm/simple-icons@6.23.0/icons/${slug}.svg`}
+            src={iconUrl}
             alt=""
             className="w-4 h-4 shrink-0 mr-1.5 object-contain"
-            style={{
-                filter: "invert(18%) sepia(85%) saturate(1478%) hue-rotate(185deg) brightness(91%) contrast(101%)"
-            }}
             loading="lazy"
         />
     );

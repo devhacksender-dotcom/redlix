@@ -2,40 +2,38 @@ import React from "react";
 
 const uniqueLogos = [
     {
-        src: "https://ik.imagekit.io/dypkhqxip/Polyglot%20logo%20new%20(1).png?updatedAt=1779454548832",
-        alt: "Polyglot Logo",
-        useFilter: true
-    },
-    {
-        src: "https://ik.imagekit.io/dypkhqxip/picsihoriz?updatedAt=1778919009480",
-        alt: "PisciDrop Logo",
-        useFilter: true
-    },
-    {
-        src: "https://ik.imagekit.io/dypkhqxip/smartfitai",
-        alt: "SmartFitAI Logo",
-        useFilter: true
-    },
-    {
-        src: "https://ik.imagekit.io/dypkhqxip/sflogo?updatedAt=1774952380858",
-        alt: "Student Forge Logo",
-        useFilter: true
-    },
-    {
         src: "https://ik.imagekit.io/dypkhqxip/WhatsApp_Image_2026-05-22_at_16.50.47-removebg-preview.png",
         alt: "Shraddha Logo",
-        useFilter: true // Disable filter to keep it visible (since JPEGs turn into a solid black box with brightness-0)
+        height: "36px"
     },
     {
         src: "https://ik.imagekit.io/dypkhqxip/the%20fli%20(1).png",
         alt: "The Fli Logo",
-        useFilter: true,
-        customClass: "h-[65px] md:h-[72px]" // Increase size
+        height: "56px"
+    },
+    {
+        src: "https://ik.imagekit.io/dypkhqxip/Polyglot%20logo%20new%20(1).png?updatedAt=1779454548832",
+        alt: "Polyglot Logo",
+        height: "38px"
+    },
+    {
+        src: "https://ik.imagekit.io/dypkhqxip/picsihoriz?updatedAt=1778919009480",
+        alt: "PisciDrop Logo",
+        height: "38px"
+    },
+    {
+        src: "https://ik.imagekit.io/dypkhqxip/smartfitai",
+        alt: "SmartFitAI Logo",
+        height: "36px"
+    },
+    {
+        src: "https://ik.imagekit.io/dypkhqxip/sflogo?updatedAt=1774952380858",
+        alt: "Student Forge Logo",
+        height: "38px"
     }
 ];
 
 // Repeat the unique logos 4 times to ensure the group width is wider than the screen.
-// This guarantees a perfectly seamless, gap-free marquee loop on all screen sizes.
 const logos = [...uniqueLogos, ...uniqueLogos, ...uniqueLogos, ...uniqueLogos];
 
 export default function LogoTicker() {
@@ -53,11 +51,19 @@ export default function LogoTicker() {
                             {/* Slide Group 1 */}
                             <div className="flex items-center gap-10 md:gap-14 flex-shrink-0">
                                 {logos.map((logo, index) => (
-                                    <div key={`g1-${index}`} className="flex items-center group cursor-pointer">
+                                    <div key={`g1-${index}`} className="flex items-center justify-center group cursor-pointer flex-shrink-0">
                                         <img
                                             src={logo.src}
                                             alt={logo.alt}
-                                            className={`${logo.customClass || "h-[32px] md:h-[38px]"} w-auto ${logo.useFilter ? "filter brightness-0 opacity-55 group-hover:opacity-95" : "opacity-80 group-hover:opacity-100"} transition-all duration-300 object-contain`}
+                                            style={{
+                                                height: logo.height || "36px",
+                                                maxHeight: "60px",
+                                                width: "auto",
+                                                objectFit: "contain",
+                                                filter: "grayscale(100%) brightness(0.4)",
+                                                opacity: 0.65
+                                            }}
+                                            className="transition-all duration-300 group-hover:opacity-100 group-hover:brightness-50 object-contain"
                                         />
                                     </div>
                                 ))}
@@ -66,11 +72,19 @@ export default function LogoTicker() {
                             {/* Slide Group 2 (Duplicate for infinite seamless scroll) */}
                             <div className="flex items-center gap-10 md:gap-14 flex-shrink-0">
                                 {logos.map((logo, index) => (
-                                    <div key={`g2-${index}`} className="flex items-center group cursor-pointer">
+                                    <div key={`g2-${index}`} className="flex items-center justify-center group cursor-pointer flex-shrink-0">
                                         <img
                                             src={logo.src}
                                             alt={logo.alt}
-                                            className={`${logo.customClass || "h-[32px] md:h-[38px]"} w-auto ${logo.useFilter ? "filter brightness-0 opacity-55 group-hover:opacity-95" : "opacity-80 group-hover:opacity-100"} transition-all duration-300 object-contain`}
+                                            style={{
+                                                height: logo.height || "36px",
+                                                maxHeight: "60px",
+                                                width: "auto",
+                                                objectFit: "contain",
+                                                filter: "grayscale(100%) brightness(0.4)",
+                                                opacity: 0.65
+                                            }}
+                                            className="transition-all duration-300 group-hover:opacity-100 group-hover:brightness-50 object-contain"
                                         />
                                     </div>
                                 ))}
